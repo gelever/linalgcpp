@@ -21,15 +21,20 @@ class DenseMatrix
 		DenseMatrix(int rows, int cols, const std::vector<double>& data);
 
 		DenseMatrix(const DenseMatrix&) = default;
-		DenseMatrix(DenseMatrix&&) = default;
+
+		friend void Swap(DenseMatrix& lhs, DenseMatrix& rhs);
+		DenseMatrix(DenseMatrix&&);
 		~DenseMatrix() = default;
 
-		void Print(const std::string& lable = "") const;
+		void Print(const std::string& label = "") const;
 
 		double& operator()(int row, int col);
 		const double& operator()(int row, int col) const;
 
 		void Mult(const std::vector<double>& input, std::vector<double>& output);
+
+		int Rows() const;
+		int Cols() const;
 
 	private:
 		int rows_;
@@ -37,6 +42,18 @@ class DenseMatrix
 		std::vector<double> data_;
 
 };
+
+inline
+int DenseMatrix::Rows() const
+{
+	return rows_;
+}
+
+inline
+int DenseMatrix::Cols() const
+{
+	return cols_;
+}
 
 inline
 double& DenseMatrix::operator()(int row, int col)

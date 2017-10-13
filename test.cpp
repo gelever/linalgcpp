@@ -1,6 +1,46 @@
 #include <stdio.h>
 #include "src/vector.hpp"
 #include "src/densematrix.hpp"
+#include "src/sparsematrix.hpp"
+#include "src/coomatrix.hpp"
+
+void test_coo()
+{
+	// Without setting specfic size
+	{
+		CooMatrix coo(10, 10);
+		coo.Add(0, 0, 1.0);
+		coo.Add(0, 1, 2.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(2, 2, 3.0);
+		coo.Add(4, 2, 3.0);
+
+		auto dense = coo.ToDense();
+		dense.Print();
+
+		auto sparse = coo.ToSparse();
+		sparse.PrintDense();
+	}
+	// Without setting specfic size
+	{
+		CooMatrix coo;
+		coo.Add(0, 0, 1.0);
+		coo.Add(0, 1, 2.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(1, 1, 3.0);
+		coo.Add(2, 2, 3.0);
+		coo.Add(4, 2, 3.0);
+
+		auto dense = coo.ToDense();
+		dense.Print();
+
+		auto sparse = coo.ToSparse();
+		sparse.PrintDense();
+	}
+}
 
 void test_dense()
 {
@@ -69,6 +109,7 @@ int main(int argc, char** argv)
 {
 	test_vector();
 	test_dense();
+	test_coo();
 
 	return EXIT_SUCCESS;
 }
