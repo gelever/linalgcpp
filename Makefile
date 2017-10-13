@@ -17,7 +17,7 @@ $(PROGS): $(OBJS)
 	$(CXX) $(CXX_FLAGS) $^ $@.cpp $(LIBS) -o $(BUILD_DIR)/$@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CC) $(C_FLAGS) -c $< $(LIBS) -o $@
+	$(CXX) $(C_FLAGS) -c $< $(LIBS) -o $@
 
 clean:
 	@rm -rf $(OBJ_DIR)/*.o

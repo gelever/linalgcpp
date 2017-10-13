@@ -133,9 +133,14 @@ SparseMatrix CooMatrix::ToSparse() const
 	rows++;
 	cols++;
 
+	assert(rows >= 0);
+	assert(cols >= 0);
+
 	std::vector<int> indptr(rows + 1);
 	std::vector<int> indices;
 	std::vector<double> data;
+
+	indptr[0] = 0;
 
 	int current_row = 0;
 
@@ -156,6 +161,7 @@ SparseMatrix CooMatrix::ToSparse() const
 			}
 		}
 
+
 		// Add data and indices
 		if (indices.size() && j == indices.back() && i == current_row)
 		{
@@ -170,8 +176,8 @@ SparseMatrix CooMatrix::ToSparse() const
 		current_row = i;
 	}
 
-	std::fill(begin(indptr) + current_row,
-			end(indptr), data.size());
+	std::fill(begin(indptr) + current_row + 1,
+	          end(indptr), data.size());
 
 	return SparseMatrix(indptr, indices, data, rows, cols);
 }
