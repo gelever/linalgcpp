@@ -47,6 +47,30 @@ class SparseMatrix
 
 		void SortIndices();
 
+		std::vector<double> Mult(const std::vector<double>& input) const;
+		std::vector<double> MultAT(const std::vector<double>& input) const;
+
+		void Mult(const std::vector<double>& input, std::vector<double>& output) const;
+		void MultAT(const std::vector<double>& input, std::vector<double>& output) const;
+
+		DenseMatrix Mult(const DenseMatrix& input) const;
+		DenseMatrix MultAT(const DenseMatrix& input) const;
+
+		void Mult(const DenseMatrix& input, DenseMatrix& output) const;
+		void MultAT(const DenseMatrix& input, DenseMatrix& output) const;
+
+		SparseMatrix Mult(const SparseMatrix& rhs) const;
+
+		SparseMatrix Transpose() const;
+
+		std::vector<double> GetDiag() const;
+
+		SparseMatrix GetSubMatrix(const std::vector<int>& rows,
+				          const std::vector<int>& cols,
+					  std::vector<int>& marker) const;
+
+
+
 	private:
 		int rows_;
 		int cols_;
