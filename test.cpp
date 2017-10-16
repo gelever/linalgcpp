@@ -226,6 +226,12 @@ void test_coo()
         auto diff = dense - sparse.ToDense();
 
         assert(std::fabs(diff.Sum()) < 1e-8);
+
+        CooMatrix<double> coo2(coo);
+        CooMatrix<double> coo3;
+        coo3 = coo;
+
+        SparseMatrix<int> sp = coo.ToSparse<int>();
     }
     {
         const int size = 1e1;

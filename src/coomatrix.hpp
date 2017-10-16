@@ -158,7 +158,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 
     std::vector<int> indptr(rows + 1);
     std::vector<int> indices;
-    std::vector<T> data;
+    std::vector<T2> data;
 
     indptr[0] = 0;
 
