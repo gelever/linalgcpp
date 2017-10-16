@@ -29,11 +29,11 @@ void test_sparse()
         indices[3] = 1;
         indices[4] = 2;
 
-        data[0] = 1;
-        data[1] = 2;
-        data[2] = 3;
-        data[3] = 4;
-        data[4] = 5;
+        data[0] = 1.5;
+        data[1] = 2.5;
+        data[2] = 3.5;
+        data[3] = 4.5;
+        data[4] = 5.5;
 
         A = SparseMatrix<double>(indptr, indices, data, size, size);
 
@@ -76,16 +76,25 @@ void test_sparse()
 
     SparseMatrix<> AA_int = A.Mult(A);
 
-    Vector<double> x(size, 1.0);
+    Vector<double> x(size, 1.5);
     Vector<double> y = A.Mult(x);
     Vector<double> yt = A.MultAT(x);
 
-    printf("x:");
-    std::cout << x;
-    printf("Ax = y:");
-    std::cout << y;
-    printf("A^T x = y:");
-    std::cout << yt;
+    // printf("x:");
+    // std::cout << x;
+    // printf("Ax = y:");
+    // std::cout << y;
+    // printf("A^T x = y:");
+    // std::cout << yt;
+
+    Vector<int> x_int(size, 1.0);
+    auto y_auto = A.Mult(x_int);
+    auto y_auto_int = A_int.Mult(x_int);
+    auto y_auto_dub = A_int.Mult(x);
+
+    y_auto.Print("y_auto");
+    y_auto_int.Print("y_auto_int");
+    y_auto_dub.Print("y_auto_dub");
 
     DenseMatrix rhs(size);
 
@@ -377,10 +386,10 @@ void test_vector()
 
 int main(int argc, char** argv)
 {
-    test_sparse();
     test_dense();
     test_coo();
     test_vector();
+    test_sparse();
 
     return EXIT_SUCCESS;
 }
