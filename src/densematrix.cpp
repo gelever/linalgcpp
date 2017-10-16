@@ -8,6 +8,10 @@ extern "C"
 	            const double * B, const int * ldb, const double * beta,
 	            double * C, const int * ldc);
 }
+
+namespace linalgcpp
+{
+
 DenseMatrix::DenseMatrix()
 	: rows_(0), cols_(0)
 {
@@ -207,7 +211,12 @@ DenseMatrix& DenseMatrix::operator-=(const DenseMatrix& other)
 	assert(rows_ == other.rows_);
 	assert(cols_ == other.cols_);
 
-	data_ -= other.data_;
+	const int nnz = rows_ * cols_;
+
+	for (int i = 0; i < nnz; ++i)
+	{
+		data_[i] -= other.data_[i];
+	}
 
 	return *this;
 }
@@ -217,7 +226,12 @@ DenseMatrix& DenseMatrix::operator+=(const DenseMatrix& other)
 	assert(rows_ == other.rows_);
 	assert(cols_ == other.cols_);
 
-	data_ += other.data_;
+	const int nnz = rows_ * cols_;
+
+	for (int i = 0; i < nnz; ++i)
+	{
+		data_[i] += other.data_[i];
+	}
 
 	return *this;
 }
@@ -234,7 +248,10 @@ DenseMatrix operator-(DenseMatrix lhs, const DenseMatrix& rhs)
 
 DenseMatrix& DenseMatrix::operator*=(double val)
 {
-	data_ *= val;
+	for (auto& i : data_)
+	{
+		i *= val;
+	}
 
 	return *this;
 }
@@ -251,7 +268,12 @@ DenseMatrix operator*(double val, DenseMatrix rhs)
 
 DenseMatrix& DenseMatrix::operator/=(double val)
 {
-	data_ /= val;
+	assert(val != 0);
+
+	for (auto& i : data_)
+	{
+		i /= val;
+	}
 
 	return *this;
 }
@@ -267,4 +289,6 @@ DenseMatrix& DenseMatrix::operator=(double val)
 
 	return *this;
 }
+
+} // namespace linalgcpp
 

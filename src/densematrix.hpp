@@ -12,6 +12,9 @@
 
 #include "vector.hpp"
 
+namespace linalgcpp
+{
+
 class DenseMatrix
 {
 	public:
@@ -119,7 +122,10 @@ double DenseMatrix::Sum() const
 {
 	assert(data_.size());
 
-	return ::Sum(data_);
+	double total = 0.0;
+	std::accumulate(begin(data_), end(data_), total);
+
+	return total;
 }
 
 inline
@@ -127,7 +133,7 @@ double DenseMatrix::Max() const
 {
 	assert(data_.size());
 
-	return ::Max(data_);
+	return *std::max_element(begin(data_), end(data_));
 }
 
 inline
@@ -135,7 +141,9 @@ double DenseMatrix::Min() const
 {
 	assert(data_.size());
 
-	return ::Min(data_);
+	return *std::min_element(begin(data_), end(data_));
 }
+
+} //namespace linalgcpp
 
 #endif // DENSEMATRIX_HPP__

@@ -1,18 +1,19 @@
 #include "vector.hpp"
 
+namespace linalgcpp
+{
 
-void Normalize(std::vector<double>& vect)
+void Normalize(Vector<double>& vect)
 {
 	vect /= L2Norm(vect);
 }
 
-double L2Norm(const std::vector<double>& vect)
-{
-	return std::sqrt(vect * vect);
-}
-
-void SubAvg(std::vector<double>& vect)
+void SubAvg(Vector<double>& vect)
 {
 	vect -= Mean(vect);
 }
 
+template class Vector<int>;
+template class Vector<double>;
+
+} // namespace linalgcpp

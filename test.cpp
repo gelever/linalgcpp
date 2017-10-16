@@ -2,50 +2,89 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "src/vector.hpp"
-#include "src/densematrix.hpp"
-#include "src/sparsematrix.hpp"
-#include "src/coomatrix.hpp"
+#include "src/linalgcpp.hpp"
+
+using namespace linalgcpp;
 
 void test_sparse()
 {
 	const int size = 3;
 	const int nnz = 5;
 
-	std::vector<int> indptr(size + 1);
-	std::vector<int> indices(nnz);
-	std::vector<double> data(nnz);
+    SparseMatrix<double> A;
 
-	indptr[0] = 0;
-	indptr[1] = 2;
-	indptr[2] = 3;
-	indptr[3] = 5;
+    {
+        std::vector<int> indptr(size + 1);
+        std::vector<int> indices(nnz);
+        std::vector<double> data(nnz);
 
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 0;
-	indices[3] = 1;
-	indices[4] = 2;
+        indptr[0] = 0;
+        indptr[1] = 2;
+        indptr[2] = 3;
+        indptr[3] = 5;
 
-	data[0] = 1;
-	data[1] = 2;
-	data[2] = 3;
-	data[3] = 4;
-	data[4] = 5;
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 0;
+        indices[3] = 1;
+        indices[4] = 2;
 
-	SparseMatrix A(indptr, indices, data, size, size);
+        data[0] = 1;
+        data[1] = 2;
+        data[2] = 3;
+        data[3] = 4;
+        data[4] = 5;
+
+        A = SparseMatrix<double>(indptr, indices, data, size, size);
+
+        SparseMatrix<double> test(indptr, indices, data, size, size);
+        SparseMatrix<double> test2(std::move(test));
+    }
+
 	A.PrintDense("A:");
 
-	std::vector<double> x(size, 1.0);
+    SparseMatrix<int> A_int;
+    {
+        std::vector<int> indptr(size + 1);
+        std::vector<int> indices(nnz);
+        std::vector<int> data(nnz);
 
-	auto y = A.Mult(x);
-	auto yt = A.MultAT(x);
+        indptr[0] = 0;
+        indptr[1] = 2;
+        indptr[2] = 3;
+        indptr[3] = 5;
+
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 0;
+        indices[3] = 1;
+        indices[4] = 2;
+
+        data[0] = 1;
+        data[1] = 2;
+        data[2] = 3;
+        data[3] = 4;
+        data[4] = 5;
+
+        A_int = SparseMatrix<int>(indptr, indices, data, size, size);
+    }
+
+	A_int.PrintDense("A_int:");
+
+	auto AA = A.Mult(A);
+    AA.PrintDense("A*A:");
+
+	SparseMatrix<> AA_int = A.Mult(A);
+
+	Vector<double> x(size, 1.0);
+	Vector<double> y = A.Mult(x);
+	Vector<double> yt = A.MultAT(x);
 
 	printf("x:");
 	std::cout << x;
-	printf("y:");
+	printf("Ax = y:");
 	std::cout << y;
-	printf("yt:");
+	printf("A^T x = y:");
 	std::cout << yt;
 
 	DenseMatrix rhs(size);
@@ -84,11 +123,11 @@ void test_sparse()
 	submat.PrintDense("Submat");
 
 	{
-		const int size = 1e5;
-		const int sub_size = 1e2;
-		const int num_entries = 5e6;
+		const int size = 1e2;
+		const int sub_size = 1e1;
+		const int num_entries = 5e3;
 
-		CooMatrix coo(size);
+		CooMatrix<double> coo(size);
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
@@ -118,8 +157,11 @@ void test_sparse()
 		auto submat = sparse.GetSubMatrix(rows, cols, marker);
 		printf("%d %d %d\n", submat.Rows(), submat.Cols(), submat.nnz());
 
+		CooMatrix<double> coo2 = coo;
+		auto sparse2 = coo2.ToSparse();
+
 		//submat.PrintDense("submat:");
-		submat.Print("submat:");
+		//submat.Print("submat:");
 
 	}
 
@@ -130,7 +172,7 @@ void test_coo()
 {
 	// Without setting specfic size
 	{
-		CooMatrix coo(10, 10);
+		CooMatrix<double> coo(10, 10);
 		coo.Add(0, 0, 1.0);
 		coo.Add(0, 1, 2.0);
 		coo.Add(1, 1, 3.0);
@@ -145,7 +187,7 @@ void test_coo()
 	}
 	// Without setting specfic size
 	{
-		CooMatrix coo;
+		CooMatrix<double> coo;
 		coo.Add(0, 0, 1.0);
 		coo.Add(0, 1, 2.0);
 		coo.Add(1, 1, 3.0);
@@ -161,7 +203,7 @@ void test_coo()
 		assert(std::fabs(diff.Sum()) < 1e-8);
 	}
 	{
-		CooMatrix coo(10, 10);
+		CooMatrix<double> coo(10, 10);
 
 		std::vector<int> rows({8, 0, 3});
 		std::vector<int> cols({6, 4, 8});
@@ -189,7 +231,7 @@ void test_coo()
 		const int size = 1e1;
 		const int num_entries = 1e2;
 
-		CooMatrix coo(size);
+		CooMatrix<double> coo(size);
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
@@ -243,12 +285,12 @@ void test_dense()
 	d2.Mult(x, y);
 
 	printf("d2 * x = y:\n");
-	std::cout << y;
+	//std::cout << y;
 
 	printf("d2 * y:\n");
 	d2.MultAT(y, x);
 
-	std::cout << x;
+	//std::cout << x;
 
 	DenseMatrix A(3, 2);
 	DenseMatrix B(2, 4);
@@ -297,34 +339,33 @@ void test_vector()
 {
 	const int size = 5;
 
-	std::vector<double> d1(size, 1.0);
-	std::vector<double> d2(size, 2.0);
+	Vector<double> v1;
+	Vector<double> v2(size);
+	Vector<double> v3(size, 3.0);
 
-	std::vector<double> d3 = d1 + d2;
-	std::vector<double> d4 = d1 - d2;
-	std::vector<double> d5 = 5.0 * d1;
-	std::vector<double> d6 = d1;
-	std::vector<double> d7 = d2;
-	d6 *= 1.5;
-	d7 /= 1.5;
+	std::cout << "v1:";
+	std::cout << v1;
+	std::cout << "v2:";
+	std::cout << v2;
+	std::cout << "v3:";
+	std::cout << v3;
 
+    Normalize(v3);
+	std::cout << "v3 normalized:";
+	std::cout << v3;
 
-	std::cout << d1;
-	std::cout << d2;
-	std::cout << d3;
-	std::cout << d4;
-	std::cout << d5;
-	std::cout << d6;
-	std::cout << d7;
-	std::cout << d4 * d3 << "\n";
+	std::cout << "v3[0]:" << v3[0] << "\n";
+
+	auto v4 = v3 * v3;
+	std::cout << "v3 * v3: " << v4 << "\n";
 }
 
 int main(int argc, char** argv)
 {
-	test_vector();
+	test_sparse();
 	test_dense();
 	test_coo();
-	test_sparse();
+	test_vector();
 
 	return EXIT_SUCCESS;
 }
