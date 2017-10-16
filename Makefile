@@ -13,10 +13,11 @@ PROGS := test
 all: $(OBJS) $(PROGS)
 
 $(PROGS): $(OBJS)
-	@echo $@
+	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXX_FLAGS) $^ $@.cpp $(LIBS) -o $(BUILD_DIR)/$@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(C_FLAGS) -c $< $(LIBS) -o $@
 
 clean:
