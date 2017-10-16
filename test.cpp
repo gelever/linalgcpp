@@ -283,17 +283,17 @@ void test_dense()
     d2(4, 0) = 4.0;
     d2(0, 4) = 4.0;
 
-    d2.Print();
+    // d2.Print();
 
-    std::vector<double> x(size, 1.0);
-    std::vector<double> y(size);
+    Vector<double> x(size, 1.0);
+    Vector<double> y(size);
 
     d2.Mult(x, y);
 
-    printf("d2 * x = y:\n");
+    // printf("d2 * x = y:\n");
     //std::cout << y;
 
-    printf("d2 * y:\n");
+    // printf("d2 * y:\n");
     d2.MultAT(y, x);
 
     //std::cout << x;
@@ -310,35 +310,44 @@ void test_dense()
     B(1, 1) = 3.0;
     B(1, 3) = 4.0;
 
-    A.Print("A:");
-    B.Print("B:");
+    // A.Print("A:");
+    // B.Print("B:");
 
     DenseMatrix C = A.Mult(B);
 
-    C.Print("C:");
+    // C.Print("C:");
 
     DenseMatrix D = A.MultAT(C);
-    D.Print("D:");
+    // D.Print("D:");
 
     DenseMatrix E = C.MultBT(B);
-    E.Print("E:");
+    // E.Print("E:");
 
     DenseMatrix F = B.MultABT(A);
-    F.Print("F:");
+    // F.Print("F:");
 
     F *= 2.0;
-    F.Print("2F:");
+    // F.Print("2F:");
     F /= 2.0;
-    F.Print("F:");
+    // F.Print("F:");
 
     DenseMatrix G = 5 * F;
     DenseMatrix G2 = F * 5;
-    G.Print("5 *F:");
-    G2.Print("F *5:");
+    // G.Print("5 *F:");
+    // G2.Print("F *5:");
 
+    Vector<double> v1(size);
+    Vector<double> v2(size, 1.0);
 
+    auto v3 = d2.Mult(v2);
+    d2.Print("d2");
+    v2.Print("v2");
+    v3.Print("d2 * v2");
 
-
+    auto v4 = d2.MultAT(v2);
+    d2.Print("d2");
+    v2.Print("v2");
+    v4.Print("d2^T * v2");
 }
 
 void test_vector()

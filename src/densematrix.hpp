@@ -41,11 +41,17 @@ class DenseMatrix
         double& operator()(int row, int col);
         const double& operator()(int row, int col) const;
 
-        std::vector<double> Mult(const std::vector<double>& input) const;
-        std::vector<double> MultAT(const std::vector<double>& input) const;
+        template <typename T>
+        Vector<double> Mult(const Vector<T>& input) const;
 
-        void Mult(const std::vector<double>& input, std::vector<double>& output) const;
-        void MultAT(const std::vector<double>& input, std::vector<double>& output) const;
+        template <typename T>
+        Vector<double> MultAT(const Vector<T>& input) const;
+
+        template <typename T, typename T2>
+        void Mult(const Vector<T>& input, Vector<T2>& output) const;
+
+        template <typename T, typename T2>
+        void MultAT(const Vector<T>& input, Vector<T2>& output) const;
 
         DenseMatrix Mult(const DenseMatrix& input) const;
         DenseMatrix MultAT(const DenseMatrix& input) const;
@@ -57,17 +63,15 @@ class DenseMatrix
         void MultBT(const DenseMatrix& input, DenseMatrix& output) const;
         void MultABT(const DenseMatrix& input, DenseMatrix& output) const;
 
-        DenseMatrix& operator-=(const DenseMatrix& other);
         DenseMatrix& operator+=(const DenseMatrix& other);
+        DenseMatrix& operator-=(const DenseMatrix& other);
+        DenseMatrix& operator*=(double val);
+        DenseMatrix& operator/=(double val);
 
         friend DenseMatrix operator+(DenseMatrix lhs, const DenseMatrix& rhs);
         friend DenseMatrix operator-(DenseMatrix lhs, const DenseMatrix& rhs);
-
-        DenseMatrix& operator*=(double val);
         friend DenseMatrix operator*(DenseMatrix lhs, double val);
         friend DenseMatrix operator*(double val, DenseMatrix rhs);
-
-        DenseMatrix& operator/=(double val);
         friend DenseMatrix operator/(DenseMatrix lhs, double val);
 
         DenseMatrix& operator=(double val);
@@ -143,6 +147,61 @@ double DenseMatrix::Min() const
 
     return *std::min_element(begin(data_), end(data_));
 }
+
+template <typename T>
+Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
+{
+    Vector<double> output(rows_);
+    Mult(input, output);
+
+    return output;
+}
+
+template <typename T, typename T2>
+void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
+{
+    assert(input.size() == cols_);
+    assert(output.size() == rows_);
+
+    output = 0;
+
+    for (int j = 0; j < cols_; ++j)
+    {
+        for (int i = 0; i < rows_; ++i)
+        {
+            output[i] += (*this)(i, j) * input[j];
+        }
+    }
+}
+
+template <typename T>
+Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
+{
+    Vector<double> output(cols_);
+    MultAT(input, output);
+
+    return output;
+}
+
+template <typename T, typename T2>
+void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
+{
+    assert(input.size() == rows_);
+    assert(output.size() == cols_);
+
+    for (int j = 0; j < cols_; ++j)
+    {
+        T2 val = 0;
+
+        for (int i = 0; i < rows_; ++i)
+        {
+            val += (*this)(i, j) * input[i];
+        }
+
+        output[j] = val;
+    }
+}
+
 
 } //namespace linalgcpp
 

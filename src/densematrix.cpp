@@ -58,56 +58,6 @@ void DenseMatrix::Print(const std::string& label) const
     std::cout << "\n";
 }
 
-std::vector<double> DenseMatrix::Mult(const std::vector<double>& input) const
-{
-    std::vector<double> output(rows_);
-    Mult(input, output);
-
-    return output;
-}
-
-std::vector<double> DenseMatrix::MultAT(const std::vector<double>& input) const
-{
-    std::vector<double> output(cols_);
-    MultAT(input, output);
-
-    return output;
-}
-
-void DenseMatrix::Mult(const std::vector<double>& input, std::vector<double>& output) const
-{
-    assert(input.size() == static_cast<unsigned int>(cols_));
-    assert(output.size() == static_cast<unsigned int>(rows_));
-    std::fill(begin(output), end(output), 0.0);
-
-    for (int j = 0; j < cols_; ++j)
-    {
-        for (int i = 0; i < rows_; ++i)
-        {
-            output[i] += (*this)(i, j) * input[j];
-        }
-    }
-}
-
-void DenseMatrix::MultAT(const std::vector<double>& input, std::vector<double>& output) const
-{
-    assert(input.size() == static_cast<unsigned int>(rows_));
-    assert(output.size() == static_cast<unsigned int>(cols_));
-
-    for (int j = 0; j < cols_; ++j)
-    {
-        double val = 0.0;
-
-        for (int i = 0; i < rows_; ++i)
-        {
-            val += (*this)(i, j) * input[i];
-        }
-
-        output[j] = val;
-    }
-}
-
-
 DenseMatrix DenseMatrix::Mult(const DenseMatrix& input) const
 {
     DenseMatrix output(rows_, input.cols_);

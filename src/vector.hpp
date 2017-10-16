@@ -36,10 +36,9 @@ class Vector
         T& operator[](int i);
         const T& operator[](int i) const;
 
-        int size() const
-        {
-            return data_.size();
-        }
+        int size() const;
+
+        void Print(const std::string& label = "") const;
 
     private:
         std::vector<T> data_;
@@ -49,7 +48,7 @@ class Vector
 template <typename T>
 Vector<T>::Vector(int size)
 {
-    assert(size > 0);
+    assert(size >= 0);
 
     data_.resize(size);
 }
@@ -124,6 +123,22 @@ const T& Vector<T>::operator[](int i) const
     assert(static_cast<unsigned int>(i) < data_.size());
 
     return data_[i];
+}
+
+template <typename T>
+int Vector<T>::size() const
+{
+    return data_.size();
+}
+
+template <typename T>
+void Vector<T>::Print(const std::string& label) const
+{
+    std::cout << label << "\n";
+
+    std::cout << (*this);
+
+    std::cout << "\n";
 }
 
 template <typename T>
