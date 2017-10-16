@@ -1,6 +1,7 @@
 #include "sparsematrix.hpp"
 
-namespace linalgcpp {
+namespace linalgcpp
+{
 
 template class SparseMatrix<int>;
 template class SparseMatrix<double>;
