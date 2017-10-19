@@ -30,7 +30,25 @@ std::vector<T> ReadText(const std::string& file_name)
         data.push_back(val);
     }
 
+    file.close();
+
     return data;
+}
+
+template <typename T = double>
+void WriteText(const std::vector<T>& vect, const std::string& file_name)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file!\n");
+    }
+
+    for (const T& val : vect)
+    {
+        file << val << "\n";
+    }
 }
 
 template <typename T = double>
@@ -59,8 +77,42 @@ SparseMatrix<T> ReadAdjList(const std::string& file_name, bool symmetric = false
         }
     }
 
+    file.close();
+
     return coo.ToSparse();
 }
+
+template <typename T = double>
+void WriteAdjList(const SparseMatrix<T>& mat, const std::string& file_name, bool symmetric = false)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file!\n");
+    }
+
+    const std::vector<int>& indptr = mat.GetIndptr();
+    const std::vector<int>& indices = mat.GetIndices();
+
+    const int rows = mat.Rows();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = indptr[i]; j < indptr[i + 1]; ++j)
+        {
+            const int col = indices[j];
+
+            if (!symmetric || col >= i)
+            {
+                file << i << " " << col << "\n";
+            }
+        }
+    }
+
+    file.close();
+}
+
 
 template <typename T = double>
 SparseMatrix<T> ReadCooList(const std::string& file_name, bool symmetric = false)
@@ -88,7 +140,41 @@ SparseMatrix<T> ReadCooList(const std::string& file_name, bool symmetric = false
         }
     }
 
+    file.close();
+
     return coo.ToSparse();
+}
+
+template <typename T = double>
+void WriteCooList(const SparseMatrix<T>& mat, const std::string& file_name, bool symmetric = false)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file!\n");
+    }
+
+    const std::vector<int>& indptr = mat.GetIndptr();
+    const std::vector<int>& indices = mat.GetIndices();
+    const std::vector<double>& data = mat.GetData();
+
+    const int rows = mat.Rows();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = indptr[i]; j < indptr[i + 1]; ++j)
+        {
+            const int col = indices[j];
+
+            if (!symmetric || col >= i)
+            {
+                file << i << " " << col << " " << data[j] << "\n";
+            }
+        }
+    }
+
+    file.close();
 }
 
 } // namespace mylinalg
