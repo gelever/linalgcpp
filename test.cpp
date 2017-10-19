@@ -179,7 +179,7 @@ void test_sparse()
 }
 void test_coo()
 {
-    // Without setting specfic size
+    // With setting specfic size
     {
         CooMatrix<double> coo(10, 10);
         coo.Add(0, 0, 1.0);
@@ -211,6 +211,7 @@ void test_coo()
 
         assert(std::fabs(diff.Sum()) < 1e-8);
     }
+    // Make sure ToSparse gets same result as ToDense
     {
         CooMatrix<double> coo(10, 10);
 
@@ -242,6 +243,7 @@ void test_coo()
 
         SparseMatrix<int> sp = coo.ToSparse<int>();
     }
+    // Generate larger coordinate matrix
     {
         const int size = 1e1;
         const int num_entries = 1e2;
