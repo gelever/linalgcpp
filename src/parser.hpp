@@ -90,10 +90,7 @@ SparseMatrix<T> ReadCooList(const std::string& file_name, bool symmetric = false
 
     return coo.ToSparse();
 }
-        
 
-
-
-}
+} // namespace mylinalg
 
 #endif // PARSER_HPP__
