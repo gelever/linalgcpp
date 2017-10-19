@@ -631,6 +631,8 @@ template <typename T>
 template <typename T2>
 SparseMatrix<T>& SparseMatrix<T>::operator/=(T2 val)
 {
+    assert(val != 0);
+
     for (auto& i : data_)
     {
         i /= val;
