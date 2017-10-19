@@ -179,6 +179,11 @@ void test_sparse()
 }
 void test_coo()
 {
+    {
+        CooMatrix<int> coo;
+        SparseMatrix<int> sp_coo = coo.ToSparse();
+    }
+
     // With setting specfic size
     {
         CooMatrix<double> coo(10, 10);
@@ -386,12 +391,54 @@ void test_vector()
     std::cout << "v3 * v3: " << v4 << "\n";
 }
 
+void test_parser()
+{
+    // Read Vector
+    std::vector<double> vect = ReadText("vect.vect");
+    Vector<double> v(vect);
+    v.Print("vect:");
+
+    // Read Integer Vector
+    std::vector<int> vect_i = ReadText<int>("vect_int.vect");
+    Vector<int> v_i(vect_i);
+    v_i.Print("vect:");
+
+    // Read List formats
+    SparseMatrix<double> adj = ReadAdjList("adj.adj");
+    SparseMatrix<double> coo = ReadCooList("coo.coo");
+
+    adj.PrintDense("Adj:");
+    coo.PrintDense("Coo:");
+
+    // Symmetric file type
+    bool symmetric = true;
+    SparseMatrix<double> adj_sym = ReadAdjList("adj.adj", symmetric);
+    SparseMatrix<double> coo_sym = ReadCooList("coo.coo", symmetric);
+
+    SparseMatrix<int> adj_int = ReadAdjList<int>("adj.adj");
+    SparseMatrix<int> coo_int = ReadCooList<int>("coo.coo");
+
+    adj_int.PrintDense("Adj int:");
+    coo_int.PrintDense("Coo int:");
+
+    // Test non-existant file
+    try
+    {
+        SparseMatrix<int> coo_int = ReadCooList<int>("fake.fake");
+    }
+    catch(std::runtime_error e)
+    {
+        printf("%s\n", e.what());
+    }
+}
+
 int main(int argc, char** argv)
 {
     test_dense();
     test_coo();
     test_vector();
     test_sparse();
+    test_parser();
 
     return EXIT_SUCCESS;
 }
