@@ -74,7 +74,19 @@ void test_sparse()
     auto AA = A.Mult(A);
     AA.PrintDense("A*A:");
 
-    SparseMatrix<> AA_int = A.Mult(A);
+    auto AA_double = A.Mult(A);
+    auto AA_auto = A.Mult(A_int);
+    auto AA_int = A_int.Mult(A_int);
+    auto AA_force_int = A.Mult<double, int>(A);
+    auto AA_force_double = A_int.Mult<int, double>(A_int);
+
+    AA_double.PrintDense("A_double *A_double  double:");
+    AA_auto.PrintDense("A_double *A_int  double:");
+    AA_int.PrintDense("A_int *A_int  int:");
+    AA_force_int.PrintDense("A_double *A_double forced to int:");
+    AA_force_double.PrintDense("A_int *A_int forced to double:");
+    AA_force_double *= 1.1;
+    AA_force_double.PrintDense("A_int *A_int forced to double * 1.1:");
 
     Vector<double> x(size, 1.5);
     Vector<double> y = A.Mult(x);
@@ -171,12 +183,9 @@ void test_sparse()
 
         //submat.PrintDense("submat:");
         //submat.Print("submat:");
-
     }
-
-
-
 }
+
 void test_coo()
 {
     // With setting specfic size
