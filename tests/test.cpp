@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "src/linalgcpp.hpp"
+#include "../src/linalgcpp.hpp"
 
 using namespace linalgcpp;
 
