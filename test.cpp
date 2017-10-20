@@ -188,6 +188,11 @@ void test_sparse()
 
 void test_coo()
 {
+    {
+        CooMatrix<int> coo;
+        SparseMatrix<int> sp_coo = coo.ToSparse();
+    }
+
     // With setting specfic size
     {
         CooMatrix<double> coo(10, 10);
@@ -395,12 +400,80 @@ void test_vector()
     std::cout << "v3 * v3: " << v4 << "\n";
 }
 
+void test_parser()
+{
+    // Write Vector
+    std::vector<double> vect_out({1.0, 2.0, 3.0});
+    WriteText<double>(vect_out, "vect.vect");
+
+    // Write Integer Vector
+    std::vector<int> vect_out_int({1, 2, 3});
+    WriteText<int>(vect_out_int, "vect_int.vect");
+
+    CooMatrix<double> coo_out(3, 3);
+    coo_out.Add(0, 0, 1.0);
+    coo_out.Add(1, 1, 2.0);
+    coo_out.Add(1, 2, 2.0);
+    coo_out.Add(2, 0, 3.0);
+    coo_out.Add(2, 2, 3.0);
+
+    SparseMatrix<double> sp_out = coo_out.ToSparse();
+
+    // Write Adjacency List
+    WriteAdjList(sp_out, "adj.adj");
+
+    // Write Coordinate List
+    WriteCooList(sp_out, "coo.coo");
+
+    // Read Vector
+    std::vector<double> vect = ReadText("vect.vect");
+    Vector<double> v(vect);
+    v.Print("vect:");
+
+    // Read Integer Vector
+    std::vector<int> vect_i = ReadText<int>("vect_int.vect");
+    Vector<int> v_i(vect_i);
+    v_i.Print("vect:");
+
+    // Read List formats
+    SparseMatrix<double> adj = ReadAdjList("adj.adj");
+    SparseMatrix<double> coo = ReadCooList("coo.coo");
+
+    adj.PrintDense("Adj:");
+    coo.PrintDense("Coo:");
+
+    // Symmetric file type
+    bool symmetric = true;
+    SparseMatrix<double> adj_sym = ReadAdjList("adj.adj", symmetric);
+    SparseMatrix<double> coo_sym = ReadCooList("coo.coo", symmetric);
+    adj_sym.PrintDense("Adj Sym:");
+    coo_sym.PrintDense("Coo Sym:");
+
+    // Integer file type
+    SparseMatrix<int> adj_int = ReadAdjList<int>("adj.adj");
+    SparseMatrix<int> coo_int = ReadCooList<int>("coo.coo");
+
+    adj_int.PrintDense("Adj int:");
+    coo_int.PrintDense("Coo int:");
+
+    // Test non-existant file
+    try
+    {
+        SparseMatrix<int> coo_int = ReadCooList<int>("fake.fake");
+    }
+    catch(std::runtime_error e)
+    {
+        printf("%s\n", e.what());
+    }
+}
+
 int main(int argc, char** argv)
 {
     test_dense();
     test_coo();
     test_vector();
     test_sparse();
+    test_parser();
 
     return EXIT_SUCCESS;
 }

@@ -19,6 +19,7 @@ class Vector
         Vector() = default;
         Vector(int size);
         Vector(int size, T val);
+        Vector(std::vector<T> vect);
 
         Vector(const Vector& vect) = default;
         ~Vector() noexcept = default;
@@ -59,6 +60,12 @@ Vector<T>::Vector(int size, T val)
     assert(size > 0);
 
     data_.resize(size, val);
+}
+
+template <typename T>
+Vector<T>::Vector(std::vector<T> vect)
+{
+    std::swap(vect, data_);
 }
 
 template <typename T>
@@ -134,7 +141,7 @@ int Vector<T>::size() const
 template <typename T>
 void Vector<T>::Print(const std::string& label) const
 {
-    std::cout << label << "\n";
+    std::cout << label;
 
     std::cout << (*this);
 
