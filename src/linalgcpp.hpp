@@ -3,3 +3,4 @@
 #include "sparsematrix.hpp"
 #include "vector.hpp"
 #include "parser.hpp"
+#include "operator.hpp"
