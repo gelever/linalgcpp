@@ -20,7 +20,7 @@ std::vector<T> ReadText(const std::string& file_name)
 
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open file!\n");
+        throw std::runtime_error("Failed to open file: " + file_name);
     }
 
     std::vector<T> data;
@@ -42,7 +42,7 @@ void WriteText(const std::vector<T>& vect, const std::string& file_name)
 
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open file!\n");
+        throw std::runtime_error("Failed to open file: " + file_name);
     }
 
     for (const T& val : vect)
@@ -58,7 +58,7 @@ SparseMatrix<T> ReadAdjList(const std::string& file_name, bool symmetric = false
 
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open file!\n");
+        throw std::runtime_error("Failed to open file: " + file_name);
     }
 
     CooMatrix<T> coo;
@@ -89,7 +89,7 @@ void WriteAdjList(const SparseMatrix<T>& mat, const std::string& file_name, bool
 
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open file!\n");
+        throw std::runtime_error("Failed to open file: " + file_name);
     }
 
     const std::vector<int>& indptr = mat.GetIndptr();
@@ -152,7 +152,7 @@ void WriteCooList(const SparseMatrix<T>& mat, const std::string& file_name, bool
 
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open file!\n");
+        throw std::runtime_error("Failed to open file: " + file_name);
     }
 
     const std::vector<int>& indptr = mat.GetIndptr();
