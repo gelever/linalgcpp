@@ -136,6 +136,11 @@ template <typename T>
 template <typename T2>
 SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 {
+    if (entries.size() == 0)
+    {
+        return SparseMatrix<T2>();
+    }
+
     std::sort(begin(entries), end(entries));
 
     int rows;
