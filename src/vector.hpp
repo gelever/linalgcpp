@@ -17,8 +17,8 @@ class Vector
 {
     public:
         Vector() = default;
-        Vector(int size);
-        Vector(int size, T val);
+        Vector(size_t size);
+        Vector(size_t size, T val);
         Vector(std::vector<T> vect);
 
         Vector(const Vector& vect) = default;
@@ -37,7 +37,7 @@ class Vector
         T& operator[](int i);
         const T& operator[](int i) const;
 
-        int size() const;
+        size_t size() const;
 
         void Print(const std::string& label = "") const;
 
@@ -47,18 +47,14 @@ class Vector
 };
 
 template <typename T>
-Vector<T>::Vector(int size)
+Vector<T>::Vector(size_t size)
 {
-    assert(size >= 0);
-
     data_.resize(size);
 }
 
 template <typename T>
-Vector<T>::Vector(int size, T val)
+Vector<T>::Vector(size_t size, T val)
 {
-    assert(size > 0);
-
     data_.resize(size, val);
 }
 
@@ -133,7 +129,7 @@ const T& Vector<T>::operator[](int i) const
 }
 
 template <typename T>
-int Vector<T>::size() const
+size_t Vector<T>::size() const
 {
     return data_.size();
 }

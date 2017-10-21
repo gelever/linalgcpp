@@ -16,14 +16,21 @@ namespace linalgcpp
 {
 
 template <typename T>
-class CooMatrix
+class CooMatrix : public Operator
 {
     public:
         CooMatrix();
         CooMatrix(int size);
         CooMatrix(int rows, int cols);
 
+        CooMatrix(const CooMatrix& other) = default;
+        ~CooMatrix() noexcept = default;
+
+        size_t Rows() const;
+        size_t Cols() const;
+
         void Add(int i, int j, T val);
+        void AddSym(int i, int j, T val);
         void Add(const std::vector<int>& rows,
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
@@ -32,6 +39,9 @@ class CooMatrix
         SparseMatrix<T2> ToSparse() const;
 
         DenseMatrix ToDense() const;
+
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
 
     private:
         int rows_;
@@ -60,6 +70,40 @@ CooMatrix<T>::CooMatrix(int rows, int cols)
 }
 
 template <typename T>
+size_t CooMatrix<T>::Rows() const
+{
+    if (rows_ > -1)
+    {
+        return rows_;
+    }
+
+    if (entries.size() == 0)
+    {
+        return 0;
+    }
+
+    auto max_el = *std::max_element(begin(entries), end(entries));
+    return std::get<0>(max_el) + 1;
+}
+
+template <typename T>
+size_t CooMatrix<T>::Cols() const
+{
+    if (cols_ > -1)
+    {
+        return cols_;
+    }
+
+    if (entries.size() == 0)
+    {
+        return 0;
+    }
+
+    auto max_el = *std::max_element(begin(entries), end(entries));
+    return std::get<1>(max_el) + 1;
+}
+
+template <typename T>
 void CooMatrix<T>::Add(int i, int j, T val)
 {
     assert(i >= 0);
@@ -73,6 +117,17 @@ void CooMatrix<T>::Add(int i, int j, T val)
     }
 
     entries.push_back(std::make_tuple(i, j, val));
+}
+
+template <typename T>
+void CooMatrix<T>::AddSym(int i, int j, T val)
+{
+    Add(i, j, val);
+
+    if (i != j)
+    {
+        Add(j, i, val);
+    }
 }
 
 template <typename T>
@@ -103,6 +158,11 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
+    if (entries.size() == 0)
+    {
+        return DenseMatrix();
+    }
+
     int rows;
     int cols;
 
@@ -202,6 +262,42 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
               end(indptr), data.size());
 
     return SparseMatrix<T2>(indptr, indices, data, rows, cols);
+}
+
+template <typename T>
+void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+{
+    assert(Rows() == output.size());
+    assert(Cols() == input.size());
+
+    output = 0;
+
+    for (const auto& tup : entries)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T val = std::get<2>(tup);
+
+        output[i] += val * input[j];
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    assert(Rows() == output.size());
+    assert(Cols() == input.size());
+
+    output = 0;
+
+    for (const auto& tup : entries)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T val = std::get<2>(tup);
+
+        output[j] += val * input[i];
+    }
 }
 
 } // namespace linalgcpp

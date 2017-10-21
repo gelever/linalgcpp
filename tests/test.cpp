@@ -41,6 +41,7 @@ void test_sparse()
         SparseMatrix<double> test2(std::move(test));
     }
 
+    A.Print("A:");
     A.PrintDense("A:");
 
     SparseMatrix<int> A_int;
@@ -176,13 +177,68 @@ void test_sparse()
         }
 
         auto submat = sparse.GetSubMatrix(rows, cols, marker);
-        printf("%d %d %d\n", submat.Rows(), submat.Cols(), submat.nnz());
+        printf("%ld %ld %ld\n", submat.Rows(), submat.Cols(), submat.nnz());
 
         CooMatrix<double> coo2 = coo;
         auto sparse2 = coo2.ToSparse();
 
         //submat.PrintDense("submat:");
         //submat.Print("submat:");
+    }
+
+    // Test Mult Vector
+    {
+        Vector<double> x(size, 1.0);
+        Vector<double> y(size);
+        A.PrintDense("A:");
+        A.Mult(x, y);
+        std::cout << " x: " << x;
+        std::cout << " Ax: " << y;
+
+        A.MultAT(x, y);
+        std::cout << " A^T x: " << y;
+    }
+
+    // Test Sort Indices
+    {
+        const size_t size = 2;
+        const size_t nnz = 4;
+        std::vector<int> indptr(size + 1);
+        std::vector<int> indices(nnz);
+        std::vector<double> data(nnz);
+
+        indptr[0] = 0;
+        indptr[1] = 2;
+        indptr[2] = nnz;
+
+        indices[0] = 1;
+        indices[1] = 0;
+        indices[2] = 1;
+        indices[3] = 0;
+
+        data[0] = 1;
+        data[1] = 2;
+        data[2] = 1;
+        data[3] = 2;
+
+        SparseMatrix<> A_sort(indptr, indices, data,
+                         size, size);
+
+        A_sort.PrintDense("A:");
+
+        for (size_t i = 0; i < nnz; ++i)
+        {
+            printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
+        }
+
+        A_sort.SortIndices();
+
+        A_sort.PrintDense("A Sorted:");
+
+        for (size_t i = 0; i < nnz; ++i)
+        {
+            printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
+        }
     }
 }
 
@@ -206,8 +262,8 @@ void test_coo()
 
         auto dense = coo.ToDense();
         auto sparse = coo.ToSparse();
-
     }
+
     // Without setting specfic size
     {
         CooMatrix<double> coo;
@@ -224,6 +280,20 @@ void test_coo()
         auto diff = dense - sparse.ToDense();
 
         assert(std::fabs(diff.Sum()) < 1e-8);
+    }
+
+    // With symmetric add
+    {
+        CooMatrix<double> coo(10, 10);
+        coo.AddSym(0, 0, 1.0);
+        coo.AddSym(0, 1, 2.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(2, 2, 3.0);
+        coo.AddSym(4, 2, 3.0);
+
+        coo.ToDense().Print("Coo Symmetric Add");
     }
     // Make sure ToSparse gets same result as ToDense
     {
@@ -257,6 +327,7 @@ void test_coo()
 
         SparseMatrix<int> sp = coo.ToSparse<int>();
     }
+
     // Generate larger coordinate matrix
     {
         const int size = 1e1;
@@ -283,6 +354,34 @@ void test_coo()
 
         assert(std::fabs(diff.Sum()) < 1e-8);
     }
+
+    // With Mult
+    {
+        const size_t size = 10;
+
+        CooMatrix<double> coo(size);
+        coo.Add(0, 0, 1.0);
+        coo.Add(0, 1, 2.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(2, 2, 3.0);
+        coo.Add(4, 2, 3.0);
+        coo.Add(8, 9, 3.0);
+
+        Vector<double> x(size, 1.0);
+        Vector<double> y(size);
+
+
+        coo.ToDense().Print("coo:");
+        std::cout << "x: " << x;
+
+        coo.Mult(x, y);
+        std::cout << "y: " << y;
+
+        coo.MultAT(x, y);
+        std::cout << "coo^T y: " << y;
+    }
 }
 
 void test_dense()
@@ -308,14 +407,14 @@ void test_dense()
     d2(4, 0) = 4.0;
     d2(0, 4) = 4.0;
 
-    // d2.Print();
+    d2.Print();
 
     Vector<double> x(size, 1.0);
     Vector<double> y(size);
 
     d2.Mult(x, y);
 
-    // printf("d2 * x = y:\n");
+    printf("d2 * x = y:\n");
     //std::cout << y;
 
     // printf("d2 * y:\n");
@@ -335,7 +434,7 @@ void test_dense()
     B(1, 1) = 3.0;
     B(1, 3) = 4.0;
 
-    // A.Print("A:");
+    A.Print("A:");
     // B.Print("B:");
 
     DenseMatrix C = A.Mult(B);
@@ -467,6 +566,51 @@ void test_parser()
     }
 }
 
+void test_operator()
+{
+    auto mult = [](const Operator& op)
+    {
+        Vector<double> vect(op.Cols(), 1.0);
+        Vector<double> vect2(op.Rows());
+        op.Mult(vect, vect2);
+        return vect2;
+    };
+
+    auto multAT = [](const Operator& op)
+    {
+        Vector<double> vect(op.Cols(), 1.0);
+        Vector<double> vect2(op.Rows());
+        op.MultAT(vect, vect2);
+        return vect2;
+    };
+
+    CooMatrix<double> coo(3, 3);
+    coo.Add(0, 0, 1.0);
+    coo.Add(0, 1, -2.0);
+    coo.Add(1, 1, 2.0);
+    coo.Add(1, 0, -3.0);
+    coo.Add(2, 2, 4.0);
+
+    SparseMatrix<> sparse = coo.ToSparse();
+    DenseMatrix dense = coo.ToDense();
+
+    auto vect_coo = mult(coo);
+    auto vect_dense = mult(dense);
+    auto vect_sparse = mult(sparse);
+
+    std::cout << "vect_coo" << vect_dense;
+    std::cout << "vect_dense" << vect_dense;
+    std::cout << "vect_sparse" << vect_sparse;
+
+    auto vect_coo_T = multAT(coo);
+    auto vect_dense_T = multAT(dense);
+    auto vect_sparse_T = multAT(sparse);
+
+    std::cout << "vect_coo_T" << vect_dense_T;
+    std::cout << "vect_dense_T" << vect_dense_T;
+    std::cout << "vect_sparse_T" << vect_sparse_T;
+}
+
 int main(int argc, char** argv)
 {
     test_dense();
@@ -474,6 +618,7 @@ int main(int argc, char** argv)
     test_vector();
     test_sparse();
     test_parser();
+    test_operator();
 
     return EXIT_SUCCESS;
 }

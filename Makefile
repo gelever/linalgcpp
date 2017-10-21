@@ -12,7 +12,7 @@ OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRC)))
 PROGS := 
 TESTS := test
 
-all: $(OBJS) $(PROGS)
+all: $(OBJS) $(PROGS) $(TESTS)
 
 $(PROGS): $(OBJS)
 	@mkdir -p $(BUILD_DIR)
