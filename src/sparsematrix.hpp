@@ -9,13 +9,14 @@
 #include <type_traits>
 #include <assert.h>
 
+#include "operator.hpp"
 #include "densematrix.hpp"
 
 namespace linalgcpp
 {
 
 template <typename T = double>
-class SparseMatrix
+class SparseMatrix : public Operator
 {
     public:
         SparseMatrix();
@@ -35,9 +36,9 @@ class SparseMatrix
         template <typename T2>
         friend void Swap(SparseMatrix<T2>& lhs, SparseMatrix<T2>& rhs);
 
-        int Rows() const;
-        int Cols() const;
-        int nnz() const;
+        size_t Rows() const;
+        size_t Cols() const;
+        size_t nnz() const;
 
         const std::vector<int>& GetIndptr() const;
         const std::vector<int>& GetIndices() const;
@@ -72,7 +73,7 @@ class SparseMatrix
         void Mult(const DenseMatrix& input, DenseMatrix& output) const;
         void MultAT(const DenseMatrix& input, DenseMatrix& output) const;
 
-        template <typename T2 = T>
+        template <typename T2 = T, typename T3 = typename std::common_type<T, T2>::type>
         auto Mult(const SparseMatrix<T2>& rhs) const;
 
         SparseMatrix<T> Transpose() const;
@@ -82,10 +83,22 @@ class SparseMatrix
         SparseMatrix<T> GetSubMatrix(const std::vector<int>& rows,
                                      const std::vector<int>& cols,
                                      std::vector<int>& marker) const;
+
+        template <typename T2 = T>
+        SparseMatrix<T>& operator*=(T2 val);
+
+        template <typename T2 = T>
+        SparseMatrix<T>& operator/=(T2 val);
+
+
+        // Operator Requirement
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+
     private:
-        int rows_;
-        int cols_;
-        int nnz_;
+        size_t rows_;
+        size_t cols_;
+        size_t nnz_;
 
         std::vector<int> indptr_;
         std::vector<int> indices_;
@@ -94,7 +107,8 @@ class SparseMatrix
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix()
-    : rows_(0), cols_(0), nnz_(0), indptr_(0), indices_(0), data_(0)
+    : rows_(0), cols_(0), nnz_(0),
+      indptr_(std::vector<int>(1, 0)), indices_(0), data_(0)
 {
 
 }
@@ -110,7 +124,7 @@ SparseMatrix<T>::SparseMatrix(const std::vector<int>& indptr,
     assert(rows_ >= 0);
     assert(cols_ >= 0);
 
-    assert(static_cast<int>(indptr_.size()) == rows_ + 1);
+    assert(indptr_.size() == rows_ + 1u);
     assert(indices_.size() == data_.size());
     assert(indptr_[0] == 0);
 }
@@ -165,12 +179,12 @@ void SparseMatrix<T>::Print(const std::string& label) const
 
     std::cout << label << "\n";
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            std::cout << std::setw(width) << "(" <<
-                      i << ", " << indices_[j] << ") " << data_[j] << "\n";
+            std::cout << "(" << i << ", " << indices_[j] << ") "
+                      << std::setw(width) << data_[j] << "\n";
         }
     }
 
@@ -190,7 +204,7 @@ DenseMatrix SparseMatrix<T>::ToDense() const
 {
     DenseMatrix dense(rows_, cols_);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
@@ -212,7 +226,7 @@ void SparseMatrix<T>::SortIndices()
     std::vector<int> permutation(indices_.size());
     std::iota(begin(permutation), end(permutation), 0);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         const int start = indptr_[i];
         const int end = indptr_[i + 1];
@@ -222,7 +236,16 @@ void SparseMatrix<T>::SortIndices()
                   compare_cols);
     }
 
-    std::swap(indices_, permutation);
+    std::vector<int> sorted_indices(indices_.size());
+    std::vector<T> sorted_data(data_.size());
+
+    std::transform(begin(permutation), end(permutation), begin(sorted_indices),
+            [&] (int i) { return indices_[i]; });
+    std::transform(begin(permutation), end(permutation), begin(sorted_data),
+            [&] (int i) { return data_[i]; });
+
+    std::swap(indices_, sorted_indices);
+    std::swap(data_, sorted_data);
 }
 
 template <typename T>
@@ -252,9 +275,9 @@ void SparseMatrix<T>::Mult(const DenseMatrix& input, DenseMatrix& output) const
 
     output = 0.0;
 
-    for (int k = 0; k < input.Cols(); ++k)
+    for (size_t k = 0; k < input.Cols(); ++k)
     {
-        for (int i = 0; i < rows_; ++i)
+        for (size_t i = 0; i < rows_; ++i)
         {
             double val = 0.0;
 
@@ -277,9 +300,9 @@ void SparseMatrix<T>::MultAT(const DenseMatrix& input, DenseMatrix& output) cons
 
     output = 0.0;
 
-    for (int k = 0; k < input.Cols(); ++k)
+    for (size_t k = 0; k < input.Cols(); ++k)
     {
-        for (int i = 0; i < rows_; ++i)
+        for (size_t i = 0; i < rows_; ++i)
         {
             for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
             {
@@ -301,12 +324,12 @@ SparseMatrix<T> SparseMatrix<T>::Transpose() const
         out_indptr[col + 1]++;
     }
 
-    for (int i = 0; i < cols_; ++i)
+    for (size_t i = 0; i < cols_; ++i)
     {
         out_indptr[i + 1] += out_indptr[i];
     }
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
@@ -360,22 +383,22 @@ SparseMatrix<T> SparseMatrix<T>::GetSubMatrix(const std::vector<int>& rows,
                                               const std::vector<int>& cols,
                                               std::vector<int>& marker) const
 {
-    assert(marker.size() >= static_cast<unsigned int>(cols_));
+    assert(marker.size() >= cols_);
 
     std::vector<int> out_indptr(rows.size() + 1);
     out_indptr[0] = 0;
 
     int out_nnz = 0;
 
-    const int out_rows = rows.size();
-    const int out_cols = cols.size();
+    const size_t out_rows = rows.size();
+    const size_t out_cols = cols.size();
 
-    for (int i = 0; i < out_cols; ++i)
+    for (size_t i = 0; i < out_cols; ++i)
     {
         marker[cols[i]] = i;
     }
 
-    for (int i = 0; i < out_rows; ++i)
+    for (size_t i = 0; i < out_rows; ++i)
     {
         const int row = rows[i];
 
@@ -420,21 +443,21 @@ SparseMatrix<T> SparseMatrix<T>::GetSubMatrix(const std::vector<int>& rows,
 
 template <typename T>
 inline
-int SparseMatrix<T>::Rows() const
+size_t SparseMatrix<T>::Rows() const
 {
     return rows_;
 }
 
 template <typename T>
 inline
-int SparseMatrix<T>::Cols() const
+size_t SparseMatrix<T>::Cols() const
 {
     return cols_;
 }
 
 template <typename T>
 inline
-int SparseMatrix<T>::nnz() const
+size_t SparseMatrix<T>::nnz() const
 {
     return nnz_;
 }
@@ -509,7 +532,7 @@ void SparseMatrix<T>::Mult(const Vector<T2>& input, Vector<T3>& output) const
     assert(input.size() == cols_);
     assert(output.size() == rows_);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         T3 val = 0;
 
@@ -531,7 +554,7 @@ void SparseMatrix<T>::MultAT(const Vector<T2>& input, Vector<T3>& output) const
 
     std::fill(std::begin(output), std::end(output), 0.0);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
@@ -541,25 +564,41 @@ void SparseMatrix<T>::MultAT(const Vector<T2>& input, Vector<T3>& output) const
 }
 
 template <typename T>
-template <typename T2>
+void SparseMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+{
+    Mult<double, double>(input, output);
+}
+
+template <typename T>
+void SparseMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    MultAT<double, double>(input, output);
+}
+
+template <typename T>
+template <typename T2, typename T3>
 auto SparseMatrix<T>::Mult(const SparseMatrix<T2>& rhs) const
 {
-    std::vector<int> marker(rhs.cols_, -1);
+    std::vector<int> marker(rhs.Cols(), -1);
 
     std::vector<int> out_indptr(rows_ + 1);
     out_indptr[0] = 0;
 
     int out_nnz = 0;
 
-    for (int i = 0; i < rows_; ++i)
+    const std::vector<int>& rhs_indptr = rhs.GetIndptr();
+    const std::vector<int>& rhs_indices = rhs.GetIndices();
+    const std::vector<T2>& rhs_data = rhs.GetData();
+
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            for (int k = rhs.indptr_[indices_[j]]; k < rhs.indptr_[indices_[j] + 1]; ++k)
+            for (int k = rhs_indptr[indices_[j]]; k < rhs_indptr[indices_[j] + 1]; ++k)
             {
-                if (marker[rhs.indices_[k]] != i)
+                if (marker[rhs_indices[k]] != static_cast<int>(i))
                 {
-                    marker[rhs.indices_[k]] = i;
+                    marker[rhs_indices[k]] = i;
                     ++out_nnz;
                 }
             }
@@ -571,37 +610,76 @@ auto SparseMatrix<T>::Mult(const SparseMatrix<T2>& rhs) const
     std::fill(begin(marker), end(marker), -1);
 
     std::vector<int> out_indices(out_nnz);
-    std::vector<typename std::common_type<T, T2>::type> out_data(out_nnz);
+    std::vector<T3> out_data(out_nnz);
 
     int total = 0;
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         int row_nnz = total;
 
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            for (int k = rhs.indptr_[indices_[j]]; k < rhs.indptr_[indices_[j] + 1]; ++k)
+            for (int k = rhs_indptr[indices_[j]]; k < rhs_indptr[indices_[j] + 1]; ++k)
             {
-                if (marker[rhs.indices_[k]] < row_nnz)
+                if (marker[rhs_indices[k]] < row_nnz)
                 {
-                    marker[rhs.indices_[k]] = total;
-                    out_indices[total] = rhs.indices_[k];
-                    out_data[total] = data_[j] * rhs.data_[k];
+                    marker[rhs_indices[k]] = total;
+                    out_indices[total] = rhs_indices[k];
+                    out_data[total] = data_[j] * rhs_data[k];
 
                     total++;
                 }
                 else
                 {
-                    out_data[marker[rhs.indices_[k]]] += data_[j] * rhs.data_[k];
+                    out_data[marker[rhs_indices[k]]] += data_[j] * rhs_data[k];
                 }
             }
         }
     }
 
-    return SparseMatrix<typename std::common_type<T, T2>::type>(out_indptr, out_indices, out_data,
-                                                                rows_, rhs.cols_);
+    return SparseMatrix<T3>(out_indptr, out_indices, out_data,
+                            rows_, rhs.Cols());
 }
+
+template <typename T>
+template <typename T2>
+SparseMatrix<T>& SparseMatrix<T>::operator*=(T2 val)
+{
+    for (auto& i : data_)
+    {
+        i *= val;
+    }
+
+    return *this;
+}
+
+template <typename T>
+template <typename T2>
+SparseMatrix<T>& SparseMatrix<T>::operator/=(T2 val)
+{
+    assert(val != 0);
+
+    for (auto& i : data_)
+    {
+        i /= val;
+    }
+
+    return *this;
+}
+
+template <typename T2, typename T3>
+SparseMatrix<T2> operator*(SparseMatrix<T2> lhs, T3 val)
+{
+    return lhs *= val;
+}
+
+template <typename T2, typename T3>
+SparseMatrix<T2> operator*(T3 val, SparseMatrix<T2> rhs)
+{
+    return rhs *= val;
+}
+
 
 } //namespace linalgcpp
 

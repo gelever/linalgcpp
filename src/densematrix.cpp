@@ -13,29 +13,36 @@ namespace linalgcpp
 {
 
 DenseMatrix::DenseMatrix()
-    : rows_(0), cols_(0)
+    : DenseMatrix(0)
 {
 }
 
-DenseMatrix::DenseMatrix(int size)
+DenseMatrix::DenseMatrix(size_t size)
     : DenseMatrix(size, size)
 {
 }
 
-DenseMatrix::DenseMatrix(int rows, int cols)
+DenseMatrix::DenseMatrix(size_t rows, size_t cols)
     : rows_(rows), cols_(cols), data_(rows * cols, 0.0)
 {
-    assert(rows >= 0);
-    assert(cols >= 0);
 }
 
-DenseMatrix::DenseMatrix(int rows, int cols, const std::vector<double>& data)
+DenseMatrix::DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data)
     : rows_(rows), cols_(cols), data_(data)
 {
-    assert(rows >= 0);
-    assert(cols >= 0);
-
     assert(data.size() == rows * cols);
+}
+
+DenseMatrix::DenseMatrix(DenseMatrix&& other)
+{
+    Swap(*this, other);
+}
+
+void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
+{
+    std::swap(lhs.rows_, rhs.rows_);
+    std::swap(lhs.cols_, rhs.cols_);
+    std::swap(lhs.data_, rhs.data_);
 }
 
 void DenseMatrix::Print(const std::string& label) const
@@ -44,12 +51,11 @@ void DenseMatrix::Print(const std::string& label) const
 
     const int width = 6;
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
-        for (int j = 0; j < cols_; ++j)
+        for (size_t j = 0; j < cols_; ++j)
         {
-            std::cout << std::setw(width) << ((*this)(i, j));
-
+            std::cout << std::setw(width) << (*this)(i, j);
         }
 
         std::cout << "\n";
@@ -58,59 +64,19 @@ void DenseMatrix::Print(const std::string& label) const
     std::cout << "\n";
 }
 
-std::vector<double> DenseMatrix::Mult(const std::vector<double>& input) const
+void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const
 {
-    std::vector<double> output(rows_);
-    Mult(input, output);
-
-    return output;
+    Mult<double, double>(input, output);
 }
 
-std::vector<double> DenseMatrix::MultAT(const std::vector<double>& input) const
+void DenseMatrix::MultAT(const Vector<double>& input, Vector<double>& output) const
 {
-    std::vector<double> output(cols_);
-    MultAT(input, output);
-
-    return output;
+    MultAT<double, double>(input, output);
 }
-
-void DenseMatrix::Mult(const std::vector<double>& input, std::vector<double>& output) const
-{
-    assert(input.size() == static_cast<unsigned int>(cols_));
-    assert(output.size() == static_cast<unsigned int>(rows_));
-    std::fill(begin(output), end(output), 0.0);
-
-    for (int j = 0; j < cols_; ++j)
-    {
-        for (int i = 0; i < rows_; ++i)
-        {
-            output[i] += (*this)(i, j) * input[j];
-        }
-    }
-}
-
-void DenseMatrix::MultAT(const std::vector<double>& input, std::vector<double>& output) const
-{
-    assert(input.size() == static_cast<unsigned int>(rows_));
-    assert(output.size() == static_cast<unsigned int>(cols_));
-
-    for (int j = 0; j < cols_; ++j)
-    {
-        double val = 0.0;
-
-        for (int i = 0; i < rows_; ++i)
-        {
-            val += (*this)(i, j) * input[i];
-        }
-
-        output[j] = val;
-    }
-}
-
 
 DenseMatrix DenseMatrix::Mult(const DenseMatrix& input) const
 {
-    DenseMatrix output(rows_, input.cols_);
+    DenseMatrix output(rows_, input.Cols());
     Mult(input, output);
 
     return output;
@@ -118,7 +84,7 @@ DenseMatrix DenseMatrix::Mult(const DenseMatrix& input) const
 
 DenseMatrix DenseMatrix::MultAT(const DenseMatrix& input) const
 {
-    DenseMatrix output(cols_, input.cols_);
+    DenseMatrix output(cols_, input.Cols());
     MultAT(input, output);
 
     return output;
@@ -126,7 +92,7 @@ DenseMatrix DenseMatrix::MultAT(const DenseMatrix& input) const
 
 DenseMatrix DenseMatrix::MultBT(const DenseMatrix& input) const
 {
-    DenseMatrix output(rows_, input.rows_);
+    DenseMatrix output(rows_, input.Rows());
     MultBT(input, output);
 
     return output;
@@ -134,7 +100,7 @@ DenseMatrix DenseMatrix::MultBT(const DenseMatrix& input) const
 
 DenseMatrix DenseMatrix::MultABT(const DenseMatrix& input) const
 {
-    DenseMatrix output(cols_, input.rows_);
+    DenseMatrix output(cols_, input.Rows());
     MultABT(input, output);
 
     return output;
@@ -142,9 +108,9 @@ DenseMatrix DenseMatrix::MultABT(const DenseMatrix& input) const
 
 void DenseMatrix::Mult(const DenseMatrix& input, DenseMatrix& output) const
 {
-    assert(cols_ == input.rows_);
-    assert(rows_ == output.rows_);
-    assert(input.cols_ == output.cols_);
+    assert(cols_ == input.Rows());
+    assert(rows_ == output.Rows());
+    assert(input.Cols() == output.Cols());
 
     bool AT = false;
     bool BT = false;
@@ -153,9 +119,9 @@ void DenseMatrix::Mult(const DenseMatrix& input, DenseMatrix& output) const
 
 void DenseMatrix::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 {
-    assert(rows_ == input.rows_);
-    assert(cols_ == output.rows_);
-    assert(input.cols_ == output.cols_);
+    assert(rows_ == input.Rows());
+    assert(cols_ == output.Rows());
+    assert(input.Cols() == output.Cols());
 
     bool AT = true;
     bool BT = false;
@@ -164,9 +130,9 @@ void DenseMatrix::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 
 void DenseMatrix::MultBT(const DenseMatrix& input, DenseMatrix& output) const
 {
-    assert(cols_ == input.cols_);
-    assert(rows_ == output.rows_);
-    assert(input.rows_ == output.cols_);
+    assert(cols_ == input.Cols());
+    assert(rows_ == output.Rows());
+    assert(input.Rows() == output.Cols());
 
     bool AT = false;
     bool BT = true;
@@ -175,9 +141,9 @@ void DenseMatrix::MultBT(const DenseMatrix& input, DenseMatrix& output) const
 
 void DenseMatrix::MultABT(const DenseMatrix& input, DenseMatrix& output) const
 {
-    assert(rows_ == input.cols_);
-    assert(cols_ == output.rows_);
-    assert(input.rows_ == output.cols_);
+    assert(rows_ == input.Cols());
+    assert(cols_ == output.Rows());
+    assert(input.Rows() == output.Cols());
 
     bool AT = true;
     bool BT = true;
@@ -189,17 +155,17 @@ void DenseMatrix::dgemm(const DenseMatrix& input, DenseMatrix& output, bool AT, 
     char transA = AT ? 'T' : 'N';
     char transB = BT ? 'T' : 'N';
     int m = AT ? cols_ : rows_;
-    int n = BT ? input.rows_ : input.cols_;
+    int n = BT ? input.Rows() : input.Cols();
     int k = AT ? rows_ : cols_;
 
     double alpha = 1.0;
     const double* A = data_.data();
     int lda = rows_;
     const double* B = input.data_.data();
-    int ldb = input.rows_;
+    int ldb = input.Rows();
     double beta = 0.0;
     double* c = output.data_.data();
-    int ldc = output.rows_;
+    int ldc = output.Rows();
 
     dgemm_(&transA, &transB, &m, &n, &k,
            &alpha, A, &lda, B, &ldb,
@@ -208,12 +174,12 @@ void DenseMatrix::dgemm(const DenseMatrix& input, DenseMatrix& output, bool AT, 
 
 DenseMatrix& DenseMatrix::operator-=(const DenseMatrix& other)
 {
-    assert(rows_ == other.rows_);
-    assert(cols_ == other.cols_);
+    assert(rows_ == other.Rows());
+    assert(cols_ == other.Cols());
 
-    const int nnz = rows_ * cols_;
+    const size_t nnz = rows_ * cols_;
 
-    for (int i = 0; i < nnz; ++i)
+    for (size_t i = 0; i < nnz; ++i)
     {
         data_[i] -= other.data_[i];
     }
@@ -223,12 +189,12 @@ DenseMatrix& DenseMatrix::operator-=(const DenseMatrix& other)
 
 DenseMatrix& DenseMatrix::operator+=(const DenseMatrix& other)
 {
-    assert(rows_ == other.rows_);
-    assert(cols_ == other.cols_);
+    assert(rows_ == other.Rows());
+    assert(cols_ == other.Cols());
 
-    const int nnz = rows_ * cols_;
+    const size_t nnz = rows_ * cols_;
 
-    for (int i = 0; i < nnz; ++i)
+    for (size_t i = 0; i < nnz; ++i)
     {
         data_[i] += other.data_[i];
     }

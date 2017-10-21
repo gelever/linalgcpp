@@ -3,3 +3,6 @@
 *.bak
 build
 obj
+Makefile
+*.a
+*.so

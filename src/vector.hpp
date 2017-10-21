@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <random>
 #include <assert.h>
 
 namespace linalgcpp
@@ -17,8 +18,9 @@ class Vector
 {
     public:
         Vector() = default;
-        Vector(int size);
-        Vector(int size, T val);
+        Vector(size_t size);
+        Vector(size_t size, T val);
+        Vector(std::vector<T> vect);
 
         Vector(const Vector& vect) = default;
         ~Vector() noexcept = default;
@@ -26,6 +28,9 @@ class Vector
         Vector(Vector&& vect);
         Vector& operator=(Vector vect);
         Vector& operator=(T val);
+
+        template <typename T2>
+        friend void Swap(Vector<T2>& lhs, Vector<T2>& rhs);
 
         T* begin();
         T* end();
@@ -36,10 +41,9 @@ class Vector
         T& operator[](int i);
         const T& operator[](int i) const;
 
-        int size() const
-        {
-            return data_.size();
-        }
+        size_t size() const;
+
+        void Print(const std::string& label = "") const;
 
     private:
         std::vector<T> data_;
@@ -47,19 +51,21 @@ class Vector
 };
 
 template <typename T>
-Vector<T>::Vector(int size)
+Vector<T>::Vector(size_t size)
 {
-    assert(size > 0);
-
     data_.resize(size);
 }
 
 template <typename T>
-Vector<T>::Vector(int size, T val)
+Vector<T>::Vector(size_t size, T val)
 {
-    assert(size > 0);
-
     data_.resize(size, val);
+}
+
+template <typename T>
+Vector<T>::Vector(std::vector<T> vect)
+{
+    std::swap(vect, data_);
 }
 
 template <typename T>
@@ -74,6 +80,12 @@ Vector<T>& Vector<T>::operator=(Vector<T> vect)
     std::swap(*this, vect);
 
     return *this;
+}
+
+template <typename T2>
+void Swap(Vector<T2>& lhs, Vector<T2>& rhs)
+{
+    std::swap(lhs.data_, rhs.data_);
 }
 
 template <typename T>
@@ -124,6 +136,22 @@ const T& Vector<T>::operator[](int i) const
     assert(static_cast<unsigned int>(i) < data_.size());
 
     return data_[i];
+}
+
+template <typename T>
+size_t Vector<T>::size() const
+{
+    return data_.size();
+}
+
+template <typename T>
+void Vector<T>::Print(const std::string& label) const
+{
+    std::cout << label;
+
+    std::cout << (*this);
+
+    std::cout << "\n";
 }
 
 template <typename T>
@@ -319,6 +347,9 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& vect)
 
     return out;
 }
+
+void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0);
+void Randomize(Vector<int>& vect, int lo = 0.0, int hi = 1.0);
 
 void Normalize(Vector<double>& vect);
 void SubAvg(Vector<double>& vect);
