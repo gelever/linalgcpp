@@ -30,6 +30,7 @@ class CooMatrix : public Operator
         size_t Cols() const;
 
         void Add(int i, int j, T val);
+        void AddSym(int i, int j, T val);
         void Add(const std::vector<int>& rows,
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
@@ -116,6 +117,17 @@ void CooMatrix<T>::Add(int i, int j, T val)
     }
 
     entries.push_back(std::make_tuple(i, j, val));
+}
+
+template <typename T>
+void CooMatrix<T>::AddSym(int i, int j, T val)
+{
+    Add(i, j, val);
+
+    if (i != j)
+    {
+        Add(j, i, val);
+    }
 }
 
 template <typename T>

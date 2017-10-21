@@ -219,8 +219,8 @@ void test_coo()
 
         auto dense = coo.ToDense();
         auto sparse = coo.ToSparse();
-
     }
+
     // Without setting specfic size
     {
         CooMatrix<double> coo;
@@ -237,6 +237,20 @@ void test_coo()
         auto diff = dense - sparse.ToDense();
 
         assert(std::fabs(diff.Sum()) < 1e-8);
+    }
+
+    // With symmetric add
+    {
+        CooMatrix<double> coo(10, 10);
+        coo.AddSym(0, 0, 1.0);
+        coo.AddSym(0, 1, 2.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(1, 1, 3.0);
+        coo.AddSym(2, 2, 3.0);
+        coo.AddSym(4, 2, 3.0);
+
+        coo.ToDense().Print("Coo Symmetric Add");
     }
     // Make sure ToSparse gets same result as ToDense
     {
@@ -270,6 +284,7 @@ void test_coo()
 
         SparseMatrix<int> sp = coo.ToSparse<int>();
     }
+
     // Generate larger coordinate matrix
     {
         const int size = 1e1;
