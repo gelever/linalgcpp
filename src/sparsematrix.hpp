@@ -226,7 +226,7 @@ void SparseMatrix<T>::SortIndices()
     std::vector<int> permutation(indices_.size());
     std::iota(begin(permutation), end(permutation), 0);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         const int start = indptr_[i];
         const int end = indptr_[i + 1];
@@ -236,7 +236,16 @@ void SparseMatrix<T>::SortIndices()
                   compare_cols);
     }
 
-    std::swap(indices_, permutation);
+    std::vector<int> sorted_indices(indices_.size());
+    std::vector<T> sorted_data(data_.size());
+
+    std::transform(begin(permutation), end(permutation), begin(sorted_indices),
+            [&] (int i) { return indices_[i]; });
+    std::transform(begin(permutation), end(permutation), begin(sorted_data),
+            [&] (int i) { return data_[i]; });
+
+    std::swap(indices_, sorted_indices);
+    std::swap(data_, sorted_data);
 }
 
 template <typename T>

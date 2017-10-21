@@ -55,8 +55,7 @@ void DenseMatrix::Print(const std::string& label) const
     {
         for (size_t j = 0; j < cols_; ++j)
         {
-            std::cout << std::setw(width) << ((*this)(i, j));
-
+            std::cout << std::setw(width) << (*this)(i, j);
         }
 
         std::cout << "\n";

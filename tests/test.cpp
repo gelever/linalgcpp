@@ -186,6 +186,7 @@ void test_sparse()
         //submat.Print("submat:");
     }
 
+    // Test Mult Vector
     {
         Vector<double> x(size, 1.0);
         Vector<double> y(size);
@@ -197,6 +198,49 @@ void test_sparse()
         A.MultAT(x, y);
         std::cout << " A^T x: " << y;
     }
+
+    // Test Sort Indices
+    {
+        const size_t size = 2;
+        const size_t nnz = 4;
+        std::vector<int> indptr(size + 1);
+        std::vector<int> indices(nnz);
+        std::vector<double> data(nnz);
+
+        indptr[0] = 0;
+        indptr[1] = 2;
+        indptr[2] = nnz;
+
+        indices[0] = 1;
+        indices[1] = 0;
+        indices[2] = 1;
+        indices[3] = 0;
+
+        data[0] = 1;
+        data[1] = 2;
+        data[2] = 1;
+        data[3] = 2;
+
+        SparseMatrix<> A_sort(indptr, indices, data,
+                         size, size);
+
+        A_sort.PrintDense("A:");
+
+        for (size_t i = 0; i < nnz; ++i)
+        {
+            printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
+        }
+
+        A_sort.SortIndices();
+
+        A_sort.PrintDense("A Sorted:");
+
+        for (size_t i = 0; i < nnz; ++i)
+        {
+            printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
+        }
+    }
+
 }
 
 void test_coo()
