@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <random>
 #include <assert.h>
 
 namespace linalgcpp
@@ -27,6 +28,9 @@ class Vector
         Vector(Vector&& vect);
         Vector& operator=(Vector vect);
         Vector& operator=(T val);
+
+        template <typename T2>
+        friend void Swap(Vector<T2>& lhs, Vector<T2>& rhs);
 
         T* begin();
         T* end();
@@ -76,6 +80,12 @@ Vector<T>& Vector<T>::operator=(Vector<T> vect)
     std::swap(*this, vect);
 
     return *this;
+}
+
+template <typename T2>
+void Swap(Vector<T2>& lhs, Vector<T2>& rhs)
+{
+    std::swap(lhs.data_, rhs.data_);
 }
 
 template <typename T>
@@ -337,6 +347,9 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& vect)
 
     return out;
 }
+
+void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0);
+void Randomize(Vector<int>& vect, int lo = 0.0, int hi = 1.0);
 
 void Normalize(Vector<double>& vect);
 void SubAvg(Vector<double>& vect);

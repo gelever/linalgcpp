@@ -570,17 +570,23 @@ void test_operator()
 {
     auto mult = [](const Operator& op)
     {
-        Vector<double> vect(op.Cols(), 1.0);
-        Vector<double> vect2(op.Rows());
+        Vector<double> vect(op.Cols(), 1);
+        Vector<double> vect2(op.Rows(), 0);
+
+        Randomize(vect);
         op.Mult(vect, vect2);
+
         return vect2;
     };
 
     auto multAT = [](const Operator& op)
     {
-        Vector<double> vect(op.Cols(), 1.0);
-        Vector<double> vect2(op.Rows());
+        Vector<double> vect(op.Cols(), 1);
+        Vector<double> vect2(op.Rows(), 0);
+
+        Randomize(vect);
         op.MultAT(vect, vect2);
+
         return vect2;
     };
 
@@ -591,22 +597,22 @@ void test_operator()
     coo.Add(1, 0, -3.0);
     coo.Add(2, 2, 4.0);
 
-    SparseMatrix<> sparse = coo.ToSparse();
+    SparseMatrix<double> sparse = coo.ToSparse();
     DenseMatrix dense = coo.ToDense();
 
     auto vect_coo = mult(coo);
     auto vect_dense = mult(dense);
     auto vect_sparse = mult(sparse);
 
-    std::cout << "vect_coo" << vect_dense;
+    std::cout << "vect_coo" << vect_coo;
     std::cout << "vect_dense" << vect_dense;
     std::cout << "vect_sparse" << vect_sparse;
 
+    auto vect_sparse_T = multAT(sparse);
     auto vect_coo_T = multAT(coo);
     auto vect_dense_T = multAT(dense);
-    auto vect_sparse_T = multAT(sparse);
 
-    std::cout << "vect_coo_T" << vect_dense_T;
+    std::cout << "vect_coo_T" << vect_coo_T;
     std::cout << "vect_dense_T" << vect_dense_T;
     std::cout << "vect_sparse_T" << vect_sparse_T;
 }
