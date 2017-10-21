@@ -1,5 +1,5 @@
 CXX := g++
-CXX_FLAGS := -g -O1 -Wall -Werror
+CXX_FLAGS := -g -O1 -Wall -Werror -std=c++14
 LIBS := -llapack -lblas -lm
 
 SRC_DIR := src
@@ -10,7 +10,7 @@ TEST_DIR := tests
 SRC := $(wildcard $(SRC_DIR)/*.cpp)
 OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRC)))
 PROGS := 
-TESTS := test
+TESTS := $(notdir $(basename $(wildcard $(TEST_DIR)/*.cpp)))
 
 all: $(OBJS) $(PROGS) $(TESTS)
 
