@@ -65,6 +65,16 @@ void DenseMatrix::Print(const std::string& label) const
     std::cout << "\n";
 }
 
+void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const
+{
+    Mult<double, double>(input, output);
+}
+
+void DenseMatrix::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    MultAT<double, double>(input, output);
+}
+
 DenseMatrix DenseMatrix::Mult(const DenseMatrix& input) const
 {
     DenseMatrix output(rows_, input.Cols());

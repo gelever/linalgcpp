@@ -39,7 +39,9 @@ class CooMatrix : public Operator
 
         DenseMatrix ToDense() const;
 
-        void Mult(const Vector<double>& input, Vector<double>& output) const {};
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+
     private:
         int rows_;
         int cols_;
@@ -248,6 +250,42 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
               end(indptr), data.size());
 
     return SparseMatrix<T2>(indptr, indices, data, rows, cols);
+}
+
+template <typename T>
+void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+{
+    assert(Rows() == output.size());
+    assert(Cols() == input.size());
+
+    output = 0;
+
+    for (const auto& tup : entries)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T val = std::get<2>(tup);
+
+        output[i] += val * input[j];
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    assert(Rows() == output.size());
+    assert(Cols() == input.size());
+
+    output = 0;
+
+    for (const auto& tup : entries)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T val = std::get<2>(tup);
+
+        output[j] += val * input[i];
+    }
 }
 
 } // namespace linalgcpp

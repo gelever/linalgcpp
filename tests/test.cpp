@@ -184,6 +184,19 @@ void test_sparse()
         //submat.PrintDense("submat:");
         //submat.Print("submat:");
     }
+
+    {
+        Vector<double> x(size, 1.0);
+        Vector<double> y(size);
+        A.PrintDense("A:");
+        A.Mult(x, y);
+        std::cout << " x: " << x;
+        std::cout << " Ax: " << y;
+
+        A.MultAT(x, y);
+        std::cout << " A^T x: " << y;
+
+    }
 }
 
 void test_coo()
@@ -282,6 +295,34 @@ void test_coo()
         auto diff = dense - sparse.ToDense();
 
         assert(std::fabs(diff.Sum()) < 1e-8);
+    }
+
+    // With Mult
+    {
+        const size_t size = 10;
+
+        CooMatrix<double> coo(size);
+        coo.Add(0, 0, 1.0);
+        coo.Add(0, 1, 2.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(1, 1, 3.0);
+        coo.Add(2, 2, 3.0);
+        coo.Add(4, 2, 3.0);
+        coo.Add(8, 9, 3.0);
+
+        Vector<double> x(size, 1.0);
+        Vector<double> y(size);
+
+
+        coo.ToDense().Print("coo:");
+        std::cout << "x: " << x;
+
+        coo.Mult(x, y);
+        std::cout << "y: " << y;
+
+        coo.MultAT(x, y);
+        std::cout << "coo^T y: " << y;
     }
 }
 

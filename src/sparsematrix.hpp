@@ -92,10 +92,9 @@ class SparseMatrix : public Operator
 
 
         // Operator Requirement
-        void Mult(const Vector<double>& input, Vector<double>& output) const
-        {
-            Mult<double, double>(input, output);
-        }
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+
     private:
         size_t rows_;
         size_t cols_;
@@ -553,6 +552,18 @@ void SparseMatrix<T>::MultAT(const Vector<T2>& input, Vector<T3>& output) const
             output[indices_[j]] += data_[j] * input[i];
         }
     }
+}
+
+template <typename T>
+void SparseMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+{
+    Mult<double, double>(input, output);
+}
+
+template <typename T>
+void SparseMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    MultAT<double, double>(input, output);
 }
 
 template <typename T>

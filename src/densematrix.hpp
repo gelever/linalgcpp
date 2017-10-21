@@ -79,10 +79,8 @@ class DenseMatrix : public Operator
         DenseMatrix& operator=(double val);
 
         // Operator Requirement
-        void Mult(const Vector<double>& input, Vector<double>& output) const
-        {
-            Mult<double, double>(input, output);
-        }
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
 
     private:
         size_t rows_;

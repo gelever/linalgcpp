@@ -21,7 +21,14 @@ class Operator
 
 
         virtual void Mult(const Vector<double>& input, Vector<double>& output) const = 0;
+        virtual void MultAT(const Vector<double>& input, Vector<double>& output) const;
 };
+
+inline
+void Operator::MultAT(const Vector<double>& input, Vector<double>& output) const
+{
+    throw std::runtime_error("The operator MultAT not defined!\n");
+}
 
 }
 #endif // OPERATOR_HPP__
