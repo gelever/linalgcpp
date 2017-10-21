@@ -179,12 +179,12 @@ void SparseMatrix<T>::Print(const std::string& label) const
 
     std::cout << label << "\n";
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            std::cout << std::setw(width) << "(" <<
-                      i << ", " << indices_[j] << ") " << data_[j] << "\n";
+            std::cout << "(" << i << ", " << indices_[j] << ") "
+                      << std::setw(width) << data_[j] << "\n";
         }
     }
 

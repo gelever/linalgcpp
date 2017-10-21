@@ -41,6 +41,7 @@ void test_sparse()
         SparseMatrix<double> test2(std::move(test));
     }
 
+    A.Print("A:");
     A.PrintDense("A:");
 
     SparseMatrix<int> A_int;
@@ -195,7 +196,6 @@ void test_sparse()
 
         A.MultAT(x, y);
         std::cout << " A^T x: " << y;
-
     }
 }
 
