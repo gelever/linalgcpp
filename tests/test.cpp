@@ -240,7 +240,6 @@ void test_sparse()
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
     }
-
 }
 
 void test_coo()
@@ -577,23 +576,39 @@ void test_operator()
         return vect2;
     };
 
-    DenseMatrix dense(3, 3);
-    dense(0, 0) = 1.0;
-    dense(1, 1) = 2.0;
-    dense(2, 2) = 3.0;
+    auto multAT = [](const Operator& op)
+    {
+        Vector<double> vect(op.Cols(), 1.0);
+        Vector<double> vect2(op.Rows());
+        op.MultAT(vect, vect2);
+        return vect2;
+    };
 
     CooMatrix<double> coo(3, 3);
     coo.Add(0, 0, 1.0);
+    coo.Add(0, 1, -2.0);
     coo.Add(1, 1, 2.0);
-    coo.Add(2, 2, 3.0);
+    coo.Add(1, 0, -3.0);
+    coo.Add(2, 2, 4.0);
 
-    SparseMatrix<double> sparse = coo.ToSparse();
+    SparseMatrix<> sparse = coo.ToSparse();
+    DenseMatrix dense = coo.ToDense();
 
+    auto vect_coo = mult(coo);
     auto vect_dense = mult(dense);
     auto vect_sparse = mult(sparse);
 
+    std::cout << "vect_coo" << vect_dense;
     std::cout << "vect_dense" << vect_dense;
     std::cout << "vect_sparse" << vect_sparse;
+
+    auto vect_coo_T = multAT(coo);
+    auto vect_dense_T = multAT(dense);
+    auto vect_sparse_T = multAT(sparse);
+
+    std::cout << "vect_coo_T" << vect_dense_T;
+    std::cout << "vect_dense_T" << vect_dense_T;
+    std::cout << "vect_sparse_T" << vect_sparse_T;
 }
 
 int main(int argc, char** argv)
