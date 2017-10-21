@@ -14,24 +14,13 @@ namespace linalgcpp
 class Operator
 {
     public:
-        Operator();
-        Operator(size_t size);
-        Operator(size_t rows, size_t cols);
-        Operator(const Operator& other) = default;
-        Operator(Operator&& other) = default;
-
-        virtual size_t Rows() const;
-        virtual size_t Cols() const;
-
-        friend void Swap(Operator& lhs, Operator& rhs);
-
         virtual ~Operator() noexcept = default;
 
-        virtual void Mult(const Vector<double>& input, Vector<double>& output) const = 0;
+        virtual size_t Rows() const = 0;
+        virtual size_t Cols() const = 0;
 
-    private:
-        size_t rows_;
-        size_t cols_;
+
+        virtual void Mult(const Vector<double>& input, Vector<double>& output) const = 0;
 };
 
 }

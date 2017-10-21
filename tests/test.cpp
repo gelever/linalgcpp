@@ -176,7 +176,7 @@ void test_sparse()
         }
 
         auto submat = sparse.GetSubMatrix(rows, cols, marker);
-        printf("%ld %ld %d\n", submat.Rows(), submat.Cols(), submat.nnz());
+        printf("%ld %ld %ld\n", submat.Rows(), submat.Cols(), submat.nnz());
 
         CooMatrix<double> coo2 = coo;
         auto sparse2 = coo2.ToSparse();

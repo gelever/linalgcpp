@@ -16,12 +16,18 @@ namespace linalgcpp
 {
 
 template <typename T>
-class CooMatrix
+class CooMatrix : public Operator
 {
     public:
         CooMatrix();
         CooMatrix(int size);
         CooMatrix(int rows, int cols);
+
+        CooMatrix(const CooMatrix& other) = default;
+        ~CooMatrix() noexcept = default;
+
+        size_t Rows() const;
+        size_t Cols() const;
 
         void Add(int i, int j, T val);
         void Add(const std::vector<int>& rows,
@@ -33,6 +39,7 @@ class CooMatrix
 
         DenseMatrix ToDense() const;
 
+        void Mult(const Vector<double>& input, Vector<double>& output) const {};
     private:
         int rows_;
         int cols_;
@@ -57,6 +64,40 @@ CooMatrix<T>::CooMatrix(int rows, int cols)
     : rows_(rows), cols_(cols)
 {
 
+}
+
+template <typename T>
+size_t CooMatrix<T>::Rows() const
+{
+    if (rows_ > -1)
+    {
+        return rows_;
+    }
+
+    if (entries.size() == 0)
+    {
+        return 0;
+    }
+
+    auto max_el = *std::max_element(begin(entries), end(entries));
+    return std::get<0>(max_el) + 1;
+}
+
+template <typename T>
+size_t CooMatrix<T>::Cols() const
+{
+    if (cols_ > -1)
+    {
+        return cols_;
+    }
+
+    if (entries.size() == 0)
+    {
+        return 0;
+    }
+
+    auto max_el = *std::max_element(begin(entries), end(entries));
+    return std::get<1>(max_el) + 1;
 }
 
 template <typename T>
@@ -103,6 +144,11 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
+    if (entries.size() == 0)
+    {
+        return DenseMatrix();
+    }
+
     int rows;
     int cols;
 

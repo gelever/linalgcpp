@@ -25,10 +25,14 @@ class DenseMatrix : public Operator
         DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data);
 
         DenseMatrix(const DenseMatrix&) = default;
+        DenseMatrix(DenseMatrix&&);
+
+        ~DenseMatrix() noexcept = default;
 
         friend void Swap(DenseMatrix& lhs, DenseMatrix& rhs);
-        DenseMatrix(DenseMatrix&&);
-        ~DenseMatrix() noexcept = default;
+
+        size_t Rows() const;
+        size_t Cols() const;
 
         double Sum() const;
         double Max() const;
@@ -81,6 +85,8 @@ class DenseMatrix : public Operator
         }
 
     private:
+        size_t rows_;
+        size_t cols_;
         std::vector<double> data_;
 
         void dgemm(const DenseMatrix& input, DenseMatrix& output, bool AT, bool BT) const;
@@ -93,10 +99,10 @@ double& DenseMatrix::operator()(size_t row, size_t col)
     assert(row >= 0);
     assert(col >= 0);
 
-    assert(row < Rows());
-    assert(col < Cols());
+    assert(row < rows_);
+    assert(col < cols_);
 
-    return data_[row + (col * Rows())];
+    return data_[row + (col * rows_)];
 }
 
 inline
@@ -105,10 +111,22 @@ const double& DenseMatrix::operator()(size_t row, size_t col) const
     assert(row >= 0);
     assert(col >= 0);
 
-    assert(row < Rows());
-    assert(col < Cols());
+    assert(row < rows_);
+    assert(col < cols_);
 
-    return data_[row + (col * Rows())];
+    return data_[row + (col * rows_)];
+}
+
+inline
+size_t DenseMatrix::Rows() const
+{
+    return rows_;
+}
+
+inline
+size_t DenseMatrix::Cols() const
+{
+    return cols_;
 }
 
 inline
@@ -141,7 +159,7 @@ double DenseMatrix::Min() const
 template <typename T>
 Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
 {
-    Vector<double> output(Rows());
+    Vector<double> output(rows_);
     Mult(input, output);
 
     return output;
@@ -150,14 +168,14 @@ Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
 template <typename T, typename T2>
 void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
 {
-    assert(input.size() == Cols());
-    assert(output.size() == Rows());
+    assert(input.size() == cols_);
+    assert(output.size() == rows_);
 
     output = 0;
 
-    for (size_t j = 0; j < Cols(); ++j)
+    for (size_t j = 0; j < cols_; ++j)
     {
-        for (size_t i = 0; i < Rows(); ++i)
+        for (size_t i = 0; i < rows_; ++i)
         {
             output[i] += (*this)(i, j) * input[j];
         }
@@ -167,7 +185,7 @@ void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
 template <typename T>
 Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
 {
-    Vector<double> output(Cols());
+    Vector<double> output(cols_);
     MultAT(input, output);
 
     return output;
@@ -176,14 +194,14 @@ Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
 template <typename T, typename T2>
 void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
 {
-    assert(input.size() == Rows());
-    assert(output.size() == Cols());
+    assert(input.size() == rows_);
+    assert(output.size() == cols_);
 
-    for (size_t j = 0; j < Cols(); ++j)
+    for (size_t j = 0; j < cols_; ++j)
     {
         T2 val = 0;
 
-        for (size_t i = 0; i < Rows(); ++i)
+        for (size_t i = 0; i < rows_; ++i)
         {
             val += (*this)(i, j) * input[i];
         }
