@@ -586,11 +586,16 @@ void test_parser()
     {
         printf("%s\n", e.what());
     }
+
+    // Read AdjList as Integer Vector
+    std::vector<int> vect_adj = ReadText<int>("adj.adj");
+    Vector<int> v_adj(vect_adj);
+    v_adj.Print("adjlist vector:");
 }
 
 void test_operator()
 {
-    auto mult = [](const Operator & op)
+    auto mult = [](const Operator& op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
@@ -601,7 +606,7 @@ void test_operator()
         return vect2;
     };
 
-    auto multAT = [](const Operator & op)
+    auto multAT = [](const Operator& op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
