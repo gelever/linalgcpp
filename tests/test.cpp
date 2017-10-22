@@ -1,3 +1,10 @@
+/* @file
+
+   @brief A collection of brief tests to make sure
+          things do what I expect them.  None of these
+          checks are automated yet, but will be in the near
+          future.
+*/
 #include <random>
 #include <stdio.h>
 #include <assert.h>
@@ -239,6 +246,21 @@ void test_sparse()
         {
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
+    }
+
+    // Test Scalar operations
+    {
+        SparseMatrix<> A_scalar(A);
+        A_scalar.PrintDense("A");
+
+        A_scalar *= 2.0;
+        A_scalar.PrintDense("A * 2.0");
+
+        A_scalar /= 4.0;
+        A_scalar.PrintDense("(A * 2.0) / 4");
+
+        A_scalar = -1.0;
+        A_scalar.PrintDense("A = -1");
     }
 }
 
