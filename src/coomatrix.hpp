@@ -63,7 +63,7 @@ class CooMatrix : public Operator
             @retval the number of columns
 
             If the matrix size was not specified during
-            creation, then the number of cols is determined
+            creation, then the number of columns is determined
             by the maximum element
         */
         size_t Cols() const override;
