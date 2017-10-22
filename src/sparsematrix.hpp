@@ -1,4 +1,4 @@
-/* @file */
+/*! @file */
 
 #ifndef SPARSEMATRIX_HPP__
 #define SPARSEMATRIX_HPP__
@@ -17,9 +17,9 @@
 namespace linalgcpp
 {
 
-/* @brief Sparse matrix in CSR format
+/*! @brief Sparse matrix in CSR format
 
-   3 arrays keep track of the nonzero entries:
+    3 arrays keep track of the nonzero entries:
         - indptr is the row pointer such that indptr[i] points
           to the start of row i in indices and data
         - indices is the column index of the entry
@@ -29,176 +29,176 @@ template <typename T = double>
 class SparseMatrix : public Operator
 {
     public:
-        /* @brief Default Constructor of zero size */
+        /*! @brief Default Constructor of zero size */
         SparseMatrix();
 
-        /* @brief Constructor setting the individual arrays and size
-           @param indptr row pointer array
-           @param indices column indices array
-           @param data entry value array
-           @param rows number of rows in the matrix
-           @param cols number of cols in the matrix
+        /*! @brief Constructor setting the individual arrays and size
+            @param indptr row pointer array
+            @param indices column indices array
+            @param data entry value array
+            @param rows number of rows in the matrix
+            @param cols number of cols in the matrix
         */
         SparseMatrix(const std::vector<int>& indptr,
                      const std::vector<int>& indices,
                      const std::vector<T>& data,
                      int rows, int cols);
 
-        /* @brief Diagonal Constructor
-           @param diag values for the diagonal
+        /*! @brief Diagonal Constructor
+            @param diag values for the diagonal
         */
         SparseMatrix(const std::vector<T>& diag);
 
-        /* @brief Copy Constructor */
+        /*! @brief Copy Constructor */
         SparseMatrix(const SparseMatrix<T>& other);
 
-        /* @brief Move constructor */
+        /*! @brief Move constructor */
         SparseMatrix(SparseMatrix<T>&& other);
 
-        /* @brief Destructor */
+        /*! @brief Destructor */
         ~SparseMatrix() noexcept = default;
 
-        /* @brief Sets this matrix equal to another
-           @param other the matrix to copy
+        /*! @brief Sets this matrix equal to another
+            @param other the matrix to copy
         */
         SparseMatrix<T>& operator=(SparseMatrix<T> other);
 
-        /* @brief Swap two matrices
-           @param lhs left hand side matrix
-           @param rhs right hand side matrix
+        /*! @brief Swap two matrices
+            @param lhs left hand side matrix
+            @param rhs right hand side matrix
         */
         template <typename T2>
         friend void Swap(SparseMatrix<T2>& lhs, SparseMatrix<T2>& rhs);
 
-        /* @brief The number of rows in this matrix
-           @retval the number of rows
+        /*! @brief The number of rows in this matrix
+            @retval the number of rows
         */
         size_t Rows() const override;
 
-        /* @brief The number of columns in this matrix
-           @retval the number of columns
+        /*! @brief The number of columns in this matrix
+            @retval the number of columns
         */
         size_t Cols() const override;
 
-        /* @brief The number of nonzero entries in this matrix
-           @retval the nonzero entries of columns
+        /*! @brief The number of nonzero entries in this matrix
+            @retval the nonzero entries of columns
 
-           @note this includes explicit zeros
+            @note this includes explicit zeros
         */
         size_t nnz() const;
 
-        /* @brief Get the row pointer array
-           @retval the row pointer array
+        /*! @brief Get the row pointer array
+            @retval the row pointer array
         */
         const std::vector<int>& GetIndptr() const;
 
-        /* @brief Get the column indices
-           @retval the column indices array
+        /*! @brief Get the column indices
+            @retval the column indices array
         */
         const std::vector<int>& GetIndices() const;
 
-        /* @brief Get the entry values
-           @retval the data array
+        /*! @brief Get the entry values
+            @retval the data array
         */
         const std::vector<T>& GetData() const;
 
-        /* @brief Print the nonzero entries as a list
-           @param label the label to print before the list of entries
-           @param out stream to print to
+        /*! @brief Print the nonzero entries as a list
+            @param label the label to print before the list of entries
+            @param out stream to print to
         */
         void Print(const std::string& label = "", std::ostream& out = std::cout) const;
 
-        /* @brief Print the entries of this matrix in dense format
-           @param label the label to print before the list of entries
-           @param out stream to print to
+        /*! @brief Print the entries of this matrix in dense format
+            @param label the label to print before the list of entries
+            @param out stream to print to
         */
         void PrintDense(const std::string& label = "", std::ostream& out = std::cout) const;
 
-        /* @brief Generate a dense version of this matrix
-           @retval the dense version of this matrix
+        /*! @brief Generate a dense version of this matrix
+            @retval the dense version of this matrix
         */
         DenseMatrix ToDense() const;
 
-        /* @brief Sort the column indices in each row */
+        /*! @brief Sort the column indices in each row */
         void SortIndices();
 
-        /* @brief Multiplies a vector: Ax = y
-           @param input the input vector x
-           @retval output the output vector y
+        /*! @brief Multiplies a vector: Ax = y
+            @param input the input vector x
+            @retval output the output vector y
         */
         template <typename T2 = T>
         auto Mult(const Vector<T2>& input) const;
 
-        /* @brief Multiplies a vector by the transpose
-           of this matrix: A^T x = y
-           @param input the input vector x
-           @retval output the output vector y
+        /*! @brief Multiplies a vector by the transpose
+            of this matrix: A^T x = y
+            @param input the input vector x
+            @retval output the output vector y
         */
         template <typename T2 = T>
         auto MultAT(const Vector<T2>& input) const;
 
-        /* @brief Multiplies a vector: Ax = y
-           @param input the input vector x
-           @param output the output vector y
+        /*! @brief Multiplies a vector: Ax = y
+            @param input the input vector x
+            @param output the output vector y
         */
         template <typename T2 = T, typename T3 = T>
         void Mult(const Vector<T2>& input, Vector<T3>& output) const;
 
-        /* @brief Multiplies a vector by the transpose
-           of this matrix: A^T x = y
-           @param input the input vector x
-           @param output the output vector y
+        /*! @brief Multiplies a vector by the transpose
+            of this matrix: A^T x = y
+            @param input the input vector x
+            @param output the output vector y
         */
         template <typename T2 = T, typename T3 = T>
         void MultAT(const Vector<T2>& input, Vector<T3>& output) const;
 
-        /* @brief Multiplies a dense matrix: AX = Y
-           @param input the input dense matrix X
-           @retval output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix: AX = Y
+            @param input the input dense matrix X
+            @retval output the output dense matrix Y
         */
         DenseMatrix Mult(const DenseMatrix& input) const;
 
-        /* @brief Multiplies a dense matrix by the transpose
-           of this matrix: A^T X = Y
-           @param input the input dense matrix X
-           @retval output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix by the transpose
+            of this matrix: A^T X = Y
+            @param input the input dense matrix X
+            @retval output the output dense matrix Y
         */
         DenseMatrix MultAT(const DenseMatrix& input) const;
 
-        /* @brief Multiplies a dense matrix: AX = Y
-           @param input the input dense matrix X
-           @retval output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix: AX = Y
+            @param input the input dense matrix X
+            @retval output the output dense matrix Y
         */
         void Mult(const DenseMatrix& input, DenseMatrix& output) const;
 
-        /* @brief Multiplies a dense matrix by the transpose
-           of this matrix: A^T X = Y
-           @param input the input dense matrix X
-           @param output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix by the transpose
+            of this matrix: A^T X = Y
+            @param input the input dense matrix X
+            @param output the output dense matrix Y
         */
         void MultAT(const DenseMatrix& input, DenseMatrix& output) const;
 
-        /* @brief Multiplies a sparse matrix: AB = C
-           @param input the input sparse matrix B
-           @retval output the output sparse matrix C
+        /*! @brief Multiplies a sparse matrix: AB = C
+            @param rhs the input sparse matrix B
+            @retval the output sparse matrix C
         */
         template <typename T2 = T, typename T3 = typename std::common_type<T, T2>::type>
         auto Mult(const SparseMatrix<T2>& rhs) const;
 
-        /* @brief Genereates the transpose of this matrix*/
+        /*! @brief Genereates the transpose of this matrix*/
         SparseMatrix<T> Transpose() const;
 
-        /* @brief Get the diagonal entries
-           @retval the diagonal entries
+        /*! @brief Get the diagonal entries
+            @retval the diagonal entries
         */
         std::vector<double> GetDiag() const;
 
-        /* @brief Extract a submatrix out of this matrix
-           @param rows the rows to extract
-           @param cols the columns to extract
-           @retval the submatrix
+        /*! @brief Extract a submatrix out of this matrix
+            @param rows the rows to extract
+            @param cols the columns to extract
+            @retval the submatrix
 
-           @note a workspace array the size of the number of columns
+            @note a workspace array the size of the number of columns
                  in this matrix is used for this routine. If multiple
                  extractions are need from large matrices, it is
                  recommended to reuse a single marker array to avoid
@@ -207,26 +207,26 @@ class SparseMatrix : public Operator
         SparseMatrix<T> GetSubMatrix(const std::vector<int>& rows,
                                      const std::vector<int>& cols) const;
 
-        /* @brief Extract a submatrix out of this matrix
-           @param rows the rows to extract
-           @param cols the columns to extract
-           @param marker workspace used to keep track of column indices,
+        /*! @brief Extract a submatrix out of this matrix
+            @param rows the rows to extract
+            @param cols the columns to extract
+            @param marker workspace used to keep track of column indices,
                   must be at least the size of the number of columns
-           @retval the submatrix
+            @retval the submatrix
         */
         SparseMatrix<T> GetSubMatrix(const std::vector<int>& rows,
                                      const std::vector<int>& cols,
                                      std::vector<int>& marker) const;
 
-        /* @brief Multiply by a scalar */
+        /*! @brief Multiply by a scalar */
         template <typename T2 = T>
         SparseMatrix<T>& operator*=(T2 val);
 
-        /* @brief Divide by a scalar */
+        /*! @brief Divide by a scalar */
         template <typename T2 = T>
         SparseMatrix<T>& operator/=(T2 val);
 
-        /* @brief Set all nonzeros to a scalar */
+        /*! @brief Set all nonzeros to a scalar */
         template <typename T2 = T>
         SparseMatrix<T>& operator=(T2 val);
 
@@ -324,7 +324,7 @@ void SparseMatrix<T>::Print(const std::string& label, std::ostream& out) const
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
             out << "(" << i << ", " << indices_[j] << ") "
-                      << std::setw(width) << data_[j] << "\n";
+                << std::setw(width) << data_[j] << "\n";
         }
     }
 
@@ -380,9 +380,15 @@ void SparseMatrix<T>::SortIndices()
     std::vector<T> sorted_data(data_.size());
 
     std::transform(begin(permutation), end(permutation), begin(sorted_indices),
-            [&] (int i) { return indices_[i]; });
+                   [&] (int i)
+    {
+        return indices_[i];
+    });
     std::transform(begin(permutation), end(permutation), begin(sorted_data),
-            [&] (int i) { return data_[i]; });
+                   [&] (int i)
+    {
+        return data_[i];
+    });
 
     std::swap(indices_, sorted_indices);
     std::swap(data_, sorted_data);
@@ -806,12 +812,24 @@ SparseMatrix<T>& SparseMatrix<T>::operator=(T2 val)
     return *this;
 }
 
+/*! @brief Multiply a sparse matrix and
+           a scalar into a new sparse matrix: Aa = B
+    @param lhs the left hand side matrix A
+    @param val the right hand side scalar a
+    @retval the multiplied matrix B
+*/
 template <typename T2, typename T3>
 SparseMatrix<T2> operator*(SparseMatrix<T2> lhs, T3 val)
 {
     return lhs *= val;
 }
 
+/*! @brief Multiply a sparse matrix and
+           a scalar into a new sparse matrix: aA = B
+    @param val the left hand side scalar a
+    @param rhs the right hand side matrix A
+    @retval the multiplied matrix B
+*/
 template <typename T2, typename T3>
 SparseMatrix<T2> operator*(T3 val, SparseMatrix<T2> rhs)
 {

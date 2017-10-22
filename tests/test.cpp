@@ -1,6 +1,6 @@
-/* @file
+/*! @file
 
-   @brief A collection of brief tests to make sure
+    @brief A collection of brief tests to make sure
           things do what I expect them.  None of these
           checks are automated yet, but will be in the near
           future.
@@ -229,7 +229,7 @@ void test_sparse()
         data[3] = 2;
 
         SparseMatrix<> A_sort(indptr, indices, data,
-                         size, size);
+                              size, size);
 
         A_sort.PrintDense("A:");
 
@@ -582,7 +582,7 @@ void test_parser()
     {
         SparseMatrix<int> coo_int = ReadCooList<int>("fake.fake");
     }
-    catch(std::runtime_error e)
+    catch (std::runtime_error e)
     {
         printf("%s\n", e.what());
     }
@@ -590,7 +590,7 @@ void test_parser()
 
 void test_operator()
 {
-    auto mult = [](const Operator& op)
+    auto mult = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
@@ -601,7 +601,7 @@ void test_operator()
         return vect2;
     };
 
-    auto multAT = [](const Operator& op)
+    auto multAT = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
