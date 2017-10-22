@@ -27,7 +27,7 @@ $(TESTS): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(C_FLAGS) -c $< $(LIBS) -o $@
+	$(CXX) $(C_FLAGS) -c $< -o $@
 
 # Create a static library
 LIBNAME := liblinalgcpp
