@@ -472,6 +472,20 @@ void test_dense()
     d2.Print("d2");
     v2.Print("v2");
     v4.Print("d2^T * v2");
+
+    Vector<double> row_1 = d2.GetRow(1);
+    Vector<double> col_1 = d2.GetCol(1);
+
+    row_1.Print("Row 1 of d2");
+    col_1.Print("Col 1 of d2");
+
+    row_1 = 5.0;
+    col_1 = 5.0;
+
+    d2.SetRow(1, row_1);
+    d2.SetCol(1, col_1);
+
+    d2.Print("d2 with row and col 1 set to 5.0");
 }
 
 void test_vector()

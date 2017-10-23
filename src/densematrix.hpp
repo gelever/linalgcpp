@@ -78,6 +78,48 @@ class DenseMatrix : public Operator
 
         DenseMatrix& operator=(double val);
 
+        /*! @brief Get a single column from the matrix
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        template <typename T = double>
+        void GetCol(size_t col, Vector<T>& vect) const;
+
+        /*! @brief Get a single row from the matrix
+            @param row the row to get
+            @param vect set this vect to the row values
+        */
+        template <typename T = double>
+        void GetRow(size_t row, Vector<T>& vect) const;
+
+        /*! @brief Get a single column from the matrix
+            @param col the column to get
+            @retval vect the vect of column values
+        */
+        template <typename T = double>
+        Vector<T> GetCol(size_t col) const;
+
+        /*! @brief Get a single row from the matrix
+            @param row the row to get
+            @retval vect the vect of row values
+        */
+        template <typename T = double>
+        Vector<T> GetRow(size_t row) const;
+
+        /*! @brief Set a single column vector's values
+            @param col the column to set
+            @param vect the values to set
+        */
+        template <typename T = double>
+        void SetCol(size_t col, const Vector<T>& vect);
+
+        /*! @brief Set a single row vector's values
+            @param row the row to set
+            @param vect the values to set
+        */
+        template <typename T = double>
+        void SetRow(size_t row, const Vector<T>& vect);
+
         // Operator Requirement
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
         void MultAT(const Vector<double>& input, Vector<double>& output) const override;
@@ -208,6 +250,71 @@ void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
     }
 }
 
+template <typename T>
+void DenseMatrix::GetCol(size_t col, Vector<T>& vect) const
+{
+    assert(col >= 0 && col < cols_);
+    assert(vect.size() == rows_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        vect[i] = (*this)(i, col);
+    }
+}
+
+template <typename T>
+void DenseMatrix::GetRow(size_t row, Vector<T>& vect) const
+{
+    assert(row >= 0 && row < rows_);
+    assert(vect.size() == cols_);
+
+    for (size_t i = 0; i < cols_; ++i)
+    {
+        vect[i] = (*this)(row, i);
+    }
+}
+
+template <typename T>
+Vector<T> DenseMatrix::GetCol(size_t col) const
+{
+    Vector<T> vect(rows_);
+    GetCol(col, vect);
+
+    return vect;
+}
+
+template <typename T>
+Vector<T> DenseMatrix::GetRow(size_t row) const
+{
+    Vector<T> vect(cols_);
+    GetCol(row, vect);
+
+    return vect;
+}
+
+template <typename T>
+void DenseMatrix::SetCol(size_t col, const Vector<T>& vect)
+{
+    assert(col >= 0 && col < cols_);
+    assert(vect.size() == rows_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        (*this)(i, col) = vect[i];
+    }
+}
+
+template <typename T>
+void DenseMatrix::SetRow(size_t row, const Vector<T>& vect)
+{
+    assert(row >= 0 && row < rows_);
+    assert(vect.size() == cols_);
+
+    for (size_t i = 0; i < cols_; ++i)
+    {
+        (*this)(row, i) = vect[i];
+    }
+}
 
 } //namespace linalgcpp
 
