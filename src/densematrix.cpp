@@ -45,9 +45,9 @@ void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
     std::swap(lhs.data_, rhs.data_);
 }
 
-void DenseMatrix::Print(const std::string& label) const
+void DenseMatrix::Print(const std::string& label, std::ostream& out) const
 {
-    std::cout << label << "\n";
+    out << label << "\n";
 
     const int width = 6;
 
@@ -55,13 +55,13 @@ void DenseMatrix::Print(const std::string& label) const
     {
         for (size_t j = 0; j < cols_; ++j)
         {
-            std::cout << std::setw(width) << (*this)(i, j);
+            out << std::setw(width) << (*this)(i, j);
         }
 
-        std::cout << "\n";
+        out << "\n";
     }
 
-    std::cout << "\n";
+    out << "\n";
 }
 
 void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const

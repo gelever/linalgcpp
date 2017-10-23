@@ -1,3 +1,10 @@
+/*! @file
+
+    @brief A collection of brief tests to make sure
+          things do what I expect them.  None of these
+          checks are automated yet, but will be in the near
+          future.
+*/
 #include <random>
 #include <stdio.h>
 #include <assert.h>
@@ -222,7 +229,7 @@ void test_sparse()
         data[3] = 2;
 
         SparseMatrix<> A_sort(indptr, indices, data,
-                         size, size);
+                              size, size);
 
         A_sort.PrintDense("A:");
 
@@ -239,6 +246,21 @@ void test_sparse()
         {
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
+    }
+
+    // Test Scalar operations
+    {
+        SparseMatrix<> A_scalar(A);
+        A_scalar.PrintDense("A");
+
+        A_scalar *= 2.0;
+        A_scalar.PrintDense("A * 2.0");
+
+        A_scalar /= 4.0;
+        A_scalar.PrintDense("(A * 2.0) / 4");
+
+        A_scalar = -1.0;
+        A_scalar.PrintDense("A = -1");
     }
 }
 
@@ -560,10 +582,15 @@ void test_parser()
     {
         SparseMatrix<int> coo_int = ReadCooList<int>("fake.fake");
     }
-    catch(std::runtime_error e)
+    catch (std::runtime_error e)
     {
         printf("%s\n", e.what());
     }
+
+    // Read AdjList as Integer Vector
+    std::vector<int> vect_adj = ReadText<int>("adj.adj");
+    Vector<int> v_adj(vect_adj);
+    v_adj.Print("adjlist vector:");
 }
 
 void test_operator()
