@@ -626,6 +626,35 @@ void test_parser()
     std::vector<int> vect_adj = ReadText<int>("adj.adj");
     Vector<int> v_adj(vect_adj);
     v_adj.Print("adjlist vector:");
+
+    // Write Table to file
+    CooMatrix<int> coo_table;
+    coo_table.Add(0, 0, 1);
+    coo_table.Add(0, 1, 1);
+    coo_table.Add(0, 2, 1);
+    coo_table.Add(1, 2, 1);
+    coo_table.Add(2, 1, 1);
+    coo_table.Add(2, 0, 1);
+
+    SparseMatrix<int> sp_table = coo_table.ToSparse();
+    WriteTable(sp_table, "table.table");
+    sp_table.PrintDense("Table Write");
+
+    // Read Table from file
+    SparseMatrix<int> sp_table2 = ReadTable("table.table");
+    sp_table2.PrintDense("Table Read");
+
+    /*
+    SparseMatrix<int> elem_node = ReadTable("element_node.txt");
+    SparseMatrix<int> node_elem = elem_node.Transpose();
+
+    SparseMatrix<int> elem_elem = elem_node.Mult(node_elem);
+    printf("Elem Node: %ld %ld\n", elem_node.Rows(), elem_node.Cols());
+    printf("Node Elem: %ld %ld\n", node_elem.Rows(), node_elem.Cols());
+    printf("Elem Elem: %ld %ld\n", elem_elem.Rows(), elem_elem.Cols());
+    */
+
+
 }
 
 void test_operator()
