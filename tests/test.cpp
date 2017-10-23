@@ -645,13 +645,13 @@ void test_parser()
     sp_table2.PrintDense("Table Read");
 
     /*
-    SparseMatrix<int> elem_node = ReadTable("element_node.txt");
-    SparseMatrix<int> node_elem = elem_node.Transpose();
+        SparseMatrix<int> elem_node = ReadTable("element_node.txt");
+        SparseMatrix<int> node_elem = elem_node.Transpose();
 
-    SparseMatrix<int> elem_elem = elem_node.Mult(node_elem);
-    printf("Elem Node: %ld %ld\n", elem_node.Rows(), elem_node.Cols());
-    printf("Node Elem: %ld %ld\n", node_elem.Rows(), node_elem.Cols());
-    printf("Elem Elem: %ld %ld\n", elem_elem.Rows(), elem_elem.Cols());
+        SparseMatrix<int> elem_elem = elem_node.Mult(node_elem);
+        printf("Elem Node: %ld %ld\n", elem_node.Rows(), elem_node.Cols());
+        printf("Node Elem: %ld %ld\n", node_elem.Rows(), node_elem.Cols());
+        printf("Elem Elem: %ld %ld\n", elem_elem.Rows(), elem_elem.Cols());
     */
 
 

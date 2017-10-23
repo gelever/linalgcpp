@@ -265,7 +265,7 @@ SparseMatrix<T> ReadTable(const std::string& file_name)
     std::vector<T> data(indices.size(), 1);
 
     return SparseMatrix<T>(indptr, indices, data,
-                             rows, cols);
+                           rows, cols);
 }
 
 /*! @brief Write a table to a file on disk.
