@@ -45,9 +45,9 @@ void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
     std::swap(lhs.data_, rhs.data_);
 }
 
-void DenseMatrix::Print(const std::string& label) const
+void DenseMatrix::Print(const std::string& label, std::ostream& out) const
 {
-    std::cout << label << "\n";
+    out << label << "\n";
 
     const int width = 6;
 
@@ -55,13 +55,13 @@ void DenseMatrix::Print(const std::string& label) const
     {
         for (size_t j = 0; j < cols_; ++j)
         {
-            std::cout << std::setw(width) << (*this)(i, j);
+            out << std::setw(width) << (*this)(i, j);
         }
 
-        std::cout << "\n";
+        out << "\n";
     }
 
-    std::cout << "\n";
+    out << "\n";
 }
 
 void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const
@@ -254,6 +254,99 @@ DenseMatrix& DenseMatrix::operator=(double val)
     std::fill(begin(data_), end(data_), val);
 
     return *this;
+}
+
+DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
+{
+    const size_t num_rows = end - start + 1;
+    DenseMatrix dense(num_rows, cols_);
+
+    GetRow(start, end, dense);
+
+    return dense;
+}
+
+void DenseMatrix::GetRow(size_t start, size_t end, DenseMatrix& dense) const
+{
+    GetSubMatrix(start, 0, end, cols_ - 1, dense);
+}
+
+void DenseMatrix::SetRow(size_t start, const DenseMatrix& dense)
+{
+    const size_t end = start + dense.Rows() - 1;
+    SetSubMatrix(start, 0, end, cols_ - 1, dense);
+}
+
+DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
+{
+    const size_t num_cols = end - start + 1;
+    DenseMatrix dense(rows_, num_cols);
+
+    GetCol(start, end, dense);
+
+    return dense;
+}
+
+void DenseMatrix::GetCol(size_t start, size_t end, DenseMatrix& dense) const
+{
+    GetSubMatrix(0, start, rows_ - 1, end, dense);
+}
+
+void DenseMatrix::SetCol(size_t start, const DenseMatrix& dense)
+{
+    const size_t end = start + dense.Cols() - 1;
+    SetSubMatrix(0, start, rows_ - 1, end, dense);
+}
+
+DenseMatrix DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const
+{
+    const size_t num_rows = end_i - start_i + 1;
+    const size_t num_cols = end_j - start_j + 1;
+
+    DenseMatrix dense(num_rows, num_cols);
+    GetSubMatrix(start_i, start_j, end_i, end_j, dense);
+
+    return dense;
+}
+
+void DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, DenseMatrix& dense) const
+{
+    assert(start_i >= 0 && start_i < rows_);
+    assert(start_j >= 0 && start_j < cols_);
+    assert(end_i >= 0 && end_i < rows_);
+    assert(end_j >= 0 && end_j < rows_);
+    assert(end_i >= start_i && end_j >= start_j);
+
+    const size_t num_rows = end_i - start_i + 1;
+    const size_t num_cols = end_j - start_j + 1;
+
+    for (size_t j = 0; j < num_cols; ++j)
+    {
+        for (size_t i = 0; i < num_rows; ++i)
+        {
+            dense(i, j) = (*this)(i + start_i, j + start_j);
+        }
+    }
+}
+
+void DenseMatrix::SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, const DenseMatrix& dense)
+{
+    assert(start_i >= 0 && start_i < rows_);
+    assert(start_j >= 0 && start_j < cols_);
+    assert(end_i >= 0 && end_i < rows_);
+    assert(end_j >= 0 && end_j < rows_);
+    assert(end_i >= start_i && end_j >= start_j);
+
+    const size_t num_rows = end_i - start_i + 1;
+    const size_t num_cols = end_j - start_j + 1;
+
+    for (size_t j = 0; j < num_cols; ++j)
+    {
+        for (size_t i = 0; i < num_rows; ++i)
+        {
+            (*this)(i + start_i, j + start_j) = dense(i, j);
+        }
+    }
 }
 
 } // namespace linalgcpp

@@ -1,3 +1,10 @@
+/*! @file
+
+    @brief A collection of brief tests to make sure
+          things do what I expect them.  None of these
+          checks are automated yet, but will be in the near
+          future.
+*/
 #include <random>
 #include <stdio.h>
 #include <assert.h>
@@ -222,7 +229,7 @@ void test_sparse()
         data[3] = 2;
 
         SparseMatrix<> A_sort(indptr, indices, data,
-                         size, size);
+                              size, size);
 
         A_sort.PrintDense("A:");
 
@@ -239,6 +246,21 @@ void test_sparse()
         {
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
+    }
+
+    // Test Scalar operations
+    {
+        SparseMatrix<> A_scalar(A);
+        A_scalar.PrintDense("A");
+
+        A_scalar *= 2.0;
+        A_scalar.PrintDense("A * 2.0");
+
+        A_scalar /= 4.0;
+        A_scalar.PrintDense("(A * 2.0) / 4");
+
+        A_scalar = -1.0;
+        A_scalar.PrintDense("A = -1");
     }
 }
 
@@ -472,6 +494,41 @@ void test_dense()
     d2.Print("d2");
     v2.Print("v2");
     v4.Print("d2^T * v2");
+
+    Vector<double> row_1 = d2.GetRow(1);
+    Vector<double> col_1 = d2.GetCol(1);
+
+    row_1.Print("Row 1 of d2");
+    col_1.Print("Col 1 of d2");
+
+    row_1 = 5.0;
+    col_1 = 5.0;
+
+    d2.SetRow(1, row_1);
+    d2.SetCol(1, col_1);
+
+    d2.Print("d2 with row and col 1 set to 5.0");
+
+    DenseMatrix rows_0_1 = d2.GetRow(1, 2);
+    rows_0_1.Print("Rows 1,2 of d2");
+
+    DenseMatrix cols_0_1 = d2.GetCol(1, 2);
+    cols_0_1.Print("Cols 1,2 of d2");
+
+    rows_0_1 = -0.5;
+    d2.SetRow(3, rows_0_1);
+    d2.Print("d2 with rows 3,4 set to -0.5");
+
+    cols_0_1 = -9.5;
+    d2.SetCol(3, cols_0_1);
+    d2.Print("d2 with cols 3,4 set to -9.5");
+
+    DenseMatrix submat = d2.GetSubMatrix(1, 1, 3, 3);
+    submat.Print("(1,1) : (3,3) submatrix of d2");
+
+    submat = 100;
+    d2.SetSubMatrix(2, 2, 4, 4, submat);
+    d2.Print("d2 with submatrix (2,2):(4,4) set to 100");
 }
 
 void test_vector()
@@ -560,15 +617,20 @@ void test_parser()
     {
         SparseMatrix<int> coo_int = ReadCooList<int>("fake.fake");
     }
-    catch(std::runtime_error e)
+    catch (std::runtime_error e)
     {
         printf("%s\n", e.what());
     }
+
+    // Read AdjList as Integer Vector
+    std::vector<int> vect_adj = ReadText<int>("adj.adj");
+    Vector<int> v_adj(vect_adj);
+    v_adj.Print("adjlist vector:");
 }
 
 void test_operator()
 {
-    auto mult = [](const Operator& op)
+    auto mult = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
@@ -579,7 +641,7 @@ void test_operator()
         return vect2;
     };
 
-    auto multAT = [](const Operator& op)
+    auto multAT = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);

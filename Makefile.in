@@ -1,3 +1,4 @@
+# Flags and directories
 CXX := g++
 AR := ar
 CXX_FLAGS := -g -O1 -Wall -Werror -std=c++14
@@ -13,6 +14,7 @@ OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRC)))
 PROGS := 
 TESTS := $(notdir $(basename $(wildcard $(TEST_DIR)/*.cpp)))
 
+# Compile source code
 all: $(OBJS) $(PROGS) $(TESTS) lib
 
 $(PROGS): $(OBJS)
@@ -25,16 +27,31 @@ $(TESTS): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(C_FLAGS) -c $< $(LIBS) -o $@
+	$(CXX) $(C_FLAGS) -c $< -o $@
 
+# Create a static library
 LIBNAME := liblinalgcpp
 
 lib: $(OBJS)
 	$(AR) rcs $(LIBNAME).a $^
 
+# Generate Documentation
+DOXYGEN := doxygen
+
+docs:
+	$(DOXYGEN) doxy.in
+
+# Fix formatting with Astyle
+ASTYLE := astyle
+ASTYLE_CONFIG := linalgcpp.astylerc
+
+style:
+	$(ASTYLE) --options=$(ASTYLE_CONFIG) $(SRC_DIR)/*.?pp $(TEST_DIR)/*.?pp
+
+# Remove most generated objects
 clean:
 	@rm -rf $(OBJ_DIR)/*.o
 	@rm -rf $(addprefix $(BUILD_DIR)/, $(PROGS))
 	@rm -rf $(addprefix $(BUILD_DIR)/tests, $(tests))
 
-phony: all clean lib
+.PHONY: clean lib docs style

@@ -1,3 +1,5 @@
+/*! @file */
+
 #ifndef COOMATRIX_HPP__
 #define COOMATRIX_HPP__
 
@@ -15,32 +17,108 @@
 namespace linalgcpp
 {
 
+/*! @brief Coordinate Matrix that keeps track
+           of individual entries in a matrix.
+
+    @note Multiple entries for a single coordinate
+    are summed together
+*/
 template <typename T>
 class CooMatrix : public Operator
 {
     public:
+        /*! @brief Default Constructor
+            The size of the matrix is determined
+            by the largest entry.
+        */
         CooMatrix();
+
+        /*! @brief Square Constructor
+            @param size the number of rows and columns
+        */
         CooMatrix(int size);
+
+        /*! @brief Rectangle Constructor
+            @param rows the number of rows
+            @param cols the number of columns
+        */
         CooMatrix(int rows, int cols);
 
+        /*! @brief Copy Constructor */
         CooMatrix(const CooMatrix& other) = default;
+
+        /*! @brief Destructor */
         ~CooMatrix() noexcept = default;
 
-        size_t Rows() const;
-        size_t Cols() const;
+        /*! @brief Get the number of rows.
+            @retval the number of rows
 
+            If the matrix size was not specified during
+            creation, then the number of rows is determined
+            by the maximum element
+        */
+        size_t Rows() const override;
+
+        /*! @brief Get the number of columns.
+            @retval the number of columns
+
+            If the matrix size was not specified during
+            creation, then the number of columns is determined
+            by the maximum element
+        */
+        size_t Cols() const override;
+
+        /*! @brief Add an entry to the matrix
+            @param i row index
+            @param j column index
+            @param val value to add
+        */
         void Add(int i, int j, T val);
+
+        /*! @brief Add an entry to the matrix and its symmetric counterpart
+            @param i row index
+            @param j column index
+            @param val value to add
+        */
         void AddSym(int i, int j, T val);
+
+        /*! @brief Add a dense matrix worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param values the values to add
+        */
         void Add(const std::vector<int>& rows,
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
 
+        /*! @brief Generate a sparse matrix from the entries
+            @retval SparseMatrix containing all the entries
+
+            @note Multiple entries for a single coordinate
+            are summed together
+        */
         template <typename T2 = T>
         SparseMatrix<T2> ToSparse() const;
 
+        /*! @brief Generate a dense matrix from the entries
+            @retval DenseMatrix containing all the entries
+
+            @note Multiple entries for a single coordinate
+            are summed together
+        */
         DenseMatrix ToDense() const;
 
+        /*! @brief Multiplies a vector: Ax = y
+            @param input the input vector x
+            @param output the output vector y
+        */
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
+
+        /*! @brief Multiplies a vector by the transpose
+            of this matrix: A^T x = y
+            @param input the input vector x
+            @param output the output vector y
+        */
         void MultAT(const Vector<double>& input, Vector<double>& output) const override;
 
     private:
