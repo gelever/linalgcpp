@@ -630,7 +630,7 @@ void test_parser()
 
 void test_operator()
 {
-    auto mult = [](const Operator& op)
+    auto mult = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);
@@ -641,7 +641,7 @@ void test_operator()
         return vect2;
     };
 
-    auto multAT = [](const Operator& op)
+    auto multAT = [](const Operator & op)
     {
         Vector<double> vect(op.Cols(), 1);
         Vector<double> vect2(op.Rows(), 0);

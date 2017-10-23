@@ -41,10 +41,17 @@ DOXYGEN := doxygen
 docs:
 	$(DOXYGEN) doxy.in
 
+# Fix formatting with Astyle
+ASTYLE := astyle
+ASTYLE_CONFIG := linalgcpp.astylerc
+
+style:
+	$(ASTYLE) --options=$(ASTYLE_CONFIG) $(SRC_DIR)/*.?pp $(TEST_DIR)/*.?pp
+
 # Remove most generated objects
 clean:
 	@rm -rf $(OBJ_DIR)/*.o
 	@rm -rf $(addprefix $(BUILD_DIR)/, $(PROGS))
 	@rm -rf $(addprefix $(BUILD_DIR)/tests, $(tests))
 
-.PHONY: clean lib docs
+.PHONY: clean lib docs style

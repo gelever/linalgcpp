@@ -274,7 +274,7 @@ void DenseMatrix::GetRow(size_t start, size_t end, DenseMatrix& dense) const
 void DenseMatrix::SetRow(size_t start, const DenseMatrix& dense)
 {
     const size_t end = start + dense.Rows() - 1;
-    SetSubMatrix(start, 0, end, cols_ - 1, dense); 
+    SetSubMatrix(start, 0, end, cols_ - 1, dense);
 }
 
 DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
@@ -295,7 +295,7 @@ void DenseMatrix::GetCol(size_t start, size_t end, DenseMatrix& dense) const
 void DenseMatrix::SetCol(size_t start, const DenseMatrix& dense)
 {
     const size_t end = start + dense.Cols() - 1;
-    SetSubMatrix(0, start, rows_ - 1, end, dense); 
+    SetSubMatrix(0, start, rows_ - 1, end, dense);
 }
 
 DenseMatrix DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const
