@@ -120,6 +120,76 @@ class DenseMatrix : public Operator
         template <typename T = double>
         void SetRow(size_t row, const Vector<T>& vect);
 
+        /*! @brief Get a range of rows from the matrix
+            @param start start of range, inclusive
+            @param end end of range, inclusive
+            @retval DenseMatrix the range of rows
+        */
+        DenseMatrix GetRow(size_t start, size_t end) const;
+
+        /*! @brief Get a range of rows from the matrix
+            @param start start of range, inclusive
+            @param end end of range, inclusive
+            @param dense dense matrix that will hold the range
+        */
+        void GetRow(size_t start, size_t end, DenseMatrix& dense) const;
+
+        /*! @brief Set a range of rows from the matrix
+            @param start start of range, inclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetRow(size_t start, const DenseMatrix& dense);
+
+        /*! @brief Get a range of columns from the matrix
+            @param start start of range, inclusive
+            @param end end of range, inclusive
+            @retval DenseMatrix the range of columns
+        */
+        DenseMatrix GetCol(size_t start, size_t end) const;
+
+        /*! @brief Get a range of columns from the matrix
+            @param start start of range, inclusive
+            @param end end of range, inclusive
+            @param dense dense matrix that will hold the range
+        */
+        void GetCol(size_t start, size_t end, DenseMatrix& dense) const;
+
+        /*! @brief Set a range of columns from the matrix
+            @param start start of range, inclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetCol(size_t start, const DenseMatrix& dense);
+
+        /*! @brief Get a contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j);
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param end_i end of row range, inclusive
+            @param end_j end of col range, inclusive
+            @retval dense dense matrix that will hold the range
+        */
+        DenseMatrix GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const;
+
+        /*! @brief Get a contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j);
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param end_i end of row range, inclusive
+            @param end_j end of col range, inclusive
+            @param dense dense matrix that will hold the range
+        */
+        void GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, DenseMatrix& dense) const;
+
+        /*! @brief Set a contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j);
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param end_i end of row range, inclusive
+            @param end_j end of col range, inclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, const DenseMatrix& dense);
+
         // Operator Requirement
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
         void MultAT(const Vector<double>& input, Vector<double>& output) const override;

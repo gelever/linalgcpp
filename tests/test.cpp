@@ -486,6 +486,27 @@ void test_dense()
     d2.SetCol(1, col_1);
 
     d2.Print("d2 with row and col 1 set to 5.0");
+
+    DenseMatrix rows_0_1 = d2.GetRow(1, 2);
+    rows_0_1.Print("Rows 1,2 of d2");
+
+    DenseMatrix cols_0_1 = d2.GetCol(1, 2);
+    cols_0_1.Print("Cols 1,2 of d2");
+
+    rows_0_1 = -0.5;
+    d2.SetRow(3, rows_0_1);
+    d2.Print("d2 with rows 3,4 set to -0.5");
+
+    cols_0_1 = -9.5;
+    d2.SetCol(3, cols_0_1);
+    d2.Print("d2 with cols 3,4 set to -9.5");
+
+    DenseMatrix submat = d2.GetSubMatrix(1, 1, 3, 3);
+    submat.Print("(1,1) : (3,3) submatrix of d2");
+
+    submat = 100;
+    d2.SetSubMatrix(2, 2, 4, 4, submat);
+    d2.Print("d2 with submatrix (2,2):(4,4) set to 100");
 }
 
 void test_vector()
