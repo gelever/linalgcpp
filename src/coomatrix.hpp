@@ -125,12 +125,16 @@ class CooMatrix : public Operator
         int rows_;
         int cols_;
 
+        bool set_size;
+
+        std::tuple<size_t, size_t> FindSize() const;
+
         mutable std::vector<std::tuple<int, int, T>> entries;
 };
 
 template <typename T>
 CooMatrix<T>::CooMatrix()
-    : rows_(-1), cols_(-1)
+    : rows_(0), cols_(0), set_size(false)
 {
 }
 
@@ -142,7 +146,7 @@ CooMatrix<T>::CooMatrix(int size) : CooMatrix(size, size)
 
 template <typename T>
 CooMatrix<T>::CooMatrix(int rows, int cols)
-    : rows_(rows), cols_(cols)
+    : rows_(rows), cols_(cols), set_size(true)
 {
 
 }
@@ -150,35 +154,19 @@ CooMatrix<T>::CooMatrix(int rows, int cols)
 template <typename T>
 size_t CooMatrix<T>::Rows() const
 {
-    if (rows_ > -1)
-    {
-        return rows_;
-    }
+    size_t rows;
+    std::tie(rows, std::ignore) = FindSize();
 
-    if (entries.size() == 0)
-    {
-        return 0;
-    }
-
-    auto max_el = *std::max_element(begin(entries), end(entries));
-    return std::get<0>(max_el) + 1;
+    return rows;
 }
 
 template <typename T>
 size_t CooMatrix<T>::Cols() const
 {
-    if (cols_ > -1)
-    {
-        return cols_;
-    }
+    size_t cols;
+    std::tie(std::ignore, cols) = FindSize();
 
-    if (entries.size() == 0)
-    {
-        return 0;
-    }
-
-    auto max_el = *std::max_element(begin(entries), end(entries));
-    return std::get<1>(max_el) + 1;
+    return cols;
 }
 
 template <typename T>
@@ -188,7 +176,7 @@ void CooMatrix<T>::Add(int i, int j, T val)
     assert(j >= 0);
     assert(val == val); // is finite
 
-    if (rows_ > -1)
+    if (set_size)
     {
         assert(i < rows_);
         assert(j < cols_);
@@ -241,20 +229,9 @@ DenseMatrix CooMatrix<T>::ToDense() const
         return DenseMatrix();
     }
 
-    int rows;
-    int cols;
-
-    if (rows_ > -1)
-    {
-        rows = rows_;
-        cols = cols_;
-    }
-    else
-    {
-        auto max_el = *std::max_element(begin(entries), end(entries));
-        rows = std::get<0>(max_el) + 1;
-        cols = std::get<1>(max_el) + 1;
-    }
+    size_t rows;
+    size_t cols;
+    std::tie(rows, cols) = FindSize();
 
     DenseMatrix dense(rows, cols);
 
@@ -281,23 +258,9 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 
     std::sort(begin(entries), end(entries));
 
-    int rows;
-    int cols;
-
-    if (rows_ > -1)
-    {
-        rows = rows_;
-        cols = cols_;
-    }
-    else
-    {
-        auto max_el = entries.back();
-        rows = std::get<0>(max_el) + 1;
-        cols = std::get<1>(max_el) + 1;
-    }
-
-    assert(rows >= 0);
-    assert(cols >= 0);
+    size_t rows;
+    size_t cols;
+    std::tie(rows, cols) = FindSize();
 
     std::vector<int> indptr(rows + 1);
     std::vector<int> indices;
@@ -376,6 +339,29 @@ void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) c
 
         output[j] += val * input[i];
     }
+}
+
+template <typename T>
+std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
+{
+    if (set_size)
+    {
+        return std::make_tuple<size_t, size_t>(rows_, cols_);
+    }
+
+    int rows = 0;
+    int cols = 0;
+
+    for (const auto& tup : entries)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+
+        rows = std::max(rows, i);
+        cols = std::max(cols, j);
+    }
+
+    return std::make_tuple<size_t, size_t>(rows + 1, cols + 1);
 }
 
 } // namespace linalgcpp

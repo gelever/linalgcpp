@@ -506,13 +506,13 @@ std::vector<double> SparseMatrix<T>::GetDiag() const
 
     std::vector<double> diag(rows_);
 
-    for (int i = 0; i < rows_; ++i)
+    for (size_t i = 0; i < rows_; ++i)
     {
         double val = 0.0;
 
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            if (indices_[j] == i)
+            if (static_cast<size_t>(indices_[j]) == i)
             {
                 val = data_[j];
             }

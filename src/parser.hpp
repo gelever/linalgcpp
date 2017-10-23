@@ -223,6 +223,86 @@ void WriteCooList(const SparseMatrix<T>& mat, const std::string& file_name, bool
     file.close();
 }
 
+/*! @brief Read a table from file from disk.
+    Data is expected to be formatted as :
+        0 1 2 3 4
+        5 8 0
+        1 2 3 10
+    Where each row corresponds to the entries in that row
+    @param file_name file to read
+    @retval SparseMatrix matrix of data read from disk
+*/
+template <typename T = int>
+SparseMatrix<T> ReadTable(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    std::vector<int> indptr(1, 0);
+    std::vector<int> indices;
+
+    for (std::string line; std::getline(file, line); )
+    {
+        std::stringstream stream(line);
+
+        for (int index; stream >> index; )
+        {
+            indices.push_back(index);
+        }
+
+        indptr.push_back(indices.size());
+    }
+
+    file.close();
+
+    const int rows = indptr.size() - 1;
+    const int cols = *std::max_element(begin(indices), end(indices)) + 1;
+
+    std::vector<T> data(indices.size(), 1);
+
+    return SparseMatrix<T>(indptr, indices, data,
+                             rows, cols);
+}
+
+/*! @brief Write a table to a file on disk.
+    @param file_name file to read
+    @param vector of data read from disk
+
+    @note see ReadTable for format description
+*/
+template <typename T = int>
+void WriteTable(const SparseMatrix<T>& mat, const std::string& file_name)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    const std::vector<int>& indptr = mat.GetIndptr();
+    const std::vector<int>& indices = mat.GetIndices();
+
+    const int rows = mat.Rows();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = indptr[i]; j < indptr[i + 1]; ++j)
+        {
+            const std::string space = j + 1 == indptr[i + 1] ? "" : " ";
+            file << indices[j] << space;
+        }
+
+        file << "\n";
+    }
+
+    file.close();
+}
+
 } // namespace mylinalg
 
 #endif // PARSER_HPP__

@@ -407,8 +407,6 @@ Vector<T> operator-(Vector<T> lhs, const Vector<T>& rhs)
 template <typename T, typename T2>
 Vector<T>& operator+=(Vector<T>& lhs, T2 val)
 {
-    const int size = lhs.size();
-
     for (T& i : lhs)
     {
         i += val;
@@ -424,8 +422,6 @@ Vector<T>& operator+=(Vector<T>& lhs, T2 val)
 template <typename T, typename T2>
 Vector<T>& operator-=(Vector<T>& lhs, T2 val)
 {
-    const int size = lhs.size();
-
     for (T& i : lhs)
     {
         i -= val;
@@ -508,7 +504,7 @@ void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0);
     @param lo lower range limit
     @param hi upper range limit
 */
-void Randomize(Vector<int>& vect, int lo = 0.0, int hi = 1.0);
+void Randomize(Vector<int>& vect, int lo = 0, int hi = 1);
 
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize
