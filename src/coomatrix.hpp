@@ -53,20 +53,26 @@ class CooMatrix : public Operator
         /*! @brief Get the number of rows.
             @retval the number of rows
 
-            If the matrix size was not specified during
+            @note If the matrix size was not specified during
             creation, then the number of rows is determined
-            by the maximum element
+            by the maximum element.
         */
         size_t Rows() const override;
 
         /*! @brief Get the number of columns.
             @retval the number of columns
 
-            If the matrix size was not specified during
+            @note If the matrix size was not specified during
             creation, then the number of columns is determined
             by the maximum element
         */
         size_t Cols() const override;
+
+        /*! @brief Set the size of the matrix
+            @param rows the number of rows
+            @param cols the number of columns
+        */
+        void SetSize(size_t rows, size_t cols);
 
         /*! @brief Add an entry to the matrix
             @param i row index
@@ -125,7 +131,7 @@ class CooMatrix : public Operator
         int rows_;
         int cols_;
 
-        bool set_size;
+        bool size_set_;
 
         std::tuple<size_t, size_t> FindSize() const;
 
@@ -134,7 +140,7 @@ class CooMatrix : public Operator
 
 template <typename T>
 CooMatrix<T>::CooMatrix()
-    : rows_(0), cols_(0), set_size(false)
+    : rows_(0), cols_(0), size_set_(false)
 {
 }
 
@@ -146,7 +152,7 @@ CooMatrix<T>::CooMatrix(int size) : CooMatrix(size, size)
 
 template <typename T>
 CooMatrix<T>::CooMatrix(int rows, int cols)
-    : rows_(rows), cols_(cols), set_size(true)
+    : rows_(rows), cols_(cols), size_set_(true)
 {
 
 }
@@ -170,13 +176,22 @@ size_t CooMatrix<T>::Cols() const
 }
 
 template <typename T>
+void CooMatrix<T>::SetSize(size_t rows, size_t cols)
+{
+    size_set_ = true;
+
+    rows_ = rows;
+    cols_ = cols;
+}
+
+template <typename T>
 void CooMatrix<T>::Add(int i, int j, T val)
 {
     assert(i >= 0);
     assert(j >= 0);
     assert(val == val); // is finite
 
-    if (set_size)
+    if (size_set_)
     {
         assert(i < rows_);
         assert(j < cols_);
@@ -344,7 +359,7 @@ void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) c
 template <typename T>
 std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
 {
-    if (set_size)
+    if (size_set_)
     {
         return std::make_tuple<size_t, size_t>(rows_, cols_);
     }
