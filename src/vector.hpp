@@ -43,6 +43,7 @@ class Vector
         Vector(const Vector& vect) = default;
 
         /*! @brief Move constructor
+            @param vect the vector to move
         */
         Vector(Vector&& vect);
 
@@ -51,7 +52,7 @@ class Vector
         ~Vector() noexcept = default;
 
         /*! @brief Sets this vector equal to another
-            @param other the vector to copy
+            @param vect the vector to copy
         */
         Vector& operator=(Vector vect);
 
