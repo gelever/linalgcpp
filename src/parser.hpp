@@ -1,3 +1,4 @@
+/*! @file */
 #ifndef PARSER_HPP__
 #define PARSER_HPP__
 
@@ -13,6 +14,10 @@
 namespace linalgcpp
 {
 
+/*! @brief Read a text file from disk.
+    @param file_name file to read
+    @retval vector of data read from disk
+*/
 template <typename T = double>
 std::vector<T> ReadText(const std::string& file_name)
 {
@@ -35,6 +40,10 @@ std::vector<T> ReadText(const std::string& file_name)
     return data;
 }
 
+/*! @brief Write a vector to a text file on disk.
+    @param vect vector to write
+    @param file_name file to write to
+*/
 template <typename T = double>
 void WriteText(const std::vector<T>& vect, const std::string& file_name)
 {
@@ -51,6 +60,17 @@ void WriteText(const std::vector<T>& vect, const std::string& file_name)
     }
 }
 
+/*! @brief Read an adjacency list from disk.
+    Data is expected to be formatted as :
+       i j
+       i j
+       i j
+       ...
+    @param file_name file to read
+    @param symmetric if true the file only contain values above
+    or below the diagonal and the diagonal itself. The other corresponding
+    symmetric values will be added to the matrix.
+*/
 template <typename T = double>
 SparseMatrix<T> ReadAdjList(const std::string& file_name, bool symmetric = false)
 {
@@ -82,6 +102,14 @@ SparseMatrix<T> ReadAdjList(const std::string& file_name, bool symmetric = false
     return coo.ToSparse();
 }
 
+/*! @brief Write an adjacency list to disk.
+    @param mat matrix to write out
+    @param file_name file to write to
+    @param symmetric if true only write entries above and including the diagonal.
+    Otherwise write out all entries
+
+    @note see ReadAdjList for format description
+*/
 template <typename T = double>
 void WriteAdjList(const SparseMatrix<T>& mat, const std::string& file_name, bool symmetric = false)
 {
@@ -113,7 +141,17 @@ void WriteAdjList(const SparseMatrix<T>& mat, const std::string& file_name, bool
     file.close();
 }
 
-
+/*! @brief Read a coordinate list from disk.
+    Data is expected to be formatted as :
+       i j val
+       i j val
+       i j val
+       ...
+    @param file_name file to read
+    @param symmetric if true the file only contain values above
+    or below the diagonal and the diagonal itself. The other corresponding
+    symmetric values will be added to the matrix.
+*/
 template <typename T = double>
 SparseMatrix<T> ReadCooList(const std::string& file_name, bool symmetric = false)
 {
@@ -145,6 +183,14 @@ SparseMatrix<T> ReadCooList(const std::string& file_name, bool symmetric = false
     return coo.ToSparse();
 }
 
+/*! @brief Write a coordinate list to disk.
+    @param mat matrix to write out
+    @param file_name file to write to
+    @param symmetric if true only write entries above and including the diagonal.
+    Otherwise write out all entries
+
+    @note see ReadCooList for format description
+*/
 template <typename T = double>
 void WriteCooList(const SparseMatrix<T>& mat, const std::string& file_name, bool symmetric = false)
 {
