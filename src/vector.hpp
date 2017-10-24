@@ -111,6 +111,18 @@ class Vector
         */
         void Print(const std::string& label = "", std::ostream& out = std::cout) const;
 
+        /*! @brief Add alpha * rhs to this vector
+            @double alpha scale of rhs
+        */
+        template <typename T2>
+        void Add(const Vector<T2>& rhs, double alpha = 1.0);
+
+        /*! @brief Subtract alpha * rhs from this vector
+            @double alpha scale of rhs
+        */
+        template <typename T2>
+        void Sub(const Vector<T2>& rhs, double alpha = 1.0);
+
     private:
         std::vector<T> data_;
 
@@ -220,6 +232,35 @@ void Vector<T>::Print(const std::string& label, std::ostream& out) const
     out << "\n";
 }
 
+template <typename T>
+template <typename T2>
+void Vector<T>::Add(const Vector<T2>& rhs, double alpha)
+{
+    assert(rhs.size() == data_.size());
+
+    size_t size = data_.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        data_[i] += alpha * rhs[i];
+    }
+}
+
+template <typename T>
+template <typename T2>
+void Vector<T>::Sub(const Vector<T2>& rhs, double alpha)
+{
+    assert(rhs.size() == data_.size());
+
+    size_t size = data_.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        data_[i] -= alpha * rhs[i];
+    }
+
+}
+
 // Templated Free Functions
 
 /*! @brief Compute the L2 norm of the vector
@@ -290,6 +331,25 @@ Vector<T>& operator*=(Vector<T>& lhs, const Vector<T>& rhs)
     for (int i = 0; i < size; ++i)
     {
         lhs[i] *= rhs[i];
+    }
+
+    return lhs;
+}
+
+/*! @brief Entrywise addition x_i = x_i - y_i
+    @param lhs left hand side vector x
+    @param rhs right hand side vector y
+*/
+template <typename T>
+Vector<T>& operator+=(Vector<T>& lhs, const Vector<T>& rhs)
+{
+    assert(lhs.size() == rhs.size());
+
+    const int size = lhs.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        lhs[i] += rhs[i];
     }
 
     return lhs;
