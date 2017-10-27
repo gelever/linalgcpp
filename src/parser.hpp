@@ -102,6 +102,45 @@ SparseMatrix<T> ReadAdjList(const std::string& file_name, bool symmetric = false
     return coo.ToSparse();
 }
 
+/*! @brief Read graph laplacian from an adjacency list from disk.
+    Data is expected to be formatted as :
+       i j
+       i j
+       i j
+       ...
+    @param file_name file to read
+*/
+template <typename T = double>
+SparseMatrix<T> ReadGraphList(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    CooMatrix<T> coo;
+
+    int i;
+    int j;
+
+    while (file >> i >> j)
+    {
+        if (i < j)
+        {
+            coo.Add(j, i, -1);
+            coo.Add(i, j, -1);
+            coo.Add(i, i, 1);
+            coo.Add(j, j, 1);
+        }
+    }
+
+    file.close();
+
+    return coo.ToSparse();
+}
+
 /*! @brief Write an adjacency list to disk.
     @param mat matrix to write out
     @param file_name file to write to

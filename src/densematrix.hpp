@@ -56,6 +56,9 @@ class DenseMatrix : public Operator
         /*! @brief Move constructor */
         DenseMatrix(DenseMatrix&&);
 
+        /*! @brief Set this matrix equal to other */
+        DenseMatrix& operator=(DenseMatrix other);
+
         /*! @brief Destructor */
         ~DenseMatrix() noexcept = default;
 

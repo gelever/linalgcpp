@@ -102,6 +102,24 @@ class SparseMatrix : public Operator
         */
         const std::vector<T>& GetData() const;
 
+        /*! @brief Get the indices from one row
+            @param row the row to get
+            @retval indices the indices from one row
+        */
+        std::vector<int> GetIndices(size_t row) const;
+
+        /*! @brief Get the entries from one row
+            @param row the row to get
+            @retval the data from one row
+        */
+        std::vector<T> GetData(size_t row) const;
+
+        /*! @brief Get the number of entries in a row
+            @param row the row to get
+            @retval size_t the number of entries in the row
+        */
+        size_t RowSize(size_t row) const;
+
         /*! @brief Print the nonzero entries as a list
             @param label the label to print before the list of entries
             @param out stream to print to
@@ -229,6 +247,13 @@ class SparseMatrix : public Operator
         /*! @brief Set all nonzeros to a scalar */
         template <typename T2 = T>
         SparseMatrix<T>& operator=(T2 val);
+
+        /*! @brief Multiplies a vector: Ax = y
+            @param input the input vector x
+            @retval output the output vector y
+        */
+        template <typename T2 = T>
+        auto operator*(const Vector<T2>& input) const;
 
         /// Operator Requirement, calls the templated Mult
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
@@ -639,6 +664,30 @@ const std::vector<T>& SparseMatrix<T>::GetData() const
 }
 
 template <typename T>
+inline
+std::vector<int> SparseMatrix<T>::GetIndices(size_t row) const
+{
+    assert(row >= 0 && row < rows_);
+
+    const size_t start = indptr_[row];
+    const size_t end = indptr_[row + 1];
+
+    return std::vector<int>(begin(indices_) + start, begin(indices_) + end);
+}
+
+template <typename T>
+inline
+std::vector<T> SparseMatrix<T>::GetData(size_t row) const
+{
+    assert(row >= 0 && row < rows_);
+
+    const size_t start = indptr_[row];
+    const size_t end = indptr_[row + 1];
+
+    return std::vector<T>(begin(data_) + start, begin(data_) + end);
+}
+
+template <typename T>
 template <typename T2>
 auto SparseMatrix<T>::Mult(const Vector<T2>& input) const
 {
@@ -706,6 +755,13 @@ template <typename T>
 void SparseMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
 {
     MultAT<double, double>(input, output);
+}
+
+template <typename T>
+template <typename T2>
+auto SparseMatrix<T>::operator*(const Vector<T2>& input) const
+{
+    return Mult<T2>(input);
 }
 
 template <typename T>
@@ -810,6 +866,14 @@ SparseMatrix<T>& SparseMatrix<T>::operator=(T2 val)
     std::fill(begin(data_), end(data_), val);
 
     return *this;
+}
+
+template <typename T>
+size_t SparseMatrix<T>::RowSize(size_t row) const
+{
+    assert(row >= 0 && row < rows_);
+
+    return indptr_[row + 1] - indptr_[row];
 }
 
 /*! @brief Multiply a sparse matrix and

@@ -58,6 +58,13 @@ class Operator
             @retval output the output vector y
         */
         virtual Vector<double> MultAT(const Vector<double>& input) const;
+
+        /*! @brief Computes the inner produt y^T A x
+            @param x the input vector x
+            @param y the input vector y
+            @retval double the A inner product
+        */
+        double InnerProduct(const Vector<double>& x, const Vector<double>& y) const;
 };
 
 inline

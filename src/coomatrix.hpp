@@ -90,6 +90,14 @@ class CooMatrix : public Operator
         void AddSym(int i, int j, T val);
 
         /*! @brief Add a dense matrix worth of entries
+            @param indices row and column indices to add
+            @param values the values to add
+        */
+
+        void Add(const std::vector<int>& indices,
+                 const DenseMatrix& values);
+
+        /*! @brief Add a dense matrix worth of entries
             @param rows set of row indices
             @param cols set of column indices
             @param values the values to add
@@ -128,6 +136,19 @@ class CooMatrix : public Operator
         */
         void MultAT(const Vector<double>& input, Vector<double>& output) const override;
 
+        /*! @brief Gets the value at a point
+            @param i row index
+            @param j column index
+
+            @throws if value is not in matrix
+        */
+        const T& operator()(int i, int j) const;
+
+        /*! @brief Print all entries
+            @param label label to print before data
+        */
+        void Print(const std::string& label = "") const;
+
     private:
         int rows_;
         int cols_;
@@ -147,7 +168,7 @@ class CooMatrix : public Operator
             }
         };
 
-        mutable std::unordered_map<std::tuple<int, int>, T, tuple_hash> entries_map;
+        std::unordered_map<std::tuple<int, int>, T, tuple_hash> entries_map;
 };
 
 template <typename T>
@@ -221,6 +242,13 @@ void CooMatrix<T>::AddSym(int i, int j, T val)
     {
         Add(j, i, val);
     }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& indices,
+                       const DenseMatrix& values)
+{
+    Add(indices, indices, values);
 }
 
 template <typename T>
@@ -392,6 +420,43 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
     }
 
     return std::make_tuple<size_t, size_t>(rows + 1, cols + 1);
+}
+
+template <typename T>
+const T& CooMatrix<T>::operator()(int i, int j) const
+{
+    auto tup = std::make_tuple<int, int>(std::move(i), std::move(j));
+    auto search = entries_map.find(tup);
+
+    if (search != entries_map.end())
+    {
+        return search->second;
+    }
+    else
+    {
+        throw std::runtime_error("Entry not found in Coo Matrix!\n");
+    }
+
+}
+
+template <typename T>
+void CooMatrix<T>::Print(const std::string& label) const
+{
+    std::cout << label << "\n";
+
+    for (const auto& entry : entries_map)
+    {
+        const auto& tup = entry.first;
+
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T val = entry.second;
+
+        std::cout << "(" << i << ", " << j << ") " << val << "\n";
+    }
+
+    std::cout << "\n";
+
 }
 
 } // namespace linalgcpp
