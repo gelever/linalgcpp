@@ -505,6 +505,33 @@ Vector<T>& operator-=(Vector<T>& lhs, T2 val)
     return lhs;
 }
 
+/*! @brief Check if two vectors are equal
+    @param lhs left hand side vector
+    @param rhs right hand side vector
+    @retval true if vectors are close enough to equal
+*/
+template <typename T, typename T2>
+bool operator==(const Vector<T>& lhs, const Vector<T2>& rhs)
+{
+    if (lhs.size() != rhs.size())
+    {
+        return false;
+    }
+
+    const size_t size = lhs.size();
+    constexpr double tol = 1e-12;
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (std::fabs(lhs[i] - rhs[i]) > tol)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /*! @brief Compute the maximum entry value in a vector
     @param vect vector to find the max
     @retval the maximum entry value

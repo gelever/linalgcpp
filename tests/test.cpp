@@ -130,7 +130,10 @@ void test_sparse()
     auto ba = A.MultAT(rhs);
     ba.Print("ba:");
 
-    auto B = A;
+    SparseMatrix<double> B;
+    B = A;
+
+    SparseMatrix<double> B2(A);
 
     auto C = A.Mult(B);
     C.PrintDense("C:");
@@ -266,9 +269,33 @@ void test_sparse()
 
 void test_coo()
 {
+    // Empty coo
     {
         CooMatrix<int> coo;
         SparseMatrix<int> sp_coo = coo.ToSparse();
+        sp_coo.Print("Empty:");
+
+        DenseMatrix dense_coo = coo.ToDense();
+        dense_coo.Print("Empty:");
+    }
+
+    // Copy coo
+    {
+        CooMatrix<int> coo(3, 3);
+        coo.AddSym(0, 0, 1);
+        coo.AddSym(0, 1, 2);
+        coo.AddSym(0, 2, 3);
+
+        CooMatrix<int> coo2(coo);
+        coo2.AddSym(0, 0, 1);
+
+        CooMatrix<int> coo3;
+        coo3 = coo2;
+        coo3.AddSym(0, 0, 1);
+
+        coo.Print("Coo 1:");
+        coo2.Print("Coo 2:");
+        coo3.Print("Coo 3:");
     }
 
     // With setting specfic size
@@ -559,19 +586,27 @@ void test_vector()
     Vector<double> v1;
     Vector<double> v2(size);
     Vector<double> v3(size, 3.0);
+    Vector<double> v3_copy(v3);
+    Vector<double> v3_equal;
+    v3_equal = v3;
 
-    std::cout << "v1:";
-    std::cout << v1;
-    std::cout << "v2:";
-    std::cout << v2;
-    std::cout << "v3:";
-    std::cout << v3;
+    std::cout << "v1:" << v1;
+    std::cout << "v2:" << v2;
+    std::cout << "v3:" << v3;
 
     Normalize(v3);
-    std::cout << "v3 normalized:";
-    std::cout << v3;
+    std::cout << "v3 normalized:" << v3;
 
-    std::cout << "v3[0]:" << v3[0] << "\n";
+    std::cout << "v3_copy:" << v3_copy;
+    std::cout << "v3_equal:" << v3_equal;
+
+    std::cout << "v3_copy == v3_equal: ";
+    std::cout << std::boolalpha << (v3_copy == v3_equal) << "\n";
+
+    std::cout << "v3_copy == v3 normalized: ";
+    std::cout << std::boolalpha << (v3_copy == v3) << "\n";
+
+    std::cout << "v3[0]: " << v3[0] << "\n";
 
     auto v4 = v3 * v3;
     std::cout << "v3 * v3: " << v4 << "\n";
