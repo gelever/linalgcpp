@@ -92,13 +92,13 @@ class Vector
             @param i index into vector
             @retval reference to value at index i
         */
-        T& operator[](int i);
+        T& operator[](size_t i);
 
         /*! @brief Const index operator
             @param i index into vector
             @retval const reference to value at index i
         */
-        const T& operator[](int i) const;
+        const T& operator[](size_t i) const;
 
         /*! @brief Get the length of the vector
             @retval the length of the vector
@@ -149,13 +149,13 @@ Vector<T>::Vector(std::vector<T> vect)
 template <typename T>
 Vector<T>::Vector(Vector<T>&& vect)
 {
-    std::swap(*this, vect);
+    Swap(*this, vect);
 }
 
 template <typename T>
 Vector<T>& Vector<T>::operator=(Vector<T> vect)
 {
-    std::swap(*this, vect);
+    Swap(*this, vect);
 
     return *this;
 }
@@ -199,19 +199,17 @@ const T* Vector<T>::end() const
 }
 
 template <typename T>
-T& Vector<T>::operator[](int i)
+T& Vector<T>::operator[](size_t i)
 {
-    assert(i >= 0);
-    assert(static_cast<unsigned int>(i) < data_.size());
+    assert(i < data_.size());
 
     return data_[i];
 }
 
 template <typename T>
-const T& Vector<T>::operator[](int i) const
+const T& Vector<T>::operator[](size_t i) const
 {
-    assert(i >= 0);
-    assert(static_cast<unsigned int>(i) < data_.size());
+    assert(i < data_.size());
 
     return data_[i];
 }
@@ -326,9 +324,9 @@ Vector<T>& operator*=(Vector<T>& lhs, const Vector<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const int size = lhs.size();
+    const size_t size = lhs.size();
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         lhs[i] *= rhs[i];
     }
@@ -345,9 +343,9 @@ Vector<T>& operator+=(Vector<T>& lhs, const Vector<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const int size = lhs.size();
+    const size_t size = lhs.size();
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         lhs[i] += rhs[i];
     }
@@ -364,9 +362,9 @@ Vector<T>& operator-=(Vector<T>& lhs, const Vector<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const int size = lhs.size();
+    const size_t size = lhs.size();
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         lhs[i] -= rhs[i];
     }
@@ -414,12 +412,7 @@ Vector<T>& operator/=(Vector<T>& vect, T2 val)
 template <typename T, typename T2>
 Vector<T> operator*(Vector<T> vect, T2 val)
 {
-    for (T& i : vect)
-    {
-        i *= val;
-    }
-
-    return vect;
+    return vect *= val;
 }
 
 /*! @brief Multiply a vector by a scalar into a new vector
@@ -430,9 +423,31 @@ Vector<T> operator*(Vector<T> vect, T2 val)
 template <typename T, typename T2>
 Vector<T> operator*(T2 val, Vector<T> vect)
 {
+    return vect *= val;
+}
+
+/*! @brief Divide a vector by a scalar into a new vector
+    @param vect vector to divide
+    @param val value to scale by
+    @retval the vector divided by the scalar
+*/
+template <typename T, typename T2>
+Vector<T> operator/(Vector<T> vect, T2 val)
+{
+    return vect /= val;
+}
+
+/*! @brief Multiply a vector by a scalar into a new vector
+    @param vect vector to multiply
+    @param val value to scale by
+    @retval the vector multiplied by the scalar
+*/
+template <typename T, typename T2>
+Vector<T> operator/(T2 val, Vector<T> vect)
+{
     for (T& i : vect)
     {
-        i *= val;
+        i = val / i;
     }
 
     return vect;

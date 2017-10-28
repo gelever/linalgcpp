@@ -575,6 +575,21 @@ void test_vector()
 
     auto v4 = v3 * v3;
     std::cout << "v3 * v3: " << v4 << "\n";
+
+    const int alpha = 3;
+    const double beta = 5.1;
+
+    std::cout << "v3 *= 3: " << (v3 *= alpha);
+    std::cout << "v3 /= 5.1: " << (v3 /= beta);
+
+    std::cout << "3 * v3: " << alpha * v3;
+    std::cout << "v3 * 3: " << v3 * alpha;
+
+    std::cout << "v3 * 5.1" << v3 * beta;
+    std::cout << "5.1 * v3" << beta * v3;
+
+    std::cout << "v3 / 5.1" << v3 / beta;
+    std::cout << "5.1 / v3" << beta / v3;
 }
 
 void test_parser()
