@@ -41,11 +41,30 @@ class Operator
         */
         virtual void Mult(const Vector<double>& input, Vector<double>& output) const = 0;
 
+        /*! @brief Apply the action to a vector: Ax = y
+            @param input the input vector x
+            @retval output the output vector y
+        */
+        virtual Vector<double> Mult(const Vector<double>& input) const;
+
         /*! @brief Apply the transpose action to a vector: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
         virtual void MultAT(const Vector<double>& input, Vector<double>& output) const;
+
+        /*! @brief Apply the transpose action to a vector: A^T x = y
+            @param input the input vector x
+            @retval output the output vector y
+        */
+        virtual Vector<double> MultAT(const Vector<double>& input) const;
+
+        /*! @brief Computes the inner produt y^T A x
+            @param x the input vector x
+            @param y the input vector y
+            @retval double the A inner product
+        */
+        double InnerProduct(const Vector<double>& x, const Vector<double>& y) const;
 };
 
 inline

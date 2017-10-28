@@ -38,12 +38,20 @@ DenseMatrix::DenseMatrix(DenseMatrix&& other)
     Swap(*this, other);
 }
 
+DenseMatrix& DenseMatrix::operator=(DenseMatrix other)
+{
+    Swap(*this, other);
+
+    return *this;
+}
+
 void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
 {
     std::swap(lhs.rows_, rhs.rows_);
     std::swap(lhs.cols_, rhs.cols_);
     std::swap(lhs.data_, rhs.data_);
 }
+
 
 void DenseMatrix::Print(const std::string& label, std::ostream& out) const
 {

@@ -8,3 +8,4 @@
 #include "vector.hpp"
 #include "parser.hpp"
 #include "operator.hpp"
+#include "solvers.hpp"

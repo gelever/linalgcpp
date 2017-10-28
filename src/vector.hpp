@@ -43,6 +43,7 @@ class Vector
         Vector(const Vector& vect) = default;
 
         /*! @brief Move constructor
+            @param vect the vector to move
         */
         Vector(Vector&& vect);
 
@@ -51,7 +52,7 @@ class Vector
         ~Vector() noexcept = default;
 
         /*! @brief Sets this vector equal to another
-            @param other the vector to copy
+            @param vect the vector to copy
         */
         Vector& operator=(Vector vect);
 
@@ -91,13 +92,13 @@ class Vector
             @param i index into vector
             @retval reference to value at index i
         */
-        T& operator[](int i);
+        T& operator[](size_t i);
 
         /*! @brief Const index operator
             @param i index into vector
             @retval const reference to value at index i
         */
-        const T& operator[](int i) const;
+        const T& operator[](size_t i) const;
 
         /*! @brief Get the length of the vector
             @retval the length of the vector
@@ -109,6 +110,18 @@ class Vector
             @param out stream to print to
         */
         void Print(const std::string& label = "", std::ostream& out = std::cout) const;
+
+        /*! @brief Add alpha * rhs to this vector
+            @double alpha scale of rhs
+        */
+        template <typename T2>
+        void Add(const Vector<T2>& rhs, double alpha = 1.0);
+
+        /*! @brief Subtract alpha * rhs from this vector
+            @double alpha scale of rhs
+        */
+        template <typename T2>
+        void Sub(const Vector<T2>& rhs, double alpha = 1.0);
 
     private:
         std::vector<T> data_;
@@ -136,13 +149,13 @@ Vector<T>::Vector(std::vector<T> vect)
 template <typename T>
 Vector<T>::Vector(Vector<T>&& vect)
 {
-    std::swap(*this, vect);
+    Swap(*this, vect);
 }
 
 template <typename T>
 Vector<T>& Vector<T>::operator=(Vector<T> vect)
 {
-    std::swap(*this, vect);
+    Swap(*this, vect);
 
     return *this;
 }
@@ -186,19 +199,17 @@ const T* Vector<T>::end() const
 }
 
 template <typename T>
-T& Vector<T>::operator[](int i)
+T& Vector<T>::operator[](size_t i)
 {
-    assert(i >= 0);
-    assert(static_cast<unsigned int>(i) < data_.size());
+    assert(i < data_.size());
 
     return data_[i];
 }
 
 template <typename T>
-const T& Vector<T>::operator[](int i) const
+const T& Vector<T>::operator[](size_t i) const
 {
-    assert(i >= 0);
-    assert(static_cast<unsigned int>(i) < data_.size());
+    assert(i < data_.size());
 
     return data_[i];
 }
@@ -217,6 +228,35 @@ void Vector<T>::Print(const std::string& label, std::ostream& out) const
     out << (*this);
 
     out << "\n";
+}
+
+template <typename T>
+template <typename T2>
+void Vector<T>::Add(const Vector<T2>& rhs, double alpha)
+{
+    assert(rhs.size() == data_.size());
+
+    size_t size = data_.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        data_[i] += alpha * rhs[i];
+    }
+}
+
+template <typename T>
+template <typename T2>
+void Vector<T>::Sub(const Vector<T2>& rhs, double alpha)
+{
+    assert(rhs.size() == data_.size());
+
+    size_t size = data_.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        data_[i] -= alpha * rhs[i];
+    }
+
 }
 
 // Templated Free Functions
@@ -284,11 +324,30 @@ Vector<T>& operator*=(Vector<T>& lhs, const Vector<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const int size = lhs.size();
+    const size_t size = lhs.size();
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         lhs[i] *= rhs[i];
+    }
+
+    return lhs;
+}
+
+/*! @brief Entrywise addition x_i = x_i - y_i
+    @param lhs left hand side vector x
+    @param rhs right hand side vector y
+*/
+template <typename T>
+Vector<T>& operator+=(Vector<T>& lhs, const Vector<T>& rhs)
+{
+    assert(lhs.size() == rhs.size());
+
+    const size_t size = lhs.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        lhs[i] += rhs[i];
     }
 
     return lhs;
@@ -303,9 +362,9 @@ Vector<T>& operator-=(Vector<T>& lhs, const Vector<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const int size = lhs.size();
+    const size_t size = lhs.size();
 
-    for (int i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         lhs[i] -= rhs[i];
     }
@@ -353,12 +412,7 @@ Vector<T>& operator/=(Vector<T>& vect, T2 val)
 template <typename T, typename T2>
 Vector<T> operator*(Vector<T> vect, T2 val)
 {
-    for (T& i : vect)
-    {
-        i *= val;
-    }
-
-    return vect;
+    return vect *= val;
 }
 
 /*! @brief Multiply a vector by a scalar into a new vector
@@ -369,9 +423,31 @@ Vector<T> operator*(Vector<T> vect, T2 val)
 template <typename T, typename T2>
 Vector<T> operator*(T2 val, Vector<T> vect)
 {
+    return vect *= val;
+}
+
+/*! @brief Divide a vector by a scalar into a new vector
+    @param vect vector to divide
+    @param val value to scale by
+    @retval the vector divided by the scalar
+*/
+template <typename T, typename T2>
+Vector<T> operator/(Vector<T> vect, T2 val)
+{
+    return vect /= val;
+}
+
+/*! @brief Multiply a vector by a scalar into a new vector
+    @param vect vector to multiply
+    @param val value to scale by
+    @retval the vector multiplied by the scalar
+*/
+template <typename T, typename T2>
+Vector<T> operator/(T2 val, Vector<T> vect)
+{
     for (T& i : vect)
     {
-        i *= val;
+        i = val / i;
     }
 
     return vect;
@@ -406,8 +482,6 @@ Vector<T> operator-(Vector<T> lhs, const Vector<T>& rhs)
 template <typename T, typename T2>
 Vector<T>& operator+=(Vector<T>& lhs, T2 val)
 {
-    const int size = lhs.size();
-
     for (T& i : lhs)
     {
         i += val;
@@ -423,8 +497,6 @@ Vector<T>& operator+=(Vector<T>& lhs, T2 val)
 template <typename T, typename T2>
 Vector<T>& operator-=(Vector<T>& lhs, T2 val)
 {
-    const int size = lhs.size();
-
     for (T& i : lhs)
     {
         i -= val;
@@ -507,7 +579,7 @@ void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0);
     @param lo lower range limit
     @param hi upper range limit
 */
-void Randomize(Vector<int>& vect, int lo = 0.0, int hi = 1.0);
+void Randomize(Vector<int>& vect, int lo = 0, int hi = 1);
 
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize

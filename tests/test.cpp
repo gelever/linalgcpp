@@ -352,8 +352,8 @@ void test_coo()
 
     // Generate larger coordinate matrix
     {
-        const int size = 1e1;
-        const int num_entries = 1e2;
+        const int size = 1e3;
+        const int num_entries = 1e4;
 
         CooMatrix<double> coo(size);
 
@@ -404,6 +404,27 @@ void test_coo()
         coo.MultAT(x, y);
         std::cout << "coo^T y: " << y;
     }
+
+    {
+        const size_t size = 10;
+
+        CooMatrix<double> coo(size);
+        coo.Add(0, 0, 1.0);
+        coo.Add(0, 1, 2.0);
+        coo.Add(1, 1, 3.0);
+
+        try
+        {
+            printf("Coo: %.2f\n", coo(0, 0));
+            printf("Coo: %.2f\n", coo(1, 0));
+        }
+        catch (std::runtime_error e)
+        {
+            printf("Out of bounds coo: %s\n", e.what());
+        }
+
+    }
+
 }
 
 void test_dense()
@@ -554,6 +575,21 @@ void test_vector()
 
     auto v4 = v3 * v3;
     std::cout << "v3 * v3: " << v4 << "\n";
+
+    const int alpha = 3;
+    const double beta = 5.1;
+
+    std::cout << "v3 *= 3: " << (v3 *= alpha);
+    std::cout << "v3 /= 5.1: " << (v3 /= beta);
+
+    std::cout << "3 * v3: " << alpha * v3;
+    std::cout << "v3 * 3: " << v3 * alpha;
+
+    std::cout << "v3 * 5.1" << v3 * beta;
+    std::cout << "5.1 * v3" << beta * v3;
+
+    std::cout << "v3 / 5.1" << v3 / beta;
+    std::cout << "5.1 / v3" << beta / v3;
 }
 
 void test_parser()
@@ -626,6 +662,39 @@ void test_parser()
     std::vector<int> vect_adj = ReadText<int>("adj.adj");
     Vector<int> v_adj(vect_adj);
     v_adj.Print("adjlist vector:");
+
+    // Write Table to file
+    CooMatrix<int> coo_table;
+    coo_table.Add(0, 0, 1);
+    coo_table.Add(0, 1, 1);
+    coo_table.Add(0, 2, 1);
+    coo_table.Add(1, 2, 1);
+    coo_table.Add(2, 1, 1);
+    coo_table.Add(2, 0, 1);
+
+    SparseMatrix<int> sp_table = coo_table.ToSparse();
+    WriteTable(sp_table, "table.table");
+    sp_table.PrintDense("Table Write");
+
+    // Read Table from file
+    SparseMatrix<int> sp_table2 = ReadTable("table.table");
+    sp_table2.PrintDense("Table Read");
+
+    /*
+        SparseMatrix<int> elem_node = ReadTable("element_node.txt");
+        SparseMatrix<int> node_elem = elem_node.Transpose();
+
+        SparseMatrix<int> elem_elem = elem_node.Mult(node_elem);
+        SparseMatrix<int> node_node = node_elem.Mult(elem_node);
+
+        printf("Elem Node: %ld %ld\n", elem_node.Rows(), elem_node.Cols());
+        printf("Node Elem: %ld %ld\n", node_elem.Rows(), node_elem.Cols());
+        printf("Elem Elem: %ld %ld\n", elem_elem.Rows(), elem_elem.Cols());
+        printf("Node Node: %ld %ld\n", node_node.Rows(), node_node.Cols());
+        node_node.Print("node node");
+    */
+
+
 }
 
 void test_operator()
@@ -679,6 +748,57 @@ void test_operator()
     std::cout << "vect_sparse_T" << vect_sparse_T;
 }
 
+void test_solvers()
+{
+    const size_t size = 5;
+
+    CooMatrix<double> coo(size, size);
+
+    for (size_t i = 0; i < size - 1; ++i)
+    {
+        coo.AddSym(i, i, 2.0);
+        coo.AddSym(i, i + 1, -1.0);
+    }
+    coo.AddSym(size - 1, size - 1, 2.0);
+
+    SparseMatrix<double> A = coo.ToSparse();
+
+    Vector<double> b(A.Cols(), 1.0);
+    // Randomize(b);
+    // Normalize(b);
+
+    int max_iter = size;
+    double tol = 1e-16;
+    bool verbose = true;
+
+    Vector<double> x = CG(A, b, max_iter, tol, verbose);
+    Vector<double> x_coo = CG(coo, b, max_iter, tol, verbose);
+
+    Vector<double> Ax = A.Mult(x);
+    Vector<double> res = b - Ax;
+    double error = L2Norm(res);
+
+    if (size < 10)
+    {
+        A.PrintDense("A:");
+        b.Print("b:");
+        x.Print("x:");
+        x_coo.Print("x_coo:");
+        Ax.Print("Ax:");
+    }
+    printf("CG error: %.2e\n", error);
+
+    std::vector<double> diag(size, 0.5);
+    SparseMatrix<double> M(diag);
+
+    Vector<double> px = PCG(A, M, b, max_iter, tol, verbose);
+    Vector<double> pAx = A.Mult(px);
+    Vector<double> pres = b - pAx;
+    double perror = L2Norm(pres);
+
+    printf("PCG error: %.2e\n", perror);
+}
+
 int main(int argc, char** argv)
 {
     test_dense();
@@ -687,6 +807,7 @@ int main(int argc, char** argv)
     test_sparse();
     test_parser();
     test_operator();
+    test_solvers();
 
     return EXIT_SUCCESS;
 }
