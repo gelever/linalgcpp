@@ -308,8 +308,8 @@ SparseMatrix<T> ReadTable(const std::string& file_name)
 }
 
 /*! @brief Write a table to a file on disk.
-    @param file_name file to read
-    @param vector of data read from disk
+    @param mat table to write
+    @param file_name file to write to
 
     @note see ReadTable for format description
 */
