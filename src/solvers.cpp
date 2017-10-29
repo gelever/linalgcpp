@@ -34,11 +34,11 @@ void CG(const Operator& A, const Vector<double>& b, Vector<double>& x,
 
         double alpha = (r * r) / (p * Ap);
 
-        x.Add(p, alpha);
+        x.Add(alpha, p);
 
         double denom = InnerProduct(r, r);
 
-        r.Sub(Ap, alpha);
+        r.Sub(alpha, Ap);
 
         double numer = InnerProduct(r, r);
 
@@ -47,6 +47,7 @@ void CG(const Operator& A, const Vector<double>& b, Vector<double>& x,
             printf("CG %d: %.2e\n", k, numer / r0);
 
         }
+
         if (numer < tol_tol)
         {
             break;
@@ -60,7 +61,7 @@ void CG(const Operator& A, const Vector<double>& b, Vector<double>& x,
 }
 
 Vector<double> PCG(const Operator& A, const Operator& M, const Vector<double>& b,
-                  int max_iter, double tol, bool verbose)
+                   int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
@@ -71,7 +72,7 @@ Vector<double> PCG(const Operator& A, const Operator& M, const Vector<double>& b
 }
 
 void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<double>& x,
-        int max_iter, double tol, bool verbose)
+         int max_iter, double tol, bool verbose)
 {
     assert(A.Cols() == b.size());
     assert(A.Rows() == x.size());
@@ -94,11 +95,11 @@ void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<d
 
         double alpha = (r * z) / (p * Ap);
 
-        x.Add(p, alpha);
+        x.Add(alpha, p);
 
         double denom = InnerProduct(z, r);
 
-        r.Sub(Ap, alpha);
+        r.Sub(alpha, Ap);
         M.Mult(r, z);
 
         double numer = InnerProduct(z, r);
@@ -108,6 +109,7 @@ void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<d
             printf("PCG %d: %.2e\n", k, numer / r0);
 
         }
+
         if (numer < tol_tol)
         {
             break;

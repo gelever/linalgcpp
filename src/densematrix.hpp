@@ -421,10 +421,7 @@ double DenseMatrix::Sum() const
 {
     assert(data_.size());
 
-    double total = 0.0;
-    std::accumulate(begin(data_), end(data_), total);
-
-    return total;
+    return std::accumulate(begin(data_), end(data_), 0);
 }
 
 inline

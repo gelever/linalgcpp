@@ -111,17 +111,31 @@ class Vector
         */
         void Print(const std::string& label = "", std::ostream& out = std::cout) const;
 
-        /*! @brief Add alpha * rhs to this vector
-            @double alpha scale of rhs
+        /*! @brief Add (alpha * vect) to this vector
+            @param alpha scale of rhs
+            @param vect vector to add
         */
         template <typename T2>
-        void Add(const Vector<T2>& rhs, double alpha = 1.0);
+        Vector<T>& Add(double alpha, const Vector<T2>& vect);
 
-        /*! @brief Subtract alpha * rhs from this vector
-            @double alpha scale of rhs
+        /*! @brief Add vect to this vector
+            @param vect vector to add
         */
         template <typename T2>
-        void Sub(const Vector<T2>& rhs, double alpha = 1.0);
+        Vector<T>& Add(const Vector<T2>& vect);
+
+        /*! @brief Subtract (alpha * vect) from this vector
+            @param alpha scale of rhs
+            @param vect vector to subtract
+        */
+        template <typename T2>
+        Vector<T>& Sub(double alpha, const Vector<T2>& vect);
+
+        /*! @brief Subtract vect from this vector
+            @param vect vector to subtract
+        */
+        template <typename T2>
+        Vector<T>& Sub(const Vector<T2>& vect);
 
     private:
         std::vector<T> data_;
@@ -232,7 +246,7 @@ void Vector<T>::Print(const std::string& label, std::ostream& out) const
 
 template <typename T>
 template <typename T2>
-void Vector<T>::Add(const Vector<T2>& rhs, double alpha)
+Vector<T>& Vector<T>::Add(double alpha, const Vector<T2>& rhs)
 {
     assert(rhs.size() == data_.size());
 
@@ -242,11 +256,22 @@ void Vector<T>::Add(const Vector<T2>& rhs, double alpha)
     {
         data_[i] += alpha * rhs[i];
     }
+
+    return *this;
 }
 
 template <typename T>
 template <typename T2>
-void Vector<T>::Sub(const Vector<T2>& rhs, double alpha)
+Vector<T>& Vector<T>::Add(const Vector<T2>& rhs)
+{
+    (*this) += rhs;
+
+    return *this;
+}
+
+template <typename T>
+template <typename T2>
+Vector<T>& Vector<T>::Sub(double alpha, const Vector<T2>& rhs)
 {
     assert(rhs.size() == data_.size());
 
@@ -257,6 +282,16 @@ void Vector<T>::Sub(const Vector<T2>& rhs, double alpha)
         data_[i] -= alpha * rhs[i];
     }
 
+    return *this;
+}
+
+template <typename T>
+template <typename T2>
+Vector<T>& Vector<T>::Sub(const Vector<T2>& rhs)
+{
+    (*this) -= rhs;
+
+    return *this;
 }
 
 // Templated Free Functions
@@ -329,6 +364,27 @@ Vector<T>& operator*=(Vector<T>& lhs, const Vector<T>& rhs)
     for (size_t i = 0; i < size; ++i)
     {
         lhs[i] *= rhs[i];
+    }
+
+    return lhs;
+}
+
+/*! @brief Entrywise division x_i = x_i / y_i
+    @param lhs left hand side vector x
+    @param rhs right hand side vector y
+*/
+template <typename T>
+Vector<T>& operator/=(Vector<T>& lhs, const Vector<T>& rhs)
+{
+    assert(lhs.size() == rhs.size());
+
+    const size_t size = lhs.size();
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        assert(rhs[i] != 0.0);
+
+        lhs[i] /= rhs[i];
     }
 
     return lhs;
@@ -437,7 +493,7 @@ Vector<T> operator/(Vector<T> vect, T2 val)
     return vect /= val;
 }
 
-/*! @brief Multiply a vector by a scalar into a new vector
+/*! @brief Divide a scalar by vector entries into a new vector
     @param vect vector to multiply
     @param val value to scale by
     @retval the vector multiplied by the scalar
@@ -532,6 +588,21 @@ bool operator==(const Vector<T>& lhs, const Vector<T2>& rhs)
     return true;
 }
 
+/*! @brief Compute the absolute value maximum entry in a vector
+    @param vect vector to find the max
+    @retval the maximum entry value
+*/
+template <typename T>
+T AbsMax(const Vector<T>& vect)
+{
+    const auto compare = [](auto lhs, auto rhs)
+    {
+        return std::fabs(lhs) < std::fabs(rhs);
+    };
+
+    return std::fabs(*std::max_element(std::begin(vect), std::end(vect), compare));
+}
+
 /*! @brief Compute the maximum entry value in a vector
     @param vect vector to find the max
     @retval the maximum entry value
@@ -552,6 +623,21 @@ T Min(const Vector<T>& vect)
     return *std::min_element(std::begin(vect), std::end(vect));
 }
 
+/*! @brief Compute the absolute value minimum entry in a vector
+    @param vect vector to find the minimum
+    @retval the minimum entry value
+*/
+template <typename T>
+T AbsMin(const Vector<T>& vect)
+{
+    const auto compare = [](auto lhs, auto rhs)
+    {
+        return std::fabs(lhs) < std::fabs(rhs);
+    };
+
+    return std::fabs(*std::min_element(std::begin(vect), std::end(vect), compare));
+}
+
 /*! @brief Compute the sum of all vector entries
     @param vect vector to find the sum
     @retval the sum of all entries
@@ -559,10 +645,7 @@ T Min(const Vector<T>& vect)
 template <typename T>
 T Sum(const Vector<T>& vect)
 {
-    T total = 0.0;
-    std::accumulate(std::begin(vect), std::end(vect), total);
-
-    return total;
+    return std::accumulate(std::begin(vect), std::end(vect), 0);
 }
 
 /*! @brief Compute the mean of all vector entries

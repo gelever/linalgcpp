@@ -161,8 +161,8 @@ class CooMatrix : public Operator
         {
             std::size_t operator()(const std::tuple<int, int>& tup) const noexcept
             {
-                std::size_t i = std::hash<int>{}(std::get<0>(tup));
-                std::size_t j = std::hash<int>{}(std::get<1>(tup));
+                std::size_t i = std::hash<int> {}(std::get<0>(tup));
+                std::size_t j = std::hash<int> {}(std::get<1>(tup));
 
                 return i ^ (j << 1);
             }
@@ -230,7 +230,7 @@ void CooMatrix<T>::Add(int i, int j, T val)
         assert(j < cols_);
     }
 
-    entries_map[std::make_tuple(i,j)] += val;
+    entries_map[std::make_tuple(i, j)] += val;
 }
 
 template <typename T>

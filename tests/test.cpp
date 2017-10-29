@@ -462,6 +462,9 @@ void test_dense()
     DenseMatrix d2(size);
     DenseMatrix d3(size, size);
     DenseMatrix d4(d3);
+    DenseMatrix d5;
+    d5 = d3;
+
 
     d2(0, 0) = 0.0;
     d2(1, 1) = 1.0;
@@ -595,6 +598,8 @@ void test_vector()
     std::cout << "v3:" << v3;
 
     Normalize(v3);
+    assert(std::fabs(L2Norm(v3) - 1.0) < 1e-10);
+
     std::cout << "v3 normalized:" << v3;
 
     std::cout << "v3_copy:" << v3_copy;
@@ -617,14 +622,51 @@ void test_vector()
     std::cout << "v3 *= 3: " << (v3 *= alpha);
     std::cout << "v3 /= 5.1: " << (v3 /= beta);
 
-    std::cout << "3 * v3: " << alpha * v3;
-    std::cout << "v3 * 3: " << v3 * alpha;
+    std::cout << "3 * v3: " << alpha* v3;
+    std::cout << "v3 * 3: " << v3* alpha;
 
-    std::cout << "v3 * 5.1" << v3 * beta;
-    std::cout << "5.1 * v3" << beta * v3;
+    std::cout << "v3 * 5.1" << v3* beta;
+    std::cout << "5.1 * v3" << beta* v3;
 
     std::cout << "v3 / 5.1" << v3 / beta;
     std::cout << "5.1 / v3" << beta / v3;
+
+    std::cout << "v3 = 3" << (v3 = alpha);
+    std::cout << "v3 = 5" << (v3 = beta);
+
+    std::iota(std::begin(v3), std::end(v3), 0);
+    std::cout << "iota(v3)" << v3;
+
+    std::cout << "v3 - (1.5 * v3_copy): " << v3.Sub(1.5, v3_copy);
+    std::cout << "v3 + (0.5 * v3_copy): " << v3.Add(0.5, v3_copy);
+
+    v3.Add(alpha, v3_copy).Sub(beta, v3_equal);
+    std::cout << "v3 + (alpha * v3_copy) - (beta * v3_equal): " << v3;
+
+    // Entry-wise operators
+    std::cout << "(v3)_i * (v3_copy)_i: " << (v3 *= v3_copy);
+    std::cout << "(v3)_i / (v3_copy)_i: " << (v3 /= v3_copy);
+
+    std::cout << "(v3) += 3" << (v3 += alpha);
+    std::cout << "(v3) -= 5.1" << (v3 -= beta);
+
+    // Remove constant vector v := Mean(v3)
+    SubAvg(v3);
+    std::cout << "SubAvg(v3)" << v3;
+
+    // Vector Stats
+    std::cout << "Max(v3):    " << Max(v3) << "\n";
+    std::cout << "Min(v3):    " << Min(v3) << "\n";
+
+    std::cout << "AbsMax(v3): " << AbsMax(v3) << "\n";
+    std::cout << "AbsMin(v3): " << AbsMin(v3) << "\n";
+
+    std::cout << "Sum(v3):    " << Sum(v3) << "\n";
+    std::cout << "Mean(v3):   " << Mean(v3) << "\n";
+
+    std::cout << "Sum(v3_copy):    " << Sum(v3_copy) << "\n";
+    std::cout << "Mean(v3_copy):    " << Mean(v3_copy) << "\n";
+
 }
 
 void test_parser()
@@ -794,6 +836,7 @@ void test_solvers()
         coo.AddSym(i, i, 2.0);
         coo.AddSym(i, i + 1, -1.0);
     }
+
     coo.AddSym(size - 1, size - 1, 2.0);
 
     SparseMatrix<double> A = coo.ToSparse();
@@ -821,6 +864,7 @@ void test_solvers()
         x_coo.Print("x_coo:");
         Ax.Print("Ax:");
     }
+
     printf("CG error: %.2e\n", error);
 
     std::vector<double> diag(size, 0.5);
