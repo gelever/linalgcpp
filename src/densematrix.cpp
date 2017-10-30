@@ -61,13 +61,29 @@ void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, 
     {
         for (size_t j = 0; j < cols_; ++j)
         {
-            out << std::setw(width) << std::setprecision(precision) << (*this)(i, j);
+            out << std::setw(width) << std::setprecision(precision)
+                << std::defaultfloat << (*this)(i, j);
         }
 
         out << "\n";
     }
 
     out << "\n";
+}
+
+DenseMatrix DenseMatrix::Transpose() const
+{
+    DenseMatrix transpose(cols_, rows_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        for (size_t j = 0; j < cols_; ++j)
+        {
+            transpose(j, i) = (*this)(i, j);
+        }
+    }
+
+    return transpose;
 }
 
 void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const

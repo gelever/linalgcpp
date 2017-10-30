@@ -99,7 +99,12 @@ class DenseMatrix : public Operator
             @param width total width of each entry including negative
             @param precision precision to print to
         */
-        void Print(const std::string& label = "", std::ostream& out = std::cout, int width = 5, int precision = 2) const;
+        void Print(const std::string& label = "", std::ostream& out = std::cout, int width = 8, int precision = 4) const;
+
+        /*! @brief Get the transpose of this matrix
+            @retval transpose the tranpose
+        */
+        DenseMatrix Transpose() const;
 
         /*! @brief Index operator
             @param row row index

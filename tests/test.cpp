@@ -580,6 +580,9 @@ void test_dense()
     submat = 100;
     d2.SetSubMatrix(2, 2, 4, 4, submat);
     d2.Print("d2 with submatrix (2,2):(4,4) set to 100");
+
+    DenseMatrix d2_T = d2.Transpose();
+    d2_T.Print("d2^T:");
 }
 
 void test_vector()
