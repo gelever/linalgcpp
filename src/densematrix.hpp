@@ -96,8 +96,10 @@ class DenseMatrix : public Operator
         /*! @brief Print the entries of this matrix in dense format
             @param label the label to print before the list of entries
             @param out stream to print to
+            @param width total width of each entry including negative
+            @param precision precision to print to
         */
-        void Print(const std::string& label = "", std::ostream& out = std::cout) const;
+        void Print(const std::string& label = "", std::ostream& out = std::cout, int width = 5, int precision = 2) const;
 
         /*! @brief Index operator
             @param row row index
@@ -253,6 +255,12 @@ class DenseMatrix : public Operator
             @param val the scalar a
         */
         DenseMatrix& operator=(double val);
+
+        /*! @brief Check if the dense matrices are equal
+            @param other the other DenseMatrix
+            @retval true if the dense matrices are close enough to equal
+        */
+        bool operator==(const DenseMatrix& other) const;
 
         /*! @brief Get a single column from the matrix
             @param col the column to get

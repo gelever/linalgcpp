@@ -53,17 +53,15 @@ void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
 }
 
 
-void DenseMatrix::Print(const std::string& label, std::ostream& out) const
+void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, int precision) const
 {
     out << label << "\n";
-
-    const int width = 6;
 
     for (size_t i = 0; i < rows_; ++i)
     {
         for (size_t j = 0; j < cols_; ++j)
         {
-            out << std::setw(width) << (*this)(i, j);
+            out << std::setw(width) << std::setprecision(precision) << (*this)(i, j);
         }
 
         out << "\n";
@@ -262,6 +260,29 @@ DenseMatrix& DenseMatrix::operator=(double val)
     std::fill(begin(data_), end(data_), val);
 
     return *this;
+}
+
+bool DenseMatrix::operator==(const DenseMatrix& other) const
+{
+    if (other.Rows() != rows_ || other.Cols() != cols_)
+    {
+        return false;
+    }
+
+    constexpr double tol = 1e-12;
+
+    for (size_t j = 0; j < cols_; ++j)
+    {
+        for (size_t i = 0; i < rows_; ++i)
+        {
+            if (std::fabs((*this)(i, j) - other(i, j)) > tol)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
