@@ -37,7 +37,7 @@ class CooMatrix : public Operator
         /*! @brief Square Constructor
             @param size the number of rows and columns
         */
-        CooMatrix(int size);
+        explicit CooMatrix(int size);
 
         /*! @brief Rectangle Constructor
             @param rows the number of rows

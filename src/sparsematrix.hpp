@@ -35,7 +35,7 @@ class SparseMatrix : public Operator
         /*! @brief Empty Constructor with set size
             @param size rows and columns in matrix
         */
-        SparseMatrix(int size);
+        explicit SparseMatrix(int size);
 
         /*! @brief Empty Constructor with set size
             @param rows the number of rows
@@ -58,7 +58,7 @@ class SparseMatrix : public Operator
         /*! @brief Diagonal Constructor
             @param diag values for the diagonal
         */
-        SparseMatrix(const std::vector<T>& diag);
+        explicit SparseMatrix(const std::vector<T>& diag);
 
         /*! @brief Copy Constructor */
         SparseMatrix(const SparseMatrix<T>& other);

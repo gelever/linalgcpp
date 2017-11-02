@@ -31,7 +31,7 @@ class DenseMatrix : public Operator
             and columns
             @param size the number of rows and columns
         */
-        DenseMatrix(size_t size);
+        explicit DenseMatrix(size_t size);
 
         /*! @brief Rectangle Constructor of setting the number of rows
             and columns
@@ -51,10 +51,10 @@ class DenseMatrix : public Operator
         DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data);
 
         /*! @brief Copy Constructor */
-        DenseMatrix(const DenseMatrix&) = default;
+        DenseMatrix(const DenseMatrix& other) = default;
 
         /*! @brief Move constructor */
-        DenseMatrix(DenseMatrix&&);
+        DenseMatrix(DenseMatrix&& other);
 
         /*! @brief Set this matrix equal to other */
         DenseMatrix& operator=(DenseMatrix other);

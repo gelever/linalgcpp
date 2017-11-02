@@ -28,7 +28,7 @@ class Vector
         /*! @brief Constructor of setting the size
             @param size the length of the vector
         */
-        Vector(size_t size);
+        explicit Vector(size_t size);
 
         /*! @brief Constructor of setting the size and intial values
             @param size the length of the vector
@@ -37,7 +37,7 @@ class Vector
         Vector(size_t size, T val);
 
         /*! @brief Constructor from an std::vector*/
-        Vector(std::vector<T> vect);
+        explicit Vector(std::vector<T> vect);
 
         /*! @brief Copy Constructor */
         Vector(const Vector& vect) = default;
