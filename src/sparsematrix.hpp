@@ -32,6 +32,17 @@ class SparseMatrix : public Operator
         /*! @brief Default Constructor of zero size */
         SparseMatrix();
 
+        /*! @brief Empty Constructor with set size
+            @param size rows and columns in matrix
+        */
+        SparseMatrix(int size);
+
+        /*! @brief Empty Constructor with set size
+            @param rows the number of rows
+            @param cols the number of columns
+        */
+        SparseMatrix(int rows, int cols);
+
         /*! @brief Constructor setting the individual arrays and size
             @param indptr row pointer array
             @param indices column indices array
@@ -87,20 +98,35 @@ class SparseMatrix : public Operator
         */
         size_t nnz() const;
 
-        /*! @brief Get the row pointer array
+        /*! @brief Get the const row pointer array
             @retval the row pointer array
         */
         const std::vector<int>& GetIndptr() const;
 
-        /*! @brief Get the column indices
+        /*! @brief Get the const column indices
             @retval the column indices array
         */
         const std::vector<int>& GetIndices() const;
 
-        /*! @brief Get the entry values
+        /*! @brief Get the const entry values
             @retval the data array
         */
         const std::vector<T>& GetData() const;
+
+        /*! @brief Get the row pointer array
+            @retval the row pointer array
+        */
+        std::vector<int>& GetIndptr();
+
+        /*! @brief Get the column indices
+            @retval the column indices array
+        */
+        std::vector<int>& GetIndices();
+
+        /*! @brief Get the entry values
+            @retval the data array
+        */
+        std::vector<T>& GetData();
 
         /*! @brief Get the indices from one row
             @param row the row to get
@@ -276,6 +302,22 @@ SparseMatrix<T>::SparseMatrix()
       indptr_(std::vector<int>(1, 0)), indices_(0), data_(0)
 {
 
+}
+
+template <typename T>
+SparseMatrix<T>::SparseMatrix(int size)
+    : SparseMatrix<T>(size, size)
+{
+
+}
+
+template <typename T>
+SparseMatrix<T>::SparseMatrix(int rows, int cols)
+    : rows_(rows), cols_(cols), nnz_(0),
+      indptr_(std::vector<int>(rows + 1, 0)), indices_(0), data_(0)
+{
+    assert(rows_ >= 0);
+    assert(cols_ >= 0);
 }
 
 template <typename T>
@@ -659,6 +701,27 @@ const std::vector<int>& SparseMatrix<T>::GetIndices() const
 template <typename T>
 inline
 const std::vector<T>& SparseMatrix<T>::GetData() const
+{
+    return data_;
+}
+
+template <typename T>
+inline
+std::vector<int>& SparseMatrix<T>::GetIndptr()
+{
+    return indptr_;
+}
+
+template <typename T>
+inline
+std::vector<int>& SparseMatrix<T>::GetIndices()
+{
+    return indices_;
+}
+
+template <typename T>
+inline
+std::vector<T>& SparseMatrix<T>::GetData()
 {
     return data_;
 }

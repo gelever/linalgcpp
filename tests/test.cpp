@@ -15,6 +15,29 @@ using namespace linalgcpp;
 
 void test_sparse()
 {
+    // test empty
+    {
+        SparseMatrix<double> A;
+        SparseMatrix<double> A2(10);
+        SparseMatrix<double> A3(10, 10);
+
+
+        Vector<double> x(10, 1.0);
+        auto y = A2.Mult(x);
+
+        assert(AbsMin(y) == 0.0);
+        assert(AbsMax(y) == 0.0);
+    }
+
+    // Test create diag
+    {
+        std::vector<double> data(3, 3.0);
+        SparseMatrix<double> A(data);
+        std::cout << "0 1 2 3: "  <<  A.GetIndptr();
+        std::cout << "0 1 2 : " << A.GetIndices();
+        std::cout << "3 3 3 : " << A.GetData();
+    }
+
     const int size = 3;
     const int nnz = 5;
 
@@ -616,8 +639,8 @@ void test_vector()
 
     std::cout << "v3[0]: " << v3[0] << "\n";
 
-    auto v4 = v3 * v3;
-    std::cout << "v3 * v3: " << v4 << "\n";
+    auto v3v3 = v3 * v3;
+    std::cout << "v3 * v3: " << v3v3 << "\n";
 
     const int alpha = 3;
     const double beta = 5.1;
