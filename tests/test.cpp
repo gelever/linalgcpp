@@ -475,6 +475,20 @@ void test_coo()
 
     }
 
+    // Eliminate zeros
+    {
+        CooMatrix<int> coo(3, 3);
+        coo.AddSym(0, 0, 1);
+        coo.AddSym(0, 1, 0);
+        coo.AddSym(0, 2, 3);
+
+        coo.Print("Coo with zero:");
+
+        coo.EliminateZeros();
+
+        coo.Print("Coo no zeros:");
+    }
+
 }
 
 void test_dense()

@@ -149,6 +149,11 @@ class CooMatrix : public Operator
         */
         void Print(const std::string& label = "") const;
 
+        /*! @brief Eliminate entries with zero value
+            @param tolerance how small of values to erase
+        */
+        void EliminateZeros(bool tolerance = 0);
+
     private:
         int rows_;
         int cols_;
@@ -457,6 +462,22 @@ void CooMatrix<T>::Print(const std::string& label) const
 
     std::cout << "\n";
 
+}
+
+template <typename T>
+void CooMatrix<T>::EliminateZeros(bool tolerance)
+{
+    for (auto iter = std::begin(entries_map); iter != std::end(entries_map);)
+    {
+        if (std::abs(iter->second) <= tolerance)
+        {
+            iter = entries_map.erase(iter);
+        }
+        else
+        {
+            ++iter;
+        }
+    }
 }
 
 } // namespace linalgcpp
