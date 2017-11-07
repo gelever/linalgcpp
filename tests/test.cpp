@@ -480,13 +480,16 @@ void test_coo()
         CooMatrix<int> coo(3, 3);
         coo.AddSym(0, 0, 1);
         coo.AddSym(0, 1, 0);
+        coo.AddSym(0, 1, 1e-10);
         coo.AddSym(0, 2, 3);
 
         coo.Print("Coo with zero:");
 
         coo.EliminateZeros();
+        coo.Print("Coo no zero:");
 
-        coo.Print("Coo no zeros:");
+        coo.EliminateZeros(1e-8);
+        coo.Print("Coo no really small:");
     }
 
 }

@@ -152,7 +152,7 @@ class CooMatrix : public Operator
         /*! @brief Eliminate entries with zero value
             @param tolerance how small of values to erase
         */
-        void EliminateZeros(bool tolerance = 0);
+        void EliminateZeros(double tolerance = 0);
 
     private:
         int rows_;
@@ -465,7 +465,7 @@ void CooMatrix<T>::Print(const std::string& label) const
 }
 
 template <typename T>
-void CooMatrix<T>::EliminateZeros(bool tolerance)
+void CooMatrix<T>::EliminateZeros(double tolerance)
 {
     for (auto iter = std::begin(entries_map); iter != std::end(entries_map);)
     {
