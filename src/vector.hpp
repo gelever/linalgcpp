@@ -40,12 +40,12 @@ class Vector
         explicit Vector(std::vector<T> vect);
 
         /*! @brief Copy Constructor */
-        Vector(const Vector& vect) = default;
+        Vector(const Vector& vect) noexcept;
 
         /*! @brief Move constructor
             @param vect the vector to move
         */
-        Vector(Vector&& vect);
+        Vector(Vector&& vect) noexcept;
 
         /*! @brief Destructor
         */
@@ -54,12 +54,12 @@ class Vector
         /*! @brief Sets this vector equal to another
             @param vect the vector to copy
         */
-        Vector& operator=(Vector vect);
+        Vector& operator=(Vector vect) noexcept;
 
         /*! @brief Sets all entries to a scalar value
             @param val the value to set all entries to
         */
-        Vector& operator=(T val);
+        virtual Vector& operator=(T val);
 
         /*! @brief Swap two vectors
             @param lhs left hand side vector
@@ -103,7 +103,7 @@ class Vector
         /*! @brief Get the length of the vector
             @retval the length of the vector
         */
-        size_t size() const;
+        virtual size_t size() const;
 
         /*! @brief Print the vector entries
             @param label the label to print before the list of entries
@@ -161,13 +161,19 @@ Vector<T>::Vector(std::vector<T> vect)
 }
 
 template <typename T>
-Vector<T>::Vector(Vector<T>&& vect)
+Vector<T>::Vector(const Vector<T>& vect) noexcept
+    : data_(vect.data_)
+{
+}
+
+template <typename T>
+Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
     Swap(*this, vect);
 }
 
 template <typename T>
-Vector<T>& Vector<T>::operator=(Vector<T> vect)
+Vector<T>& Vector<T>::operator=(Vector<T> vect) noexcept
 {
     Swap(*this, vect);
 
@@ -394,8 +400,8 @@ Vector<T>& operator/=(Vector<T>& lhs, const Vector<T>& rhs)
     @param lhs left hand side vector x
     @param rhs right hand side vector y
 */
-template <typename T>
-Vector<T>& operator+=(Vector<T>& lhs, const Vector<T>& rhs)
+template <typename T, typename T2>
+Vector<T>& operator+=(Vector<T>& lhs, const Vector<T2>& rhs)
 {
     assert(lhs.size() == rhs.size());
 

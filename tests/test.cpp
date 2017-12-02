@@ -488,7 +488,8 @@ void test_coo()
         coo.EliminateZeros();
         coo.Print("Coo no zero:");
 
-        coo.EliminateZeros(1e-8);
+        const double tolerance = 1e-8;
+        coo.EliminateZeros(tolerance);
         coo.Print("Coo no really small:");
     }
 

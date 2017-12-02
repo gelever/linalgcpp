@@ -51,13 +51,13 @@ class DenseMatrix : public Operator
         DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data);
 
         /*! @brief Copy Constructor */
-        DenseMatrix(const DenseMatrix& other) = default;
+        DenseMatrix(const DenseMatrix& other) noexcept;
 
         /*! @brief Move constructor */
-        DenseMatrix(DenseMatrix&& other);
+        DenseMatrix(DenseMatrix&& other) noexcept;
 
         /*! @brief Set this matrix equal to other */
-        DenseMatrix& operator=(DenseMatrix other);
+        DenseMatrix& operator=(DenseMatrix other) noexcept;
 
         /*! @brief Destructor */
         ~DenseMatrix() noexcept = default;

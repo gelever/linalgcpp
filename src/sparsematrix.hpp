@@ -61,10 +61,10 @@ class SparseMatrix : public Operator
         explicit SparseMatrix(const std::vector<T>& diag);
 
         /*! @brief Copy Constructor */
-        SparseMatrix(const SparseMatrix<T>& other);
+        SparseMatrix(const SparseMatrix<T>& other) noexcept;
 
         /*! @brief Move constructor */
-        SparseMatrix(SparseMatrix<T>&& other);
+        SparseMatrix(SparseMatrix<T>&& other) noexcept;
 
         /*! @brief Destructor */
         ~SparseMatrix() noexcept = default;
@@ -72,7 +72,7 @@ class SparseMatrix : public Operator
         /*! @brief Sets this matrix equal to another
             @param other the matrix to copy
         */
-        SparseMatrix<T>& operator=(SparseMatrix<T> other);
+        SparseMatrix<T>& operator=(SparseMatrix<T> other) noexcept;
 
         /*! @brief Swap two matrices
             @param lhs left hand side matrix
@@ -346,7 +346,7 @@ SparseMatrix<T>::SparseMatrix(const std::vector<T>& diag)
 }
 
 template <typename T>
-SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other)
+SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other) noexcept
     : rows_(other.rows_), cols_(other.cols_), nnz_(other.nnz_),
       indptr_(other.indptr_), indices_(other.indices_), data_(other.data_)
 {
@@ -355,13 +355,13 @@ SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other)
 
 
 template <typename T>
-SparseMatrix<T>::SparseMatrix(SparseMatrix<T>&& other)
+SparseMatrix<T>::SparseMatrix(SparseMatrix<T>&& other) noexcept
 {
     Swap(*this, other);
 }
 
 template <typename T>
-SparseMatrix<T>& SparseMatrix<T>::operator=(SparseMatrix<T> other)
+SparseMatrix<T>& SparseMatrix<T>::operator=(SparseMatrix<T> other) noexcept
 {
     Swap(*this, other);
 

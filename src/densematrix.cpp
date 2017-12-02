@@ -33,12 +33,17 @@ DenseMatrix::DenseMatrix(size_t rows, size_t cols, const std::vector<double>& da
     assert(data.size() == rows * cols);
 }
 
-DenseMatrix::DenseMatrix(DenseMatrix&& other)
+DenseMatrix::DenseMatrix(const DenseMatrix& other) noexcept
+: rows_(other.rows_), cols_(other.cols_), data_(other.data_)
+{
+}
+
+DenseMatrix::DenseMatrix(DenseMatrix&& other) noexcept
 {
     Swap(*this, other);
 }
 
-DenseMatrix& DenseMatrix::operator=(DenseMatrix other)
+DenseMatrix& DenseMatrix::operator=(DenseMatrix other) noexcept
 {
     Swap(*this, other);
 
