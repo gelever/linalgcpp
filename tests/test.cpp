@@ -13,6 +13,11 @@
 
 using namespace linalgcpp;
 
+void test_lil()
+{
+    LilMatrix<double> A;
+
+}
 void test_sparse()
 {
     // test empty
@@ -920,6 +925,22 @@ void test_solvers()
     double perror = L2Norm(pres);
 
     printf("PCG error: %.2e\n", perror);
+
+    Vector<double> mx = MINRES(A, b, max_iter, tol, verbose);
+    Vector<double> mAx = A.Mult(mx);
+    Vector<double> mres = b - mAx;
+    double merror = L2Norm(mres);
+
+    printf("MINRES error: %.2e\n", merror);
+
+    Vector<double> pmx = PMINRES(A, M, b, max_iter, tol, verbose);
+    Vector<double> pmAx = A.Mult(pmx);
+    Vector<double> pmres = b - pmAx;
+    double pmerror = L2Norm(pmres);
+
+    printf("pMINRES error: %.2e\n", pmerror);
+
+    std::cout << pmx;
 }
 
 int main(int argc, char** argv)

@@ -22,7 +22,7 @@ namespace linalgcpp
 Vector<double> CG(const Operator& A, const Vector<double>& b,
                   int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
-/*! @brief Conjugate Gradient.  Solves Ax = b
+/*! @brief Conjugate Gradient.  Solves Ax = b for positive definite A
     @param A operator to apply the action of A
     @param b right hand side vector
     @param[in,out] x intial guess on input and solution on output
@@ -60,6 +60,63 @@ Vector<double> PCG(const Operator& A, const Operator& M, const Vector<double>& b
 */
 void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<double>& x,
          int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+
+/*! @brief MINRES.  Solves Ax = b for symmetric A
+    @param A operator to apply the action of A
+    @param b right hand side vector
+    @param max_iter maxiumum number of iterations to perform
+    @param tol relative tolerance for stopping criteria
+    @param verbose display additional iteration information
+    @retval Vector x the computed solution
+
+    Modified from mfem implementation
+    @note Uses random initial guess for x
+*/
+Vector<double> MINRES(const Operator& A, const Vector<double>& b,
+                      int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+
+/*! @brief MINRES.  Solves Ax = b for symmetric A
+    @param A operator to apply the action of A
+    @param b right hand side vector
+    @param[in,out] x intial guess on input and solution on output
+    @param max_iter maxiumum number of iterations to perform
+    @param tol relative tolerance for stopping criteria
+    @param verbose display additional iteration information
+
+    Modified from mfem implementation
+*/
+
+void MINRES(const Operator& A, const Vector<double>& b, Vector<double>& x,
+            int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+
+/*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
+    @param A operator to apply the action of A
+    @param M operator to apply of the preconditioner
+    @param b right hand side vector
+    @param max_iter maxiumum number of iterations to perform
+    @param tol relative tolerance for stopping criteria
+    @param verbose display additional iteration information
+    @retval Vector x the computed solution
+
+    Modified from mfem implementation
+    @note Uses random initial guess for x
+*/
+Vector<double> PMINRES(const Operator& A, const Operator& M, const Vector<double>& b,
+                      int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+
+/*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
+    @param A operator to apply the action of A
+    @param M operator to apply of the preconditioner
+    @param b right hand side vector
+    @param[in,out] x intial guess on input and solution on output
+    @param max_iter maxiumum number of iterations to perform
+    @param tol relative tolerance for stopping criteria
+    @param verbose display additional iteration information
+
+    Modified from mfem implementation
+*/
+void PMINRES(const Operator& A, const Operator& M, const Vector<double>& b, Vector<double>& x,
+            int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 } //namespace linalgcpp
 

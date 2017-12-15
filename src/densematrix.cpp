@@ -80,6 +80,16 @@ DenseMatrix DenseMatrix::Transpose() const
 {
     DenseMatrix transpose(cols_, rows_);
 
+    Transpose(transpose);
+
+    return transpose;
+}
+
+void DenseMatrix::Transpose(DenseMatrix& transpose) const
+{
+    assert(transpose.Rows() == cols_);
+    assert(transpose.Cols() == rows_);
+
     for (size_t i = 0; i < rows_; ++i)
     {
         for (size_t j = 0; j < cols_; ++j)
@@ -87,8 +97,6 @@ DenseMatrix DenseMatrix::Transpose() const
             transpose(j, i) = (*this)(i, j);
         }
     }
-
-    return transpose;
 }
 
 void DenseMatrix::Mult(const Vector<double>& input, Vector<double>& output) const

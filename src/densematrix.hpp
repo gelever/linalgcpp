@@ -106,6 +106,14 @@ class DenseMatrix : public Operator
         */
         DenseMatrix Transpose() const;
 
+        /*! @brief Store the transpose of this matrix
+                   into the user provided matrix
+            @param transpose transpose the tranpose
+
+            @note Size must be set beforehand!
+        */
+        void Transpose(DenseMatrix& transpose) const;
+
         /*! @brief Index operator
             @param row row index
             @param col column index

@@ -137,6 +137,11 @@ class Vector
         template <typename T2>
         Vector<T>& Sub(const Vector<T2>& vect);
 
+        /*! @brief Compute the L2 norm of the vector
+            @retval the L2 norm
+        */
+        double L2Norm() const;
+
     private:
         std::vector<T> data_;
 
@@ -300,6 +305,12 @@ Vector<T>& Vector<T>::Sub(const Vector<T2>& rhs)
     return *this;
 }
 
+template <typename T>
+double Vector<T>::L2Norm() const
+{
+    return std::sqrt(InnerProduct(*this, *this));
+}
+
 // Templated Free Functions
 
 /*! @brief Compute the L2 norm of the vector
@@ -309,6 +320,7 @@ Vector<T>& Vector<T>::Sub(const Vector<T2>& rhs)
 template <typename T>
 double L2Norm(const Vector<T>& vect)
 {
+    return vect.L2Norm();
     return std::sqrt(InnerProduct(vect, vect));
 }
 

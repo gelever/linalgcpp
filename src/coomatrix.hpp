@@ -205,7 +205,8 @@ template <typename T>
 CooMatrix<T>::CooMatrix(int rows, int cols)
     : rows_(rows), cols_(cols), size_set_(true)
 {
-
+    assert(rows >= 0);
+    assert(cols >= 0);
 }
 
 template <typename T>
@@ -357,14 +358,14 @@ template <typename T>
 template <typename T2>
 SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 {
-    if (entries_map_.size() == 0)
-    {
-        return SparseMatrix<T2>();
-    }
-
     size_t rows;
     size_t cols;
     std::tie(rows, cols) = FindSize();
+
+    if (entries_map_.size() == 0)
+    {
+        return SparseMatrix<T2>(rows, cols);
+    }
 
     std::vector<int> indptr(rows + 1, 0);
     std::vector<int> indices(entries_map_.size());
