@@ -9,8 +9,9 @@
 #include <functional>
 #include <queue>
 #include <tuple>
-#include <unordered_map>
 #include <assert.h>
+
+#include <list>
 
 #include "sparsematrix.hpp"
 #include "densematrix.hpp"
@@ -149,18 +150,11 @@ class CooMatrix : public Operator
         */
         void MultAT(const Vector<double>& input, Vector<double>& output) const override;
 
-        /*! @brief Gets the value at a point
-            @param i row index
-            @param j column index
-
-            @throws if value is not in matrix
-        */
-        const T& operator()(int i, int j) const;
-
         /*! @brief Print all entries
             @param label label to print before data
+            @param out stream to print to
         */
-        void Print(const std::string& label = "") const;
+        void Print(const std::string& label = "", std::ostream& out = std::cout) const;
 
         /*! @brief Eliminate entries with zero value
             @param tolerance how small of values to erase
@@ -168,25 +162,14 @@ class CooMatrix : public Operator
         void EliminateZeros(double tolerance = 0);
 
     private:
-        int rows_;
-        int cols_;
+        std::tuple<size_t, size_t> FindSize() const;
+
+        size_t rows_;
+        size_t cols_;
 
         bool size_set_;
 
-        std::tuple<size_t, size_t> FindSize() const;
-
-        struct tuple_hash
-        {
-            std::size_t operator()(const std::tuple<int, int>& tup) const noexcept
-            {
-                std::size_t i = std::hash<int> {}(std::get<0>(tup));
-                std::size_t j = std::hash<int> {}(std::get<1>(tup));
-
-                return i ^ (j << 1);
-            }
-        };
-
-        std::unordered_map<std::tuple<int, int>, T, tuple_hash> entries_map_;
+        mutable std::vector<std::tuple<int, int, T>> entries_;
 };
 
 template <typename T>
@@ -212,7 +195,7 @@ CooMatrix<T>::CooMatrix(int rows, int cols)
 template <typename T>
 CooMatrix<T>::CooMatrix(const CooMatrix& other) noexcept
     : rows_(other.rows_), cols_(other.cols_),
-      size_set_(other.size_set_), entries_map_(other.entries_map_)
+      size_set_(other.size_set_), entries_(other.entries_)
 {
 
 }
@@ -237,7 +220,7 @@ void Swap(CooMatrix<T>& lhs, CooMatrix<T>& rhs)
     std::swap(lhs.rows_, rhs.rows_);
     std::swap(lhs.cols_, rhs.cols_);
     std::swap(lhs.size_set_, rhs.size_set_);
-    std::swap(lhs.entries_map_, rhs.entries_map_);
+    std::swap(lhs.entries_, rhs.entries_);
 }
 
 template <typename T>
@@ -276,11 +259,11 @@ void CooMatrix<T>::Add(int i, int j, T val)
 
     if (size_set_)
     {
-        assert(i < rows_);
-        assert(j < cols_);
+        assert(static_cast<size_t>(i) < rows_);
+        assert(static_cast<size_t>(j) < cols_);
     }
 
-    entries_map_[std::make_tuple(i, j)] += val;
+    entries_.emplace_back(i, j, val);
 }
 
 template <typename T>
@@ -329,7 +312,7 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
-    if (entries_map_.size() == 0)
+    if (entries_.size() == 0)
     {
         return DenseMatrix();
     }
@@ -340,13 +323,11 @@ DenseMatrix CooMatrix<T>::ToDense() const
 
     DenseMatrix dense(rows, cols);
 
-    for (const auto& entry : entries_map_)
+    for (const auto& entry : entries_)
     {
-        const auto& tup = entry.first;
-
-        int i = std::get<0>(tup);
-        int j = std::get<1>(tup);
-        double val = entry.second;
+        int i = std::get<0>(entry);
+        int j = std::get<1>(entry);
+        double val = std::get<2>(entry);
 
         dense(i, j) += val;
     }
@@ -362,50 +343,60 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     size_t cols;
     std::tie(rows, cols) = FindSize();
 
-    if (entries_map_.size() == 0)
+	std::sort(std::begin(entries_), std::end(entries_));
+
+    if (entries_.size() == 0)
     {
         return SparseMatrix<T2>(rows, cols);
     }
 
+    const size_t nnz = entries_.size();
+
     std::vector<int> indptr(rows + 1, 0);
-    std::vector<int> indices(entries_map_.size());
-    std::vector<T2> data(entries_map_.size());
+    std::vector<int> indices;
+    std::vector<T2> data;
 
-    for (const auto& entry : entries_map_)
-    {
-        const auto& tup = entry.first;
-        const int i = std::get<0>(tup);
-
-        indptr[i + 1]++;
-    }
-
-    for (size_t i = 0; i < rows; ++i)
-    {
-        indptr[i + 1] += indptr[i];
-    }
-
-    for (const auto& entry : entries_map_)
-    {
-        const auto& tup = entry.first;
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
-        const T val = entry.second;
-
-        indices[indptr[i]] = j;
-        data[indptr[i]] = val;
-        indptr[i]++;
-    }
-
-    for (int i = rows; i > 0; --i)
-    {
-        indptr[i] = indptr[i - 1];
-    }
+	indices.reserve(nnz);
+	data.reserve(nnz);
 
     indptr[0] = 0;
 
+    int current_row = 0;
+
+    for (const auto& tup : entries_)
+    {
+        const int i = std::get<0>(tup);
+        const int j = std::get<1>(tup);
+        const T2 val = std::get<2>(tup);
+
+        // Set Indptr if at new row
+        if (i != current_row)
+        {
+            for (int ii = current_row; ii < i; ++ii)
+            {
+                indptr[ii + 1] = data.size();
+            }
+        }
+
+        // Add data and indices
+        if (indices.size() && j == indices.back() && i == current_row)
+        {
+            data.back() += val;
+        }
+        else
+        {
+            indices.push_back(j);
+            data.push_back(val);
+        }
+
+        current_row = i;
+    }
+
+    std::fill(begin(indptr) + current_row + 1,
+              end(indptr), data.size());
+
     return SparseMatrix<T2>(indptr, indices, data, rows, cols);
 }
-
 
 template <typename T>
 void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
@@ -415,13 +406,11 @@ void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) con
 
     output = 0;
 
-    for (const auto& entry : entries_map_)
+    for (const auto& entry : entries_)
     {
-        const auto& tup = entry.first;
-
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
-        const double val = entry.second;
+        const int i = std::get<0>(entry);
+        const int j = std::get<1>(entry);
+        const double val = std::get<2>(entry);
 
         output[i] += val * input[j];
     }
@@ -435,16 +424,42 @@ void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) c
 
     output = 0;
 
-    for (const auto& entry : entries_map_)
+    for (const auto& entry : entries_)
     {
-        const auto& tup = entry.first;
-
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
-        const double val = entry.second;
+        const int i = std::get<0>(entry);
+        const int j = std::get<1>(entry);
+        const double val = std::get<2>(entry);
 
         output[j] += val * input[i];
     }
+}
+
+template <typename T>
+void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
+{
+    out << label << "\n";
+
+    for (const auto& entry : entries_)
+    {
+        const int i = std::get<0>(entry);
+        const int j = std::get<1>(entry);
+        const T val = std::get<2>(entry);
+
+        out << "(" << i << ", " << j << ") " << val << "\n";
+    }
+
+    out << "\n";
+}
+
+template <typename T>
+void CooMatrix<T>::EliminateZeros(double tolerance)
+{
+    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
+            [&](const auto& entry) {
+                const double val = std::get<1>(entry);
+                return std::abs(val) < tolerance;
+            }),
+            std::end(entries_));
 }
 
 template <typename T>
@@ -452,77 +467,22 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
-        return std::make_tuple<size_t, size_t>(rows_, cols_);
+        return std::tuple<size_t, size_t>{rows_, cols_};
     }
 
     int rows = 0;
     int cols = 0;
 
-    for (const auto& entry : entries_map_)
+    for (const auto& entry : entries_)
     {
-        const auto& tup = entry.first;
-
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
+        const int i = std::get<0>(entry);
+        const int j = std::get<1>(entry);
 
         rows = std::max(rows, i);
         cols = std::max(cols, j);
     }
 
-    return std::make_tuple<size_t, size_t>(rows + 1, cols + 1);
-}
-
-template <typename T>
-const T& CooMatrix<T>::operator()(int i, int j) const
-{
-    auto tup = std::make_tuple<int, int>(std::move(i), std::move(j));
-    auto search = entries_map_.find(tup);
-
-    if (search != entries_map_.end())
-    {
-        return search->second;
-    }
-    else
-    {
-        throw std::runtime_error("Entry not found in Coo Matrix!\n");
-    }
-
-}
-
-template <typename T>
-void CooMatrix<T>::Print(const std::string& label) const
-{
-    std::cout << label << "\n";
-
-    for (const auto& entry : entries_map_)
-    {
-        const auto& tup = entry.first;
-
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
-        const T val = entry.second;
-
-        std::cout << "(" << i << ", " << j << ") " << val << "\n";
-    }
-
-    std::cout << "\n";
-
-}
-
-template <typename T>
-void CooMatrix<T>::EliminateZeros(double tolerance)
-{
-    for (auto iter = std::begin(entries_map_); iter != std::end(entries_map_);)
-    {
-        if (std::abs(iter->second) <= tolerance)
-        {
-            iter = entries_map_.erase(iter);
-        }
-        else
-        {
-            ++iter;
-        }
-    }
+    return std::tuple<size_t, size_t>{rows + 1, cols + 1};
 }
 
 } // namespace linalgcpp

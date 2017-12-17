@@ -17,6 +17,56 @@ void test_lil()
 {
     LilMatrix<double> A;
 
+    {
+        LilMatrix<int> lil(3, 3);
+        lil.AddSym(0, 0, 1);
+        lil.AddSym(0, 1, 2);
+        lil.AddSym(0, 2, 3);
+
+        LilMatrix<int> lil2(lil);
+        lil2.AddSym(0, 0, 1);
+
+        LilMatrix<int> lil3;
+        lil3 = lil2;
+        lil3.AddSym(0, 0, 1);
+
+        constexpr int size = 1000;
+        LilMatrix<int> lil_large(size);
+
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = 0; j < size; j += 2)
+            {
+                lil_large.AddSym(i, j, i * j);
+                lil_large.AddSym(j, i, i * j);
+            }
+        }
+
+        auto lil_sparse = lil.ToSparse();
+        auto lil_sparse2 = lil2.ToSparse();
+        auto lil_sparse3 = lil3.ToSparse();
+        auto lil_sparse_large = lil_large.ToSparse();
+
+        lil_sparse.Print("Lil:");
+        lil_sparse2.Print("Lil2:");
+        lil_sparse3.Print("Lil3:");
+
+        auto lil_dense = lil.ToDense();
+        auto lil_dense2 = lil2.ToDense();
+        auto lil_dense3 = lil3.ToDense();
+
+        lil_dense.Print("Lil:");
+        lil_dense2.Print("Lil2:");
+        lil_dense3.Print("Lil3:");
+
+        LilMatrix<double> lil_zero(size);
+        lil_zero.Add(2, 2, 1e-8);
+        lil_zero.Add(2, 1, 1e-5);
+        lil_zero.Print("Lil3: with zero");
+        lil_zero.EliminateZeros(1e-6);
+        lil_zero.Print("Lil3: No zero");
+    }
+
 }
 void test_sparse()
 {
@@ -326,6 +376,19 @@ void test_coo()
         coo3.Print("Coo 3:");
     }
 
+    {
+        constexpr int size = 1000;
+        CooMatrix<int> coo_large(size);
+
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = 0; j < size; j += 2)
+            {
+                coo_large.AddSym(i, j, i * j);
+            }
+        }
+    }
+
     // With setting specfic size
     {
         CooMatrix<double> coo(10, 10);
@@ -458,26 +521,6 @@ void test_coo()
 
         coo.MultAT(x, y);
         std::cout << "coo^T y: " << y;
-    }
-
-    {
-        const size_t size = 10;
-
-        CooMatrix<double> coo(size);
-        coo.Add(0, 0, 1.0);
-        coo.Add(0, 1, 2.0);
-        coo.Add(1, 1, 3.0);
-
-        try
-        {
-            printf("Coo: %.2f\n", coo(0, 0));
-            printf("Coo: %.2f\n", coo(1, 0));
-        }
-        catch (std::runtime_error e)
-        {
-            printf("Out of bounds coo: %s\n", e.what());
-        }
-
     }
 
     // Eliminate zeros
@@ -952,6 +995,7 @@ int main(int argc, char** argv)
     test_parser();
     test_operator();
     test_solvers();
+    test_lil();
 
     return EXIT_SUCCESS;
 }
