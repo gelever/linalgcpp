@@ -170,6 +170,7 @@ class CooMatrix : public Operator
         bool size_set_;
 
         mutable std::vector<std::tuple<int, int, T>> entries_;
+        //mutable std::list<std::tuple<int, int, T>> entries_;
 };
 
 template <typename T>

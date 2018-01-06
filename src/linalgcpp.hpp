@@ -5,6 +5,7 @@
 #include "coomatrix.hpp"
 #include "densematrix.hpp"
 #include "sparsematrix.hpp"
+#include "blockmatrix.hpp"
 #include "lilmatrix.hpp"
 #include "vector.hpp"
 #include "parser.hpp"

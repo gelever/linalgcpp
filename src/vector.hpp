@@ -54,7 +54,12 @@ class Vector
         /*! @brief Sets this vector equal to another
             @param vect the vector to copy
         */
-        Vector& operator=(Vector vect) noexcept;
+        Vector& operator=(const Vector& vect) noexcept;
+
+        /*! @brief Sets this vector equal to another
+            @param vect the vector to copy
+        */
+        Vector& operator=(Vector&& vect) noexcept;
 
         /*! @brief Sets all entries to a scalar value
             @param val the value to set all entries to
@@ -110,6 +115,11 @@ class Vector
             @param out stream to print to
         */
         void Print(const std::string& label = "", std::ostream& out = std::cout) const;
+
+        /*! @brief Inner product of two vectors
+            @param vect other vector
+        */
+        T Mult(const Vector<T>& vect) const;
 
         /*! @brief Add (alpha * vect) to this vector
             @param alpha scale of rhs
@@ -178,7 +188,16 @@ Vector<T>::Vector(Vector<T>&& vect) noexcept
 }
 
 template <typename T>
-Vector<T>& Vector<T>::operator=(Vector<T> vect) noexcept
+Vector<T>& Vector<T>::operator=(const Vector<T>& vect) noexcept
+{
+    data_.resize(vect.size());
+    std::copy(std::begin(vect.data_), std::end(vect.data_), std::begin(data_));
+
+    return *this;
+}
+
+template <typename T>
+Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 {
     Swap(*this, vect);
 
@@ -311,6 +330,12 @@ double Vector<T>::L2Norm() const
     return std::sqrt(InnerProduct(*this, *this));
 }
 
+template <typename T>
+T Vector<T>::Mult(const Vector<T>& vect) const
+{
+    return InnerProduct(*this, vect);
+}
+
 // Templated Free Functions
 
 /*! @brief Compute the L2 norm of the vector
@@ -321,7 +346,6 @@ template <typename T>
 double L2Norm(const Vector<T>& vect)
 {
     return vect.L2Norm();
-    return std::sqrt(InnerProduct(vect, vect));
 }
 
 /*! @brief Print the vector to a stream
@@ -354,6 +378,7 @@ double InnerProduct(const Vector<T>& lhs, const Vector<T2>& rhs)
     assert(lhs.size() == rhs.size());
 
     double start = 0.0;
+
     return std::inner_product(std::begin(lhs), std::end(lhs), std::begin(rhs), start);
 }
 
@@ -663,7 +688,8 @@ T AbsMin(const Vector<T>& vect)
 template <typename T>
 T Sum(const Vector<T>& vect)
 {
-    return std::accumulate(std::begin(vect), std::end(vect), 0);
+    T start = 0;
+    return std::accumulate(std::begin(vect), std::end(vect), start);
 }
 
 /*! @brief Compute the mean of all vector entries
@@ -699,15 +725,17 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& vect)
     @param vect vector to randomize
     @param lo lower range limit
     @param hi upper range limit
+    @param seed seed to rng, if positive
 */
-void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0);
+void Randomize(Vector<double>& vect, double lo = 0.0, double hi = 1.0, int seed = -1);
 
 /*! @brief Randomize the entries in a integer vector
     @param vect vector to randomize
     @param lo lower range limit
     @param hi upper range limit
+    @param seed seed to rng, if positive
 */
-void Randomize(Vector<int>& vect, int lo = 0, int hi = 1);
+void Randomize(Vector<int>& vect, int lo = 0, int hi = 1, int seed = -1);
 
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize

@@ -54,6 +54,8 @@ void WriteText(const std::vector<T>& vect, const std::string& file_name)
         throw std::runtime_error("Failed to open file: " + file_name);
     }
 
+    file.precision(16);
+
     for (const T& val : vect)
     {
         file << val << "\n";

@@ -649,10 +649,10 @@ void test_dense()
 
     d2.Print("d2 with row and col 1 set to 5.0");
 
-    DenseMatrix rows_0_1 = d2.GetRow(1, 2);
+    DenseMatrix rows_0_1 = d2.GetRow(1, 3);
     rows_0_1.Print("Rows 1,2 of d2");
 
-    DenseMatrix cols_0_1 = d2.GetCol(1, 2);
+    DenseMatrix cols_0_1 = d2.GetCol(1, 3);
     cols_0_1.Print("Cols 1,2 of d2");
 
     rows_0_1 = -0.5;
@@ -663,11 +663,11 @@ void test_dense()
     d2.SetCol(3, cols_0_1);
     d2.Print("d2 with cols 3,4 set to -9.5");
 
-    DenseMatrix submat = d2.GetSubMatrix(1, 1, 3, 3);
+    DenseMatrix submat = d2.GetSubMatrix(1, 1, 4, 4);
     submat.Print("(1,1) : (3,3) submatrix of d2");
 
     submat = 100;
-    d2.SetSubMatrix(2, 2, 4, 4, submat);
+    d2.SetSubMatrix(2, 2, 5, 5, submat);
     d2.Print("d2 with submatrix (2,2):(4,4) set to 100");
 
     DenseMatrix d2_T = d2.Transpose();
@@ -986,16 +986,80 @@ void test_solvers()
     std::cout << pmx;
 }
 
+void test_blockmatrix()
+{
+    std::vector<size_t> row_offsets{0, 2, 4};
+    std::vector<size_t> col_offsets{0, 2, 4};
+
+    BlockMatrix<double> A;
+    BlockMatrix<double> A2(row_offsets);
+    BlockMatrix<double> A3(row_offsets, col_offsets);
+
+    CooMatrix<double> coo(2, 2);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 2.0);
+
+    SparseMatrix<double> block = coo.ToSparse();
+
+    A2.GetBlock(0, 0).PrintDense("A(0,0)");
+
+    A2.Print("A");
+    A2.PrintDense("A Dense");
+
+    // A2.SetBlock(0, 0, block);
+    A2.SetBlock(0, 1, block);
+    //A2.SetBlock(1, 0, block);
+    // A2.SetBlock(1, 1, block);
+
+    A2.Print("A");
+    A2.PrintDense("A Dense");
+
+    A2.GetBlock(0, 0).PrintDense("A(0,0)");
+
+    A2.Combine().PrintDense("A combined");
+
+    Vector<double> x(A2.Cols());
+    Vector<double> y(A2.Cols());
+
+    //x[0] = 0;
+    //x[1] = 1;
+    //x[2] = 2;
+    //x[3] = 3;
+
+    Randomize(x);
+    Randomize(y);
+
+    A2.Mult(x, y);
+
+    y.Print("y = Ax");
+
+    A2.MultAT(x, y);
+
+    y.Print("y = ATx");
+
+    Randomize(x);
+    Randomize(y);
+    auto Ax = A2.Mult(x);
+    auto Ay = A2.Mult(y);
+
+    auto yAx = InnerProduct(y, Ax);
+    auto xAy = InnerProduct(x, Ay);
+
+    printf("%.8f %.8f\n", y.Mult(Ax), x.Mult(Ay));
+    printf("%.8f %.8f\n", yAx, xAy);
+}
+
 int main(int argc, char** argv)
 {
-    test_dense();
-    test_coo();
-    test_vector();
-    test_sparse();
-    test_parser();
-    test_operator();
-    test_solvers();
-    test_lil();
+    // test_coo();
+    // test_vector();
+    // test_sparse();
+    // test_parser();
+    // test_operator();
+    // test_solvers();
+    // test_lil();
+    // test_dense();
+    test_blockmatrix();
 
     return EXIT_SUCCESS;
 }

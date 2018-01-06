@@ -331,6 +331,18 @@ class DenseMatrix : public Operator
         */
         void GetRow(size_t start, size_t end, DenseMatrix& dense) const;
 
+        /*! @brief Get a selection of rows from the matrix
+            @param rows rows to select
+            @retval DenseMatrix the selection of rows
+        */
+        DenseMatrix GetRow(const std::vector<int>& rows) const;
+
+        /*! @brief Get a selection of rows from the matrix
+            @param rows rows to select
+            @param dense dense matrix that will hold the selection
+        */
+        void GetRow(const std::vector<int>& rows, DenseMatrix& dense) const;
+
         /*! @brief Set a range of rows from the matrix
             @param start start of range, inclusive
             @param dense dense matrix that holds the range
@@ -339,14 +351,14 @@ class DenseMatrix : public Operator
 
         /*! @brief Get a range of columns from the matrix
             @param start start of range, inclusive
-            @param end end of range, inclusive
+            @param end end of range, exclusive
             @retval DenseMatrix the range of columns
         */
         DenseMatrix GetCol(size_t start, size_t end) const;
 
         /*! @brief Get a range of columns from the matrix
             @param start start of range, inclusive
-            @param end end of range, inclusive
+            @param end end of range, exclusive
             @param dense dense matrix that will hold the range
         */
         void GetCol(size_t start, size_t end, DenseMatrix& dense) const;
@@ -361,8 +373,8 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @retval dense dense matrix that will hold the range
         */
         DenseMatrix GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const;
@@ -371,8 +383,8 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @param dense dense matrix that will hold the range
         */
         void GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, DenseMatrix& dense) const;
@@ -381,11 +393,70 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @param dense dense matrix that holds the range
         */
         void SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, const DenseMatrix& dense);
+
+        /*! @brief Solve eigenvalue problem AQ = LQ,
+                   where Q are eigenvectors and L is eigenvalues
+                   A is replaced with the computed eigenvectors
+            @warning this replaces this matrix with the eigenvectors!
+            @returns eigenvalues the computed eigenvalues
+        */
+        std::vector<double> EigenSolve();
+
+        /*! @brief Solve eigenvalue problem AQ = LQ,
+                   where Q are eigenvectors and L is eigenvalues
+            @param[out] eigenvectors DenseMatrix to hold the computed eigenvectors
+            @returns eigenvalues the computed eigenvalues
+        */
+        std::vector<double> EigenSolve(DenseMatrix& eigenvectors) const;
+
+        /*! @brief Compute singular values and vectors A = U * S * VT
+                   Where S is returned and A is replaced with VT
+            @warning this replaces this matrix with U!
+            @returns singular_values the computed singular_values
+        */
+        std::vector<double> SVD();
+
+        /*! @brief Compute singular values and vectors A = U * S * VT
+                   Where S is returned and A is replaced with U
+            @param[out] VT DenseMatrix to hold the computed U
+            @returns singular_values the computed singular_values
+        */
+        std::vector<double> SVD(DenseMatrix& U) const;
+
+        /*! @brief Compute QR decomposition
+            @warning this replaces this matrix with Q!
+        */
+        void QR();
+
+        /*! @brief Compute QR decomposition
+            @param Q Stores Q instead of overwriting
+        */
+        void QR(DenseMatrix& Q) const;
+
+        /*! @brief Scale rows by given values
+            @param values scale per row
+        */
+        void ScaleRows(const std::vector<double>& values);
+
+        /*! @brief Scale cols by given values
+            @param values scale per cols
+        */
+        void ScaleCols(const std::vector<double>& values);
+
+        /*! @brief Get Diagonal entries
+            @returns diag diagonal entries
+        */
+        std::vector<double> GetDiag() const;
+
+        /*! @brief Get Diagonal entries
+            @param array to hold diag diagonal entries
+        */
+        void GetDiag(std::vector<double>& diag) const;
 
         /// Operator Requirement, calls the templated Mult
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
@@ -442,7 +513,8 @@ double DenseMatrix::Sum() const
 {
     assert(data_.size());
 
-    return std::accumulate(begin(data_), end(data_), 0);
+    double sum = std::accumulate(begin(data_), end(data_), 0.0);
+    return sum;
 }
 
 inline
@@ -552,7 +624,7 @@ template <typename T>
 Vector<T> DenseMatrix::GetRow(size_t row) const
 {
     Vector<T> vect(cols_);
-    GetCol(row, vect);
+    GetRow(row, vect);
 
     return vect;
 }

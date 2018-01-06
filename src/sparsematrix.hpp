@@ -237,6 +237,16 @@ class SparseMatrix : public Operator
         */
         std::vector<double> GetDiag() const;
 
+        /*! @brief Add to the diagonal
+            @param diag the diagonal entries
+        */
+        void AddDiag(const std::vector<T>& diag);
+
+        /*! @brief Add to the diagonal
+            @param diag the diagonal entries
+        */
+        void AddDiag(T val);
+
         /*! @brief Extract a submatrix out of this matrix
             @param rows the rows to extract
             @param cols the columns to extract
@@ -280,6 +290,21 @@ class SparseMatrix : public Operator
         */
         template <typename T2 = T>
         auto operator*(const Vector<T2>& input) const;
+
+        /*! @brief Sum of all data
+            @retval sum Sum of all data
+        */
+        T Sum() const;
+
+        /*! @brief Scale rows by given values
+            @param values scale per row
+        */
+        void ScaleRows(const std::vector<T>& values);
+
+        /*! @brief Scale cols by given values
+            @param values scale per cols
+        */
+        void ScaleCols(const std::vector<T>& values);
 
         /// Operator Requirement, calls the templated Mult
         void Mult(const Vector<double>& input, Vector<double>& output) const override;
@@ -589,6 +614,40 @@ std::vector<double> SparseMatrix<T>::GetDiag() const
     }
 
     return diag;
+}
+
+template <typename T>
+void SparseMatrix<T>::AddDiag(const std::vector<T>& diag)
+{
+    assert(rows_ == cols_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            if (static_cast<size_t>(indices_[j]) == i)
+            {
+                data_[j] += diag[i];
+            }
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::AddDiag(T val)
+{
+    assert(rows_ == cols_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            if (static_cast<size_t>(indices_[j]) == i)
+            {
+                data_[j] += val;
+            }
+        }
+    }
 }
 
 template <typename T>
@@ -963,6 +1022,38 @@ SparseMatrix<T2> operator*(T3 val, SparseMatrix<T2> rhs)
     return rhs *= val;
 }
 
+template <typename T>
+T SparseMatrix<T>::Sum() const
+{
+    T sum = std::accumulate(std::begin(data_), std::end(data_), 0.0);
+    return sum;
+}
+
+template <typename T>
+void SparseMatrix<T>::ScaleRows(const std::vector<T>& values)
+{
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        const double scale = values[i];
+
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            data_[j] *= scale;
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::ScaleCols(const std::vector<T>& values)
+{
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            data_[j] *= values[indices_[j]];
+        }
+    }
+}
 
 } //namespace linalgcpp
 

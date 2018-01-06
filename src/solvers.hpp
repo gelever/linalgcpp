@@ -9,6 +9,27 @@
 namespace linalgcpp
 {
 
+class CGSolver : public Operator
+{
+    public:
+        CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+
+        size_t Rows() const override { return A_.Rows(); }
+        size_t Cols() const override { return A_.Cols(); }
+
+        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+
+    private:
+        const Operator& A_;
+        int max_iter_;
+        double tol_;
+        bool verbose_;
+
+        mutable Vector<double> Ap_;
+        mutable Vector<double> r_;
+        mutable Vector<double> p_;
+};
+
 /*! @brief Conjugate Gradient.  Solves Ax = b
     @param A operator to apply the action of A
     @param b right hand side vector

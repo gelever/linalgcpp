@@ -7,6 +7,21 @@ extern "C"
                 const double* alpha, const double* A, const int* lda,
                 const double* B, const int* ldb, const double* beta,
                 double* C, const int* ldc);
+
+    void dsyevd_(const char* jobz, const char* uplo, const int* n,
+                 double* A, const int* lda, double* w, double* work,
+                 const int* lwork, int* iwork, const int* liwork, int* info);
+
+    void dgesvd_(const char* jobu, const char* jobvt, const int* m, const int* n,
+                 double* A, const int* lda, double* S, double* U, const int* ldu,
+                 double* VT, const int* ldvt, double* work, const int* lwork, int* info);
+
+    void dgeqp3_(const int* m, const int* n, double* A, const int* lda,
+                 int* jpvt, double* tau, double* work, const int* lwork, int* info);
+
+    void dorgqr_(const int* m, const int* n, const int* k, double* A,
+                 const int* lda, double* tau, double* work, const int* lwork,
+                 int* info);
 }
 
 namespace linalgcpp
@@ -67,7 +82,8 @@ void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, 
         for (size_t j = 0; j < cols_; ++j)
         {
             out << std::setw(width) << std::setprecision(precision)
-                << std::defaultfloat << (*this)(i, j);
+                << std::fixed << (*this)(i, j);
+                //<< std::defaultfloat << (*this)(i, j);
         }
 
         out << "\n";
@@ -316,7 +332,7 @@ bool DenseMatrix::operator==(const DenseMatrix& other) const
 
 DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
 {
-    const size_t num_rows = end - start + 1;
+    const size_t num_rows = end - start;
     DenseMatrix dense(num_rows, cols_);
 
     GetRow(start, end, dense);
@@ -326,18 +342,47 @@ DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
 
 void DenseMatrix::GetRow(size_t start, size_t end, DenseMatrix& dense) const
 {
-    GetSubMatrix(start, 0, end, cols_ - 1, dense);
+    GetSubMatrix(start, 0, end, cols_, dense);
+}
+
+DenseMatrix DenseMatrix::GetRow(const std::vector<int>& rows) const
+{
+    DenseMatrix dense(rows.size(), Cols());
+
+    GetRow(rows, dense);
+
+    return dense;
+}
+
+void DenseMatrix::GetRow(const std::vector<int>& rows, DenseMatrix& dense) const
+{
+    assert(dense.Cols() == Cols());
+    assert(dense.Rows() == rows.size());
+
+    const size_t num_rows = rows.size();
+    const size_t num_cols = Cols();
+
+    for (size_t i = 0; i < num_rows; ++i)
+    {
+        const int row = rows[i];
+
+        for (size_t j = 0; j < num_cols; ++j)
+        {
+            dense(i, j) = (*this)(row, j);
+        }
+    }
+
 }
 
 void DenseMatrix::SetRow(size_t start, const DenseMatrix& dense)
 {
-    const size_t end = start + dense.Rows() - 1;
-    SetSubMatrix(start, 0, end, cols_ - 1, dense);
+    const size_t end = start + dense.Rows();
+    SetSubMatrix(start, 0, end, cols_, dense);
 }
 
 DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
 {
-    const size_t num_cols = end - start + 1;
+    const size_t num_cols = end - start;
     DenseMatrix dense(rows_, num_cols);
 
     GetCol(start, end, dense);
@@ -347,19 +392,19 @@ DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
 
 void DenseMatrix::GetCol(size_t start, size_t end, DenseMatrix& dense) const
 {
-    GetSubMatrix(0, start, rows_ - 1, end, dense);
+    GetSubMatrix(0, start, rows_, end, dense);
 }
 
 void DenseMatrix::SetCol(size_t start, const DenseMatrix& dense)
 {
-    const size_t end = start + dense.Cols() - 1;
-    SetSubMatrix(0, start, rows_ - 1, end, dense);
+    const size_t end = start + dense.Cols();
+    SetSubMatrix(0, start, rows_, end, dense);
 }
 
 DenseMatrix DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const
 {
-    const size_t num_rows = end_i - start_i + 1;
-    const size_t num_cols = end_j - start_j + 1;
+    const size_t num_rows = end_i - start_i;
+    const size_t num_cols = end_j - start_j;
 
     DenseMatrix dense(num_rows, num_cols);
     GetSubMatrix(start_i, start_j, end_i, end_j, dense);
@@ -371,12 +416,12 @@ void DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, siz
 {
     assert(start_i >= 0 && start_i < rows_);
     assert(start_j >= 0 && start_j < cols_);
-    assert(end_i >= 0 && end_i < rows_);
-    assert(end_j >= 0 && end_j < rows_);
+    assert(end_i >= 0 && end_i <= rows_);
+    assert(end_j >= 0 && end_j <= cols_);
     assert(end_i >= start_i && end_j >= start_j);
 
-    const size_t num_rows = end_i - start_i + 1;
-    const size_t num_cols = end_j - start_j + 1;
+    const size_t num_rows = end_i - start_i;
+    const size_t num_cols = end_j - start_j;
 
     for (size_t j = 0; j < num_cols; ++j)
     {
@@ -391,12 +436,12 @@ void DenseMatrix::SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, siz
 {
     assert(start_i >= 0 && start_i < rows_);
     assert(start_j >= 0 && start_j < cols_);
-    assert(end_i >= 0 && end_i < rows_);
-    assert(end_j >= 0 && end_j < rows_);
+    assert(end_i >= 0 && end_i <= rows_);
+    assert(end_j >= 0 && end_j <= cols_);
     assert(end_i >= start_i && end_j >= start_j);
 
-    const size_t num_rows = end_i - start_i + 1;
-    const size_t num_cols = end_j - start_j + 1;
+    const size_t num_rows = end_i - start_i;
+    const size_t num_cols = end_j - start_j;
 
     for (size_t j = 0; j < num_cols; ++j)
     {
@@ -404,6 +449,201 @@ void DenseMatrix::SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, siz
         {
             (*this)(i + start_i, j + start_j) = dense(i, j);
         }
+    }
+}
+
+std::vector<double> DenseMatrix::EigenSolve(DenseMatrix& eigenvectors) const
+{
+    eigenvectors = *this;
+
+    return eigenvectors.EigenSolve();
+}
+
+std::vector<double> DenseMatrix::EigenSolve()
+{
+    assert(Rows() == Cols());
+
+    const int size = Rows();
+    std::vector<double> eigenvalues(size);
+
+    const char* jobz = "V";
+    const char* uplo = "U";
+    const int* n = &size;
+    double* A = data_.data();
+    const int* lda = &size;
+    double* w = eigenvalues.data();
+    int info;
+
+    int lwork = -1;
+    int liwork = -1;
+    double qwork;
+    int qiwork;
+
+    dsyevd_(jobz, uplo, n, A, lda, w, &qwork, &lwork, &qiwork, &liwork, &info);
+
+    lwork = static_cast<int>(qwork);
+    liwork = qiwork;
+
+    std::vector<double> work(lwork);
+    std::vector<int> iwork(liwork);
+
+    dsyevd_(jobz, uplo, n, A, lda, w, work.data(), &lwork, iwork.data(), &liwork, &info);
+
+    assert(info == 0);
+
+    return eigenvalues;
+}
+
+std::vector<double> DenseMatrix::SVD(DenseMatrix& U) const
+{
+    U = *this;
+
+    return U.SVD();
+}
+
+std::vector<double> DenseMatrix::SVD()
+{
+    const int rows = Rows();
+    const int cols = Cols();
+
+    std::vector<double> singular_values(std::min(rows, cols));
+
+    if (rows == 0 || cols == 0)
+    {
+        return singular_values;
+    }
+
+    const char* jobu = "O";
+    const char* jobvt = "N";
+    const int* m = &rows;
+    const int* n = &cols;
+    double* A = data_.data();
+    const int* lda = &rows;
+    double* S = singular_values.data();
+    double* U = nullptr;
+    const int* ldu = &rows;
+    double* VT = nullptr;
+    const int* ldvt = &cols;
+    int info;
+
+    int lwork = -1;
+    double qwork;
+
+    dgesvd_(jobu, jobvt, m, n, A, lda, S, U, ldu, VT, ldvt,
+            &qwork, &lwork, &info);
+
+    lwork = static_cast<int>(qwork);
+
+    std::vector<double> work(lwork);
+
+    dgesvd_(jobu, jobvt, m, n, A, lda, S, U, ldu, VT, ldvt,
+            work.data(), &lwork, &info);
+
+    assert(info == 0);
+
+    return singular_values;
+}
+
+void DenseMatrix::ScaleRows(const std::vector<double>& values)
+{
+    for (size_t j = 0; j < cols_; ++j)
+    {
+        for (size_t i = 0; i < rows_; ++i)
+        {
+            (*this)(i, j) *= values[i];
+        }
+    }
+}
+
+void DenseMatrix::ScaleCols(const std::vector<double>& values)
+{
+    for (size_t j = 0; j < cols_; ++j)
+    {
+        const double scale = values[j];
+
+        for (size_t i = 0; i < rows_; ++i)
+        {
+            (*this)(i, j) *= scale;
+        }
+    }
+}
+/*
+    void dgeqp3_(const int* m, const int* n, double* A, const int* lda,
+                 int* jpvt, double* tau, double* work, const int* lwork, int* info);
+    void dorgqr_(const int* m, const int* n, const int* k, double* A,
+                 const int* lda, double* tau, double* work, const int* lwork,
+                 int* info);
+                 */
+
+void DenseMatrix::QR(DenseMatrix& Q) const
+{
+    Q = *this;
+    Q.QR();
+}
+
+void DenseMatrix::QR()
+{
+    const int rows = Rows();
+    const int cols = Cols();
+
+    if (rows == 0 || cols == 0)
+    {
+        return;
+    }
+
+    const int mn_min = std::min(rows, cols);
+
+    const int* m = &rows;
+    const int* n = &cols;
+    double* A = data_.data();
+    const int* lda = &rows;
+    int info;
+
+    int lwork = -1;
+    double qwork;
+
+    dgeqp3_(m, n, A, lda, nullptr, nullptr, &qwork, &lwork, &info);
+
+    lwork = static_cast<int>(qwork);
+
+    std::vector<int> jpvt(mn_min, 0);
+    std::vector<double> tau(mn_min);
+    std::vector<double> work(lwork);
+
+    dgeqp3_(m, n, A, lda, jpvt.data(), tau.data(), work.data(), &lwork, &info);
+
+    const int* k = &mn_min;
+
+    lwork = -1;
+    dorgqr_(m, n, k, A, lda, tau.data(), &qwork, &lwork, &info);
+    lwork = static_cast<int>(qwork);
+
+    work.resize(lwork);
+
+    dorgqr_(m, n, k, A, lda, tau.data(), work.data(), &lwork, &info);
+
+    assert(info == 0);
+}
+
+std::vector<double> DenseMatrix::GetDiag() const
+{
+    assert(rows_ == cols_);
+
+    std::vector<double> diag(rows_);
+
+    GetDiag(diag);
+
+    return diag;
+}
+
+void DenseMatrix::GetDiag(std::vector<double>& diag) const
+{
+    assert(rows_ == cols_);
+    assert(diag.size() == rows_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        diag[i] = (*this)(i, i);
     }
 }
 

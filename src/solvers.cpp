@@ -3,6 +3,56 @@
 namespace linalgcpp
 {
 
+CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose)
+    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows())
+{
+    assert(A.Rows() == A.Cols());
+}
+
+void CGSolver::Mult(const Vector<double>& b, Vector<double>& x) const
+{
+    assert(x.size() == A_.Rows());
+    assert(b.size() == A_.Rows());
+
+    A_.Mult(x, Ap_);
+    r_ = b;
+    r_ -= Ap_;
+    p_ = r_;
+
+    const double r0 = linalgcpp::InnerProduct(r_, r_);
+    const double tol_tol = r0 * tol_ * tol_;
+
+    for (int k = 0; k < max_iter_; ++k)
+    {
+        A_.Mult(p_, Ap_);
+
+        double alpha = (r_ * r_) / (p_ * Ap_);
+
+        x.Add(alpha, p_);
+
+        double denom = linalgcpp::InnerProduct(r_, r_);
+
+        r_.Sub(alpha, Ap_);
+
+        double numer = linalgcpp::InnerProduct(r_, r_);
+
+        if (verbose_)
+        {
+            printf("CG %d: %.2e\n", k, numer / r0);
+        }
+
+        if (numer < tol_tol)
+        {
+            break;
+        }
+
+        double beta = numer / denom;
+
+        p_ *= beta;
+        p_ += r_;
+    }
+}
+
 Vector<double> CG(const Operator& A, const Vector<double>& b,
                   int max_iter, double tol, bool verbose)
 {
@@ -45,7 +95,6 @@ void CG(const Operator& A, const Vector<double>& b, Vector<double>& x,
         if (verbose)
         {
             printf("CG %d: %.2e\n", k, numer / r0);
-
         }
 
         if (numer < tol_tol)
