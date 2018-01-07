@@ -19,7 +19,7 @@ namespace linalgcpp
 
 /*! @brief Dense block matrix where each block is a sparse matrix
            Blocks of zero size are assumed to be zero matrix
-           Offsets are to be of size (blocks + 1), where the last 
+           Offsets are to be of size (blocks + 1), where the last
            entry is the total size.
 
            @warning This is NOT a view.  BlockMatrix copies/takes
@@ -130,8 +130,8 @@ BlockMatrix<T>::BlockMatrix(std::vector<size_t> offsets) :
 template <typename T>
 BlockMatrix<T>::BlockMatrix(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets)
     : row_offsets_(std::move(row_offsets)), col_offsets_(std::move(col_offsets)),
-    A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1)),
-    rows_(row_offsets_.back()), cols_(col_offsets_.back())
+      A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1)),
+      rows_(row_offsets_.back()), cols_(col_offsets_.back())
 {
 
 }
@@ -203,6 +203,7 @@ template <typename T>
 SparseMatrix<T> BlockMatrix<T>::Combine() const
 {
     size_t nnz = 0;
+
     for (const auto& row : A_)
     {
         for (const auto& mat : row)
@@ -216,7 +217,7 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
     std::vector<double> data(nnz);
 
     indptr[0] = 0;
-    
+
     size_t nnz_count = 0;
 
     for (size_t i = 0; i < row_offsets_.size() - 1; ++i)
@@ -228,12 +229,13 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
             for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
             {
                 const auto& mat = A_[i][j];
+
                 if (mat.Rows() == 0 || mat.Cols() == 0)
                 {
                     continue;
                 }
 
-                const auto offset = col_offsets_[j]; 
+                const auto offset = col_offsets_[j];
 
                 const auto& mat_indptr = mat.GetIndptr();
                 const auto& mat_indices = mat.GetIndices();
@@ -310,7 +312,7 @@ void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& o
                     continue;
                 }
 
-                const auto offset = col_offsets_[j]; 
+                const auto offset = col_offsets_[j];
 
                 const auto& mat_indptr = mat.GetIndptr();
                 const auto& mat_indices = mat.GetIndices();
@@ -358,7 +360,7 @@ void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>&
                     continue;
                 }
 
-                const auto offset = col_offsets_[j]; 
+                const auto offset = col_offsets_[j];
 
                 const auto& mat_indptr = mat.GetIndptr();
                 const auto& mat_indices = mat.GetIndices();
@@ -372,7 +374,6 @@ void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>&
                     const size_t col = offset + mat_indices[jj];
 
                     output[col] += mat_data[jj] * input[row];
-
                 }
             }
 

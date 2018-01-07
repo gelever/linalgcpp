@@ -22,9 +22,9 @@ BlockOperator::BlockOperator(std::vector<size_t> offsets) :
 
 BlockOperator::BlockOperator(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets)
     : row_offsets_(std::move(row_offsets)), col_offsets_(std::move(col_offsets)),
-    A_(row_offsets_.size() - 1, std::vector<const Operator*>(col_offsets_.size() - 1, nullptr)),
-    rows_(row_offsets_.back()), cols_(col_offsets_.back()),
-    x_(col_offsets_), y_(row_offsets_)
+      A_(row_offsets_.size() - 1, std::vector<const Operator*>(col_offsets_.size() - 1, nullptr)),
+      rows_(row_offsets_.back()), cols_(col_offsets_.back()),
+      x_(col_offsets_), y_(row_offsets_)
 {
 
 }

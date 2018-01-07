@@ -366,8 +366,8 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
     std::vector<int> indices;
     std::vector<T2> data;
 
-	indices.reserve(nnz);
-	data.reserve(nnz);
+    indices.reserve(nnz);
+    data.reserve(nnz);
 
     indptr[0] = 0;
 
@@ -474,10 +474,11 @@ void LilMatrix<T>::EliminateZeros(double tolerance)
     for (auto& row : entries_)
     {
         row.erase(std::remove_if(std::begin(row), std::end(row),
-                    [&](const auto& entry) {
-                    return std::abs(entry.second) < tolerance;
-                    }),
-                std::end(row));
+                                 [&](const auto & entry)
+        {
+            return std::abs(entry.second) < tolerance;
+        }),
+        std::end(row));
     }
 }
 
@@ -486,7 +487,7 @@ std::tuple<size_t, size_t> LilMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
-        return std::tuple<size_t, size_t>{rows_, cols_};
+        return std::tuple<size_t, size_t> {rows_, cols_};
     }
 
     const size_t rows = entries_.size();
@@ -500,7 +501,7 @@ std::tuple<size_t, size_t> LilMatrix<T>::FindSize() const
         }
     }
 
-    return std::tuple<size_t, size_t>{rows + 1, cols + 1};
+    return std::tuple<size_t, size_t> {rows + 1, cols + 1};
 }
 
 } // namespace linalgcpp

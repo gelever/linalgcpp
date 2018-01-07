@@ -49,7 +49,7 @@ DenseMatrix::DenseMatrix(size_t rows, size_t cols, const std::vector<double>& da
 }
 
 DenseMatrix::DenseMatrix(const DenseMatrix& other) noexcept
-: rows_(other.rows_), cols_(other.cols_), data_(other.data_)
+    : rows_(other.rows_), cols_(other.cols_), data_(other.data_)
 {
 }
 
@@ -83,7 +83,7 @@ void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, 
         {
             out << std::setw(width) << std::setprecision(precision)
                 << std::fixed << (*this)(i, j);
-                //<< std::defaultfloat << (*this)(i, j);
+            //<< std::defaultfloat << (*this)(i, j);
         }
 
         out << "\n";
@@ -573,7 +573,7 @@ void DenseMatrix::ScaleCols(const std::vector<double>& values)
     void dorgqr_(const int* m, const int* n, const int* k, double* A,
                  const int* lda, double* tau, double* work, const int* lwork,
                  int* info);
-                 */
+*/
 
 void DenseMatrix::QR(DenseMatrix& Q) const
 {

@@ -73,7 +73,8 @@ void CG(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
 }
 
 PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
-    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()), z_(A.Rows())
+    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
+      z_(A.Rows())
 {
     assert(A_.Rows() == A_.Cols());
     assert(A_.Rows() == M_.Cols());
@@ -150,9 +151,9 @@ void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, Vect
 
 MINRESSolver::MINRESSolver(const Operator& A, int max_iter, double tol, bool verbose)
     : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose),
-    w0_(A.Rows()), w1_(A.Rows()),
-    v0_(A.Rows()), v1_(A.Rows()),
-    q_(A.Rows())
+      w0_(A.Rows()), w1_(A.Rows()),
+      v0_(A.Rows()), v1_(A.Rows()),
+      q_(A.Rows())
 {
     assert(A_.Rows() == A_.Cols());
 }
@@ -203,7 +204,7 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) cons
 
         for (int i = 0; i < size; ++i)
         {
-            w0_[i] = ((1.0 / rho1) * v1_[i]) - ( (rho3/ rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
+            w0_[i] = ((1.0 / rho1) * v1_[i]) - ( (rho3 / rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
         }
 
         gamma = gamma2;
@@ -235,7 +236,7 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) cons
 }
 
 Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
-                  int max_iter, double tol, bool verbose)
+                      int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
@@ -246,7 +247,7 @@ Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
 }
 
 void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
-        int max_iter, double tol, bool verbose)
+            int max_iter, double tol, bool verbose)
 {
     MINRESSolver minres(A, max_iter, tol, verbose);
 
@@ -255,9 +256,9 @@ void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& 
 
 PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
     : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
-    w0_(A.Rows()), w1_(A.Rows()),
-    v0_(A.Rows()), v1_(A.Rows()),
-    u1_(A.Rows()), q_(A.Rows())
+      w0_(A.Rows()), w1_(A.Rows()),
+      v0_(A.Rows()), v1_(A.Rows()),
+      u1_(A.Rows()), q_(A.Rows())
 {
     assert(A_.Rows() == A_.Cols());
     assert(A_.Rows() == M_.Cols());
@@ -315,7 +316,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 
         for (int i = 0; i < size; ++i)
         {
-            w0_[i] = ((1.0 / rho1) * u1_[i]) - ( (rho3/ rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
+            w0_[i] = ((1.0 / rho1) * u1_[i]) - ( (rho3 / rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
         }
 
         gamma = gamma2;
@@ -349,7 +350,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 }
 
 Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b,
-                      int max_iter, double tol, bool verbose)
+                       int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
@@ -360,7 +361,7 @@ Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<do
 }
 
 void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
-            int max_iter, double tol, bool verbose)
+             int max_iter, double tol, bool verbose)
 {
     PMINRESSolver pminres(A, M, max_iter, tol, verbose);
 

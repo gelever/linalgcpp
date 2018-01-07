@@ -19,7 +19,7 @@ namespace linalgcpp
 
 /*! @brief Dense block matrix where each block is a sparse matrix
            Blocks of zero size are assumed to be zero matrix
-           Offsets are to be of size (blocks + 1), where the last 
+           Offsets are to be of size (blocks + 1), where the last
            entry is the total size.
 
            @warning This is NOT a view.  BlockMatrix copies/takes

@@ -16,7 +16,7 @@ namespace linalgcpp
 {
 
 /*! @brief Vector view of data and size
- *
+
     @note Views are only modifiable if you own the view
           that you plan to change it to.
 

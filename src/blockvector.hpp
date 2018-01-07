@@ -91,7 +91,7 @@ VectorView<T> BlockVector<T>::GetBlock(size_t block)
     T* data = Vector<T>::begin() + offsets_[block];
     size_t size = offsets_[block + 1] - offsets_[block];
 
-    return VectorView<T>{data, size};
+    return VectorView<T> {data, size};
 }
 
 template <typename T>
@@ -102,7 +102,7 @@ const auto BlockVector<T>::GetBlock(size_t block) const
     T* data = const_cast<T*>(Vector<T>::begin() + offsets_[block]);
     size_t size = offsets_[block + 1] - offsets_[block];
 
-    return VectorView<T>{data, size};
+    return VectorView<T> {data, size};
 }
 
 } //namespace linalgcpp

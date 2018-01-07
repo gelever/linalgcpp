@@ -344,7 +344,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     size_t cols;
     std::tie(rows, cols) = FindSize();
 
-	std::sort(std::begin(entries_), std::end(entries_));
+    std::sort(std::begin(entries_), std::end(entries_));
 
     if (entries_.size() == 0)
     {
@@ -357,8 +357,8 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     std::vector<int> indices;
     std::vector<T2> data;
 
-	indices.reserve(nnz);
-	data.reserve(nnz);
+    indices.reserve(nnz);
+    data.reserve(nnz);
 
     indptr[0] = 0;
 
@@ -456,11 +456,12 @@ template <typename T>
 void CooMatrix<T>::EliminateZeros(double tolerance)
 {
     entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
-            [&](const auto& entry) {
-                const double val = std::get<1>(entry);
-                return std::abs(val) < tolerance;
-            }),
-            std::end(entries_));
+                                  [&](const auto & entry)
+    {
+        const double val = std::get<1>(entry);
+        return std::abs(val) < tolerance;
+    }),
+    std::end(entries_));
 }
 
 template <typename T>
@@ -468,7 +469,7 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
-        return std::tuple<size_t, size_t>{rows_, cols_};
+        return std::tuple<size_t, size_t> {rows_, cols_};
     }
 
     int rows = 0;
@@ -483,7 +484,7 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
         cols = std::max(cols, j);
     }
 
-    return std::tuple<size_t, size_t>{rows + 1, cols + 1};
+    return std::tuple<size_t, size_t> {rows + 1, cols + 1};
 }
 
 } // namespace linalgcpp

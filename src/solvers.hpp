@@ -22,15 +22,21 @@ class CGSolver : public Operator
         CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override { return A_.Rows(); }
+        size_t Rows() const override
+        {
+            return A_.Rows();
+        }
 
         /*! Get size of operator */
-        size_t Cols() const override { return A_.Cols(); }
+        size_t Cols() const override
+        {
+            return A_.Cols();
+        }
 
         /*! @brief Solve
-          @param[in] input right hand side to solve for
-          @param[in,out] output intial guess on input and solution on output
-          */
+            @param[in] input right hand side to solve for
+            @param[in,out] output intial guess on input and solution on output
+        */
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
@@ -57,15 +63,21 @@ class PCGSolver : public Operator
         PCGSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override { return A_.Rows(); }
+        size_t Rows() const override
+        {
+            return A_.Rows();
+        }
 
         /*! Get size of operator */
-        size_t Cols() const override { return A_.Cols(); }
+        size_t Cols() const override
+        {
+            return A_.Cols();
+        }
 
         /*! @brief Solve
-          @param[in] input right hand side to solve for
-          @param[in,out] output intial guess on input and solution on output
-          */
+            @param[in] input right hand side to solve for
+            @param[in,out] output intial guess on input and solution on output
+        */
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
@@ -93,15 +105,21 @@ class MINRESSolver : public Operator
         MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override { return A_.Rows(); }
+        size_t Rows() const override
+        {
+            return A_.Rows();
+        }
 
         /*! Get size of operator */
-        size_t Cols() const override { return A_.Cols(); }
+        size_t Cols() const override
+        {
+            return A_.Cols();
+        }
 
         /*! @brief Solve
-          @param[in] input right hand side to solve for
-          @param[in,out] output intial guess on input and solution on output
-          */
+            @param[in] input right hand side to solve for
+            @param[in,out] output intial guess on input and solution on output
+        */
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
@@ -131,15 +149,21 @@ class PMINRESSolver : public Operator
         PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override { return A_.Rows(); }
+        size_t Rows() const override
+        {
+            return A_.Rows();
+        }
 
         /*! Get size of operator */
-        size_t Cols() const override { return A_.Cols(); }
+        size_t Cols() const override
+        {
+            return A_.Cols();
+        }
 
         /*! @brief Solve
-          @param[in] input right hand side to solve for
-          @param[in,out] output intial guess on input and solution on output
-          */
+            @param[in] input right hand side to solve for
+            @param[in,out] output intial guess on input and solution on output
+        */
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
@@ -252,7 +276,7 @@ void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& 
     @note Uses random initial guess for x
 */
 Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b,
-                      int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+                       int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 /*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
     @param A operator to apply the action of A
@@ -266,7 +290,7 @@ Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<do
     Modified from mfem implementation
 */
 void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
-            int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+             int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 } //namespace linalgcpp
 
