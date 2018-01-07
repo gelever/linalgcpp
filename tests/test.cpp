@@ -30,7 +30,7 @@ void test_lil()
         lil3 = lil2;
         lil3.AddSym(0, 0, 1);
 
-        constexpr int size = 1000;
+        constexpr int size = 100;
         LilMatrix<int> lil_large(size);
 
         for (int i = 0; i < size; ++i)
@@ -708,7 +708,7 @@ void test_vector()
     auto v3v3 = v3 * v3;
     std::cout << "v3 * v3: " << v3v3 << "\n";
 
-    const int alpha = 3;
+    const double alpha = 3;
     const double beta = 5.1;
 
     std::cout << "v3 *= 3: " << (v3 *= alpha);
@@ -1006,10 +1006,10 @@ void test_blockmatrix()
     A2.Print("A");
     A2.PrintDense("A Dense");
 
-    // A2.SetBlock(0, 0, block);
+    A2.SetBlock(0, 0, block);
     A2.SetBlock(0, 1, block);
-    //A2.SetBlock(1, 0, block);
-    // A2.SetBlock(1, 1, block);
+    A2.SetBlock(1, 0, block);
+    A2.SetBlock(1, 1, block);
 
     A2.Print("A");
     A2.PrintDense("A Dense");
@@ -1049,17 +1049,145 @@ void test_blockmatrix()
     printf("%.8f %.8f\n", yAx, xAy);
 }
 
+void test_blockvector()
+{
+    CooMatrix<double> coo(4, 4);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 2.0);
+    coo.Add(2, 2, 3.0);
+    coo.Add(3, 3, 4.0);
+    auto sparse = coo.ToSparse();
+
+    std::vector<size_t> offsets{0, 2, 4};
+
+    BlockVector<double> vect_empty;
+    BlockVector<double> vect(offsets);
+
+    Randomize(vect);
+
+    vect_empty.Print("Vect Empty:");
+    vect.Print("Vect:");
+
+    VectorView<double> view0 {vect.GetBlock(0)};
+    VectorView<double> view1 {vect.GetBlock(1)};
+    // VectorView<double> view2 = vect.GetBlock(2); // Fails correctly
+
+    view0.Print("Block 0");
+    view1.Print("Block 1");
+
+    printf("V0 * V1: %.8f\n", view0.Mult(view1));
+
+    Normalize(view0);
+    Normalize(view1);
+
+    vect.Print("Vect Block Normalized through view:");
+
+    view0[0] = -100.0;
+    view1[0] = -200.0;
+
+    vect.Print("Vect Modified through view:");
+
+
+    {
+        Vector<double> vect(offsets.back());
+
+        vect[0] = 1.0;
+        vect[1] = 2.0;
+        vect[2] = 3.0;
+        vect[3] = 4.0;
+
+        const BlockVector<double> vect_const(vect, offsets);
+        auto test_const = [] (const VectorView<double>& test)
+        {
+            test.Print("test");
+        };
+
+        test_const(vect_const.GetBlock(0));
+        vect_const.GetBlock(0).Print("only rvalue works ?");
+        const auto& test0 = vect_const.GetBlock(0);
+        const auto& test1 = vect_const.GetBlock(1);
+
+        test0.Print("test0:");
+        test1.Print("test1:");
+
+        // test0[0] = 1.0; // Fails correctly
+
+        test_const(test1);
+    }
+
+}
+
+void test_blockoperator()
+{
+    CooMatrix<double> coo(2, 2);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 1.0);
+    auto sparse = coo.ToSparse();
+    auto dense = coo.ToDense();
+
+    std::vector<size_t> offsets{0, 2, 4};
+
+    Vector<double> x(offsets.back(), 1.0);
+    Vector<double> y(offsets.back(), 0.0);
+
+    {
+        BlockOperator b;
+    }
+
+    {
+        BlockOperator b(offsets);
+        b.Mult(x, y);
+        y.Print("y:");
+    }
+    {
+        BlockOperator b(offsets, offsets);
+        b.Mult(x, y);
+        y.Print("y:");
+    }
+    // Symmetric
+    {
+        BlockOperator b(offsets, offsets);
+        b.SetBlock(0, 0, sparse);
+        b.SetBlock(0, 1, dense);
+        b.SetBlock(1, 0, dense);
+        b.SetBlock(1, 1, coo);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
+    // Not Symmetric
+    {
+        BlockOperator b(offsets, offsets);
+        b.SetBlock(0, 0, coo);
+        b.SetBlock(0, 1, sparse);
+        b.SetBlock(1, 1, dense);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
+}
+
 int main(int argc, char** argv)
 {
-    // test_coo();
-    // test_vector();
-    // test_sparse();
-    // test_parser();
-    // test_operator();
-    // test_solvers();
-    // test_lil();
-    // test_dense();
+    test_coo();
+    test_vector();
+    test_sparse();
+    test_parser();
+    test_operator();
+    test_solvers();
+    test_lil();
+    test_dense();
     test_blockmatrix();
+    test_blockvector();
+    test_blockoperator();
 
     return EXIT_SUCCESS;
 }

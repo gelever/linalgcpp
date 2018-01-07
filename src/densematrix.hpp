@@ -133,7 +133,7 @@ class DenseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T>
-        Vector<double> Mult(const Vector<T>& input) const;
+        Vector<double> Mult(const VectorView<T>& input) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -141,14 +141,14 @@ class DenseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T>
-        Vector<double> MultAT(const Vector<T>& input) const;
+        Vector<double> MultAT(const VectorView<T>& input) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
             @param output the output vector y
         */
         template <typename T, typename T2>
-        void Mult(const Vector<T>& input, Vector<T2>& output) const;
+        void Mult(const VectorView<T>& input, VectorView<T2>& output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -156,7 +156,7 @@ class DenseMatrix : public Operator
             @param output the output vector y
         */
         template <typename T, typename T2>
-        void MultAT(const Vector<T>& input, Vector<T2>& output) const;
+        void MultAT(const VectorView<T>& input, VectorView<T2>& output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -280,14 +280,14 @@ class DenseMatrix : public Operator
             @param vect set this vect to the column values
         */
         template <typename T = double>
-        void GetCol(size_t col, Vector<T>& vect) const;
+        void GetCol(size_t col, VectorView<T>& vect) const;
 
         /*! @brief Get a single row from the matrix
             @param row the row to get
             @param vect set this vect to the row values
         */
         template <typename T = double>
-        void GetRow(size_t row, Vector<T>& vect) const;
+        void GetRow(size_t row, VectorView<T>& vect) const;
 
         /*! @brief Get a single column from the matrix
             @param col the column to get
@@ -308,14 +308,14 @@ class DenseMatrix : public Operator
             @param vect the values to set
         */
         template <typename T = double>
-        void SetCol(size_t col, const Vector<T>& vect);
+        void SetCol(size_t col, const VectorView<T>& vect);
 
         /*! @brief Set a single row vector's values
             @param row the row to set
             @param vect the values to set
         */
         template <typename T = double>
-        void SetRow(size_t row, const Vector<T>& vect);
+        void SetRow(size_t row, const VectorView<T>& vect);
 
         /*! @brief Get a range of rows from the matrix
             @param start start of range, inclusive
@@ -459,9 +459,9 @@ class DenseMatrix : public Operator
         void GetDiag(std::vector<double>& diag) const;
 
         /// Operator Requirement, calls the templated Mult
-        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
         size_t rows_;
@@ -534,7 +534,7 @@ double DenseMatrix::Min() const
 }
 
 template <typename T>
-Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
+Vector<double> DenseMatrix::Mult(const VectorView<T>& input) const
 {
     Vector<double> output(rows_);
     Mult(input, output);
@@ -543,7 +543,7 @@ Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
 }
 
 template <typename T, typename T2>
-void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
+void DenseMatrix::Mult(const VectorView<T>& input, VectorView<T2>& output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -560,7 +560,7 @@ void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
 }
 
 template <typename T>
-Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
+Vector<double> DenseMatrix::MultAT(const VectorView<T>& input) const
 {
     Vector<double> output(cols_);
     MultAT(input, output);
@@ -569,7 +569,7 @@ Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
 }
 
 template <typename T, typename T2>
-void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
+void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<T2>& output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
@@ -588,7 +588,7 @@ void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
 }
 
 template <typename T>
-void DenseMatrix::GetCol(size_t col, Vector<T>& vect) const
+void DenseMatrix::GetCol(size_t col, VectorView<T>& vect) const
 {
     assert(col >= 0 && col < cols_);
     assert(vect.size() == rows_);
@@ -600,7 +600,7 @@ void DenseMatrix::GetCol(size_t col, Vector<T>& vect) const
 }
 
 template <typename T>
-void DenseMatrix::GetRow(size_t row, Vector<T>& vect) const
+void DenseMatrix::GetRow(size_t row, VectorView<T>& vect) const
 {
     assert(row >= 0 && row < rows_);
     assert(vect.size() == cols_);
@@ -630,7 +630,7 @@ Vector<T> DenseMatrix::GetRow(size_t row) const
 }
 
 template <typename T>
-void DenseMatrix::SetCol(size_t col, const Vector<T>& vect)
+void DenseMatrix::SetCol(size_t col, const VectorView<T>& vect)
 {
     assert(col >= 0 && col < cols_);
     assert(vect.size() == rows_);
@@ -642,7 +642,7 @@ void DenseMatrix::SetCol(size_t col, const Vector<T>& vect)
 }
 
 template <typename T>
-void DenseMatrix::SetRow(size_t row, const Vector<T>& vect)
+void DenseMatrix::SetRow(size_t row, const VectorView<T>& vect)
 {
     assert(row >= 0 && row < rows_);
     assert(vect.size() == cols_);

@@ -5,7 +5,7 @@
 namespace linalgcpp
 {
 
-Vector<double> Operator::Mult(const Vector<double>& input) const
+Vector<double> Operator::Mult(const VectorView<double>& input) const
 {
     Vector<double> output(Rows());
     Mult(input, output);
@@ -13,7 +13,7 @@ Vector<double> Operator::Mult(const Vector<double>& input) const
     return output;
 }
 
-Vector<double> Operator::MultAT(const Vector<double>& input) const
+Vector<double> Operator::MultAT(const VectorView<double>& input) const
 {
     Vector<double> output(Rows());
     MultAT(input, output);
@@ -21,9 +21,9 @@ Vector<double> Operator::MultAT(const Vector<double>& input) const
     return output;
 }
 
-double Operator::InnerProduct(const Vector<double>& x, const Vector<double>& y) const
+double Operator::InnerProduct(const VectorView<double>& x, const VectorView<double>& y) const
 {
-    return y * Mult(x);
+    return y.Mult(Mult(x));
 }
 
 } // namespace linalgcpp

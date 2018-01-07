@@ -171,7 +171,7 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T2 = T>
-        auto Mult(const Vector<T2>& input) const;
+        auto Mult(const VectorView<T2>& input) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -179,14 +179,14 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T2 = T>
-        auto MultAT(const Vector<T2>& input) const;
+        auto MultAT(const VectorView<T2>& input) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
             @param output the output vector y
         */
         template <typename T2 = T, typename T3 = T>
-        void Mult(const Vector<T2>& input, Vector<T3>& output) const;
+        void Mult(const VectorView<T2>& input, VectorView<T3>& output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -194,7 +194,7 @@ class SparseMatrix : public Operator
             @param output the output vector y
         */
         template <typename T2 = T, typename T3 = T>
-        void MultAT(const Vector<T2>& input, Vector<T3>& output) const;
+        void MultAT(const VectorView<T2>& input, VectorView<T3>& output) const;
 
         /*! @brief Multiplies a dense matrix: AX = Y
             @param input the input dense matrix X
@@ -289,7 +289,7 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T2 = T>
-        auto operator*(const Vector<T2>& input) const;
+        auto operator*(const VectorView<T2>& input) const;
 
         /*! @brief Sum of all data
             @retval sum Sum of all data
@@ -307,9 +307,9 @@ class SparseMatrix : public Operator
         void ScaleCols(const std::vector<T>& values);
 
         /// Operator Requirement, calls the templated Mult
-        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
         size_t rows_;
@@ -811,7 +811,7 @@ std::vector<T> SparseMatrix<T>::GetData(size_t row) const
 
 template <typename T>
 template <typename T2>
-auto SparseMatrix<T>::Mult(const Vector<T2>& input) const
+auto SparseMatrix<T>::Mult(const VectorView<T2>& input) const
 {
     Vector<typename std::common_type<T, T2>::type> output(rows_);
     Mult(input, output);
@@ -821,7 +821,7 @@ auto SparseMatrix<T>::Mult(const Vector<T2>& input) const
 
 template <typename T>
 template <typename T2>
-auto SparseMatrix<T>::MultAT(const Vector<T2>& input) const
+auto SparseMatrix<T>::MultAT(const VectorView<T2>& input) const
 {
     Vector<typename std::common_type<T, T2>::type> output(cols_);
     MultAT(input, output);
@@ -831,7 +831,7 @@ auto SparseMatrix<T>::MultAT(const Vector<T2>& input) const
 
 template <typename T>
 template <typename T2, typename T3>
-void SparseMatrix<T>::Mult(const Vector<T2>& input, Vector<T3>& output) const
+void SparseMatrix<T>::Mult(const VectorView<T2>& input, VectorView<T3>& output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -851,7 +851,7 @@ void SparseMatrix<T>::Mult(const Vector<T2>& input, Vector<T3>& output) const
 
 template <typename T>
 template <typename T2, typename T3>
-void SparseMatrix<T>::MultAT(const Vector<T2>& input, Vector<T3>& output) const
+void SparseMatrix<T>::MultAT(const VectorView<T2>& input, VectorView<T3>& output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
@@ -868,20 +868,20 @@ void SparseMatrix<T>::MultAT(const Vector<T2>& input, Vector<T3>& output) const
 }
 
 template <typename T>
-void SparseMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+void SparseMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
 {
     Mult<double, double>(input, output);
 }
 
 template <typename T>
-void SparseMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+void SparseMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
 {
     MultAT<double, double>(input, output);
 }
 
 template <typename T>
 template <typename T2>
-auto SparseMatrix<T>::operator*(const Vector<T2>& input) const
+auto SparseMatrix<T>::operator*(const VectorView<T2>& input) const
 {
     return Mult<T2>(input);
 }

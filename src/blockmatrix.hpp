@@ -38,6 +38,8 @@ class BlockMatrix : public Operator
         /*! @brief Rectangle Constructor with given offsets*/
         BlockMatrix(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets);
 
+        /*! @brief Default deconstructor */
+        ~BlockMatrix() noexcept = default;
         /*! @brief The number of rows in this matrix
             @retval the number of rows
         */
@@ -93,9 +95,9 @@ class BlockMatrix : public Operator
         void PrintDense(const std::string& label = "", std::ostream& out = std::cout) const;
 
         /// Operator Requirement
-        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement
-        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
         using Operator::Mult;
 
@@ -110,7 +112,8 @@ class BlockMatrix : public Operator
 };
 
 template <typename T>
-BlockMatrix<T>::BlockMatrix() : rows_(0), cols_(0)
+BlockMatrix<T>::BlockMatrix()
+    : row_offsets_(1, 0), col_offsets_(1, 0), rows_(0), cols_(0)
 {
 
 }
@@ -225,6 +228,11 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
             for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
             {
                 const auto& mat = A_[i][j];
+                if (mat.Rows() == 0 || mat.Cols() == 0)
+                {
+                    continue;
+                }
+
                 const auto offset = col_offsets_[j]; 
 
                 const auto& mat_indptr = mat.GetIndptr();
@@ -278,7 +286,7 @@ void BlockMatrix<T>::PrintDense(const std::string& label, std::ostream& out) con
 }
 
 template <typename T>
-void BlockMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -296,6 +304,12 @@ void BlockMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) c
             for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
             {
                 const auto& mat = A_[i][j];
+
+                if (mat.Rows() == 0 || mat.Cols() == 0)
+                {
+                    continue;
+                }
+
                 const auto offset = col_offsets_[j]; 
 
                 const auto& mat_indptr = mat.GetIndptr();
@@ -322,7 +336,7 @@ void BlockMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) c
 }
 
 template <typename T>
-void BlockMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
@@ -338,6 +352,12 @@ void BlockMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output)
             for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
             {
                 const auto& mat = A_[i][j];
+
+                if (mat.Rows() == 0 || mat.Cols() == 0)
+                {
+                    continue;
+                }
+
                 const auto offset = col_offsets_[j]; 
 
                 const auto& mat_indptr = mat.GetIndptr();
@@ -364,4 +384,4 @@ void BlockMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output)
 
 } //namespace linalgcpp
 
-#endif // SPARSEMATRIX_HPP__
+#endif // BLOCKMATRIX_HPP__

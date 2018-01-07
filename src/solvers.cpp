@@ -6,10 +6,10 @@ namespace linalgcpp
 CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose)
     : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows())
 {
-    assert(A.Rows() == A.Cols());
+    assert(A_.Rows() == A_.Cols());
 }
 
-void CGSolver::Mult(const Vector<double>& b, Vector<double>& x) const
+void CGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
 {
     assert(x.size() == A_.Rows());
     assert(b.size() == A_.Rows());
@@ -53,7 +53,7 @@ void CGSolver::Mult(const Vector<double>& b, Vector<double>& x) const
     }
 }
 
-Vector<double> CG(const Operator& A, const Vector<double>& b,
+Vector<double> CG(const Operator& A, const VectorView<double>& b,
                   int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
@@ -64,96 +64,55 @@ Vector<double> CG(const Operator& A, const Vector<double>& b,
     return x;
 }
 
-void CG(const Operator& A, const Vector<double>& b, Vector<double>& x,
+void CG(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
         int max_iter, double tol, bool verbose)
 {
-    assert(A.Cols() == b.size());
-    assert(A.Rows() == x.size());
-    assert(A.Rows() == A.Cols());
+    CGSolver cg(A, max_iter, tol, verbose);
 
-    Vector<double> Ap = A.Mult(x);
-    Vector<double> r = b - Ap;
-    Vector<double> p = r;
-
-    const double r0 = InnerProduct(r, r);
-    const double tol_tol = r0 * tol * tol;
-
-    for (int k = 0; k < max_iter; ++k)
-    {
-        A.Mult(p, Ap);
-
-        double alpha = (r * r) / (p * Ap);
-
-        x.Add(alpha, p);
-
-        double denom = InnerProduct(r, r);
-
-        r.Sub(alpha, Ap);
-
-        double numer = InnerProduct(r, r);
-
-        if (verbose)
-        {
-            printf("CG %d: %.2e\n", k, numer / r0);
-        }
-
-        if (numer < tol_tol)
-        {
-            break;
-        }
-
-        double beta = numer / denom;
-
-        p *= beta;
-        p += r;
-    }
+    cg.Mult(b, x);
 }
 
-Vector<double> PCG(const Operator& A, const Operator& M, const Vector<double>& b,
-                   int max_iter, double tol, bool verbose)
+PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
+    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()), z_(A.Rows())
 {
-    Vector<double> x(A.Rows());
-    Randomize(x);
-
-    PCG(A, M, b, x, max_iter, tol, verbose);
-
-    return x;
+    assert(A_.Rows() == A_.Cols());
+    assert(A_.Rows() == M_.Cols());
+    assert(M_.Rows() == M_.Cols());
 }
 
-void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<double>& x,
-         int max_iter, double tol, bool verbose)
+void PCGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
 {
-    assert(A.Cols() == b.size());
-    assert(A.Rows() == x.size());
-    assert(A.Rows() == A.Cols());
-    assert(M.Rows() == A.Rows());
-    assert(M.Cols() == A.Cols());
+    assert(x.size() == A_.Rows());
+    assert(b.size() == A_.Rows());
 
-    Vector<double> Ap = A.Mult(x);
-    Vector<double> r = b - Ap;
-    Vector<double> z = M.Mult(r);
-    Vector<double> p = z;
+    A_.Mult(x, Ap_);
+    r_ = b;
+    r_ -= Ap_;
 
-    const double r0 = InnerProduct(z, r);
+    M_.Mult(r_, z_);
+    p_ = z_;
+
+    const double r0 = linalgcpp::InnerProduct(z_, r_);
+
     const double abs_tol = 1e-24;
-    const double tol_tol = std::max(r0 * tol * tol, abs_tol);
+    const double tol_tol = std::max(r0 * tol_ * tol_, abs_tol);
 
-    for (int k = 0; k < max_iter; ++k)
+    for (int k = 0; k < max_iter_; ++k)
     {
-        A.Mult(p, Ap);
+        A_.Mult(p_, Ap_);
 
-        double alpha = (r * z) / (p * Ap);
+        double alpha = (r_ * z_) / (p_ * Ap_);
 
-        x.Add(alpha, p);
+        x.Add(alpha, p_);
 
-        double denom = InnerProduct(z, r);
+        double denom = linalgcpp::InnerProduct(z_, r_);
 
-        r.Sub(alpha, Ap);
-        M.Mult(r, z);
+        r_.Sub(alpha, Ap_);
+        M_.Mult(r_, z_);
 
-        double numer = InnerProduct(z, r);
+        double numer = linalgcpp::InnerProduct(z_, r_);
 
-        if (verbose)
+        if (verbose_)
         {
             printf("PCG %d: %.2e\n", k, numer / r0);
         }
@@ -165,12 +124,117 @@ void PCG(const Operator& A, const Operator& M, const Vector<double>& b, Vector<d
 
         double beta = numer / denom;
 
-        p *= beta;
-        p += z;
+        p_ *= beta;
+        p_ += z_;
     }
 }
 
-Vector<double> MINRES(const Operator& A, const Vector<double>& b,
+Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double>& b,
+                   int max_iter, double tol, bool verbose)
+{
+    Vector<double> x(A.Rows());
+    Randomize(x);
+
+    PCG(A, M, b, x, max_iter, tol, verbose);
+
+    return x;
+}
+
+void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
+         int max_iter, double tol, bool verbose)
+{
+    PCGSolver pcg(A, M, max_iter, tol, verbose);
+
+    pcg.Mult(b, x);
+}
+
+MINRESSolver::MINRESSolver(const Operator& A, int max_iter, double tol, bool verbose)
+    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose),
+    w0_(A.Rows()), w1_(A.Rows()),
+    v0_(A.Rows()), v1_(A.Rows()),
+    q_(A.Rows())
+{
+    assert(A_.Rows() == A_.Cols());
+}
+
+void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
+{
+    assert(x.size() == A_.Rows());
+    assert(b.size() == A_.Rows());
+
+    const int size = A_.Cols();
+
+    w0_ = 0.0;
+    w1_ = 0.0;
+    v0_ = 0.0;
+
+    A_.Mult(x, q_);
+    v1_ = b;
+    v1_ -= q_;
+
+    double beta = v1_.L2Norm();
+    double eta = beta;
+
+    double gamma = 1.0;
+    double gamma2 = 1.0;
+
+    double sigma = 0;
+    double sigma2 = 0;
+
+    for (int k = 0; k < max_iter_; ++k)
+    {
+        v1_ /= beta;
+        A_.Mult(v1_, q_);
+
+        const double alpha = linalgcpp::InnerProduct(v1_, q_);
+
+        for (int i = 0; i < size; ++i)
+        {
+            v0_[i] = q_[i] - (beta * v0_[i]) - (alpha * v1_[i]);
+        }
+
+        const double delta = gamma2 * alpha - gamma * sigma2 * beta;
+        const double rho3 = sigma * beta;
+        const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
+
+        beta = v0_.L2Norm();
+
+        const double rho1 = std::sqrt((delta * delta) + (beta * beta));
+
+        for (int i = 0; i < size; ++i)
+        {
+            w0_[i] = ((1.0 / rho1) * v1_[i]) - ( (rho3/ rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
+        }
+
+        gamma = gamma2;
+        gamma2 = delta / rho1;
+
+        for (int i = 0; i < size; ++i)
+        {
+            x[i] += gamma2 * eta * w0_[i];
+        }
+
+        sigma = sigma2;
+        sigma2 = beta / rho1;
+
+        eta = -sigma2 * eta;
+
+        if (verbose_)
+        {
+            printf("MINRES %d: %.2e\n", k, eta);
+        }
+
+        if (std::fabs(eta) < tol_)
+        {
+            break;
+        }
+
+        Swap(v0_, v1_);
+        Swap(w0_, w1_);
+    }
+}
+
+Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
                   int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
@@ -181,22 +245,43 @@ Vector<double> MINRES(const Operator& A, const Vector<double>& b,
     return x;
 }
 
-void MINRES(const Operator& A, const Vector<double>& b, Vector<double>& x,
+void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
         int max_iter, double tol, bool verbose)
 {
-    assert(A.Cols() == b.size());
-    assert(A.Rows() == x.size());
-    assert(A.Rows() == A.Cols());
+    MINRESSolver minres(A, max_iter, tol, verbose);
 
-    const int size = A.Cols();
+    minres.Mult(b, x);
+}
 
-    Vector<double> w0(size, 0.0);
-    Vector<double> w1(size, 0.0);
-    Vector<double> q(size, 0.0);
-    Vector<double> v0(size, 0.0);
-    Vector<double> v1 = b - A.Mult(x);
+PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
+    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
+    w0_(A.Rows()), w1_(A.Rows()),
+    v0_(A.Rows()), v1_(A.Rows()),
+    u1_(A.Rows()), q_(A.Rows())
+{
+    assert(A_.Rows() == A_.Cols());
+    assert(A_.Rows() == M_.Cols());
+    assert(M_.Rows() == M_.Cols());
+}
 
-    double beta = v1.L2Norm();
+void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
+{
+    assert(b.size() == A_.Rows());
+    assert(x.size() == A_.Cols());
+
+    const int size = A_.Cols();
+
+    w0_ = 0.0;
+    w1_ = 0.0;
+    v0_ = 0.0;
+
+    A_.Mult(x, q_);
+    v1_ = b;
+    v1_ -= q_;
+
+    M_.Mult(v1_, u1_);
+
+    double beta = std::sqrt(linalgcpp::InnerProduct(u1_, v1_));
     double eta = beta;
 
     double gamma = 1.0;
@@ -205,29 +290,32 @@ void MINRES(const Operator& A, const Vector<double>& b, Vector<double>& x,
     double sigma = 0;
     double sigma2 = 0;
 
-    for (int k = 0; k < max_iter; ++k)
+    for (int k = 0; k < max_iter_; ++k)
     {
-        v1 /= beta;
-        A.Mult(v1, q);
+        v1_ /= beta;
+        u1_ /= beta;
 
-        const double alpha = v1 * q;
+        A_.Mult(u1_, q_);
+
+        const double alpha = linalgcpp::InnerProduct(u1_, q_);
 
         for (int i = 0; i < size; ++i)
         {
-            v0[i] = q[i] - (beta * v0[i]) - (alpha * v1[i]);
+            v0_[i] = q_[i] - (beta * v0_[i]) - (alpha * v1_[i]);
         }
 
         const double delta = gamma2 * alpha - gamma * sigma2 * beta;
         const double rho3 = sigma * beta;
         const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
 
-        beta = v0.L2Norm();
+        M_.Mult(v0_, q_);
+        beta = std::sqrt(linalgcpp::InnerProduct(v0_, q_));
 
         const double rho1 = std::sqrt((delta * delta) + (beta * beta));
 
         for (int i = 0; i < size; ++i)
         {
-            w0[i] = ((1.0 / rho1) * v1[i]) - ( (rho3/ rho1)  * w0[i]) - (( rho2 / rho1) * w1[i]);
+            w0_[i] = ((1.0 / rho1) * u1_[i]) - ( (rho3/ rho1)  * w0_[i]) - (( rho2 / rho1) * w1_[i]);
         }
 
         gamma = gamma2;
@@ -235,7 +323,7 @@ void MINRES(const Operator& A, const Vector<double>& b, Vector<double>& x,
 
         for (int i = 0; i < size; ++i)
         {
-            x[i] += gamma2 * eta * w0[i];
+            x[i] += gamma2 * eta * w0_[i];
         }
 
         sigma = sigma2;
@@ -243,22 +331,24 @@ void MINRES(const Operator& A, const Vector<double>& b, Vector<double>& x,
 
         eta = -sigma2 * eta;
 
-        if (verbose)
+        if (verbose_)
         {
-            printf("MINRES %d: %.2e\n", k, eta);
+            printf("PMINRES %d: %.2e\n", k, eta);
         }
 
-        if (std::fabs(eta) < tol)
+        if (std::fabs(eta) < tol_)
         {
             break;
         }
 
-        Swap(v0, v1);
-        Swap(w0, w1);
+        Swap(u1_, q_);
+        Swap(v0_, v1_);
+        Swap(w0_, w1_);
     }
+
 }
 
-Vector<double> PMINRES(const Operator& A, const Operator& M, const Vector<double>& b,
+Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b,
                       int max_iter, double tol, bool verbose)
 {
     Vector<double> x(A.Rows());
@@ -267,90 +357,14 @@ Vector<double> PMINRES(const Operator& A, const Operator& M, const Vector<double
     PMINRES(A, M, b, x, max_iter, tol, verbose);
 
     return x;
-
 }
 
-void PMINRES(const Operator& A, const Operator& M, const Vector<double>& b, Vector<double>& x,
+void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
             int max_iter, double tol, bool verbose)
 {
-    assert(A.Cols() == b.size());
-    assert(A.Rows() == x.size());
-    assert(A.Rows() == A.Cols());
+    PMINRESSolver pminres(A, M, max_iter, tol, verbose);
 
-    const int size = A.Cols();
-
-    Vector<double> w0(size, 0.0);
-    Vector<double> w1(size, 0.0);
-    Vector<double> q(size, 0.0);
-    Vector<double> v0(size, 0.0);
-    Vector<double> v1 = b - A.Mult(x);
-    Vector<double> u1 = M.Mult(v1);
-
-    double beta = std::sqrt(InnerProduct(u1, v1));
-    double eta = beta;
-
-    double gamma = 1.0;
-    double gamma2 = 1.0;
-
-    double sigma = 0;
-    double sigma2 = 0;
-
-    for (int k = 0; k < max_iter; ++k)
-    {
-        v1 /= beta;
-        u1 /= beta;
-
-        A.Mult(u1, q);
-
-        const double alpha = u1 * q;
-
-        for (int i = 0; i < size; ++i)
-        {
-            v0[i] = q[i] - (beta * v0[i]) - (alpha * v1[i]);
-        }
-
-        const double delta = gamma2 * alpha - gamma * sigma2 * beta;
-        const double rho3 = sigma * beta;
-        const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
-
-        M.Mult(v0, q);
-        beta = std::sqrt(InnerProduct(v0, q));
-
-        const double rho1 = std::sqrt((delta * delta) + (beta * beta));
-
-        for (int i = 0; i < size; ++i)
-        {
-            w0[i] = ((1.0 / rho1) * u1[i]) - ( (rho3/ rho1)  * w0[i]) - (( rho2 / rho1) * w1[i]);
-        }
-
-        gamma = gamma2;
-        gamma2 = delta / rho1;
-
-        for (int i = 0; i < size; ++i)
-        {
-            x[i] += gamma2 * eta * w0[i];
-        }
-
-        sigma = sigma2;
-        sigma2 = beta / rho1;
-
-        eta = -sigma2 * eta;
-
-        if (verbose)
-        {
-            printf("PMINRES %d: %.2e\n", k, eta);
-        }
-
-        if (std::fabs(eta) < tol)
-        {
-            break;
-        }
-
-        Swap(u1, q);
-        Swap(v0, v1);
-        Swap(w0, w1);
-    }
-
+    pminres.Mult(b, x);
 }
 
 } //namespace linalgcpp

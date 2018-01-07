@@ -141,14 +141,14 @@ class CooMatrix : public Operator
             @param input the input vector x
             @param output the output vector y
         */
-        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
-        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
         /*! @brief Print all entries
             @param label label to print before data
@@ -400,7 +400,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 }
 
 template <typename T>
-void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) const
+void CooMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
@@ -418,7 +418,7 @@ void CooMatrix<T>::Mult(const Vector<double>& input, Vector<double>& output) con
 }
 
 template <typename T>
-void CooMatrix<T>::MultAT(const Vector<double>& input, Vector<double>& output) const
+void CooMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
