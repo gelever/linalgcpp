@@ -3,8 +3,10 @@
 namespace linalgcpp
 {
 
-CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose)
-    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows())
+CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose,
+                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
+      Dot_(Dot)
 {
     assert(A_.Rows() == A_.Cols());
 }
@@ -19,26 +21,26 @@ void CGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
     r_ -= Ap_;
     p_ = r_;
 
-    const double r0 = linalgcpp::InnerProduct(r_, r_);
+    const double r0 = (*Dot_)(r_, r_);
     const double tol_tol = r0 * tol_ * tol_;
 
     for (int k = 0; k < max_iter_; ++k)
     {
         A_.Mult(p_, Ap_);
 
-        double alpha = (r_ * r_) / (p_ * Ap_);
+        double alpha = (*Dot_)(r_, r_) / (*Dot_)(p_, Ap_);
 
         x.Add(alpha, p_);
 
-        double denom = linalgcpp::InnerProduct(r_, r_);
+        double denom = (*Dot_)(r_, r_);
 
         r_.Sub(alpha, Ap_);
 
-        double numer = linalgcpp::InnerProduct(r_, r_);
+        double numer = (*Dot_)(r_, r_);
 
         if (verbose_)
         {
-            printf("CG %d: %.2e\n", k, numer / r0);
+            printf("CG %d: %.2e %.2e / %.2e\n", k, numer, numer / r0, tol_tol);
         }
 
         if (numer < tol_tol)
@@ -93,7 +95,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
     M_.Mult(r_, z_);
     p_ = z_;
 
-    const double r0 = linalgcpp::InnerProduct(z_, r_);
+    const double r0 = z_.Mult(r_);
 
     const double abs_tol = 1e-24;
     const double tol_tol = std::max(r0 * tol_ * tol_, abs_tol);
@@ -106,12 +108,12 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
 
         x.Add(alpha, p_);
 
-        double denom = linalgcpp::InnerProduct(z_, r_);
+        double denom = z_.Mult(r_);
 
         r_.Sub(alpha, Ap_);
         M_.Mult(r_, z_);
 
-        double numer = linalgcpp::InnerProduct(z_, r_);
+        double numer = z_.Mult(r_);
 
         if (verbose_)
         {
@@ -187,7 +189,7 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) cons
         v1_ /= beta;
         A_.Mult(v1_, q_);
 
-        const double alpha = linalgcpp::InnerProduct(v1_, q_);
+        const double alpha = v1_.Mult(q_);
 
         for (int i = 0; i < size; ++i)
         {
@@ -282,7 +284,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 
     M_.Mult(v1_, u1_);
 
-    double beta = std::sqrt(linalgcpp::InnerProduct(u1_, v1_));
+    double beta = u1_.Mult(v1_);
     double eta = beta;
 
     double gamma = 1.0;
@@ -298,7 +300,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 
         A_.Mult(u1_, q_);
 
-        const double alpha = linalgcpp::InnerProduct(u1_, q_);
+        const double alpha = u1_.Mult(q_);
 
         for (int i = 0; i < size; ++i)
         {
@@ -310,7 +312,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
         const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
 
         M_.Mult(v0_, q_);
-        beta = std::sqrt(linalgcpp::InnerProduct(v0_, q_));
+        beta = std::sqrt(v0_.Mult(q_));
 
         const double rho1 = std::sqrt((delta * delta) + (beta * beta));
 

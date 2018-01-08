@@ -19,7 +19,9 @@ class CGSolver : public Operator
             @param tol relative tolerance for stopping criteria
             @param verbose display additional iteration information
         */
-        CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        //CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
         /*! Get size of operator */
         size_t Rows() const override
@@ -48,6 +50,8 @@ class CGSolver : public Operator
         mutable Vector<double> Ap_;
         mutable Vector<double> r_;
         mutable Vector<double> p_;
+
+        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
 class PCGSolver : public Operator

@@ -79,11 +79,18 @@ class Vector : public VectorView<T>
         friend void Swap(Vector<T2>& lhs, Vector<T2>& rhs);
 
         using VectorView<T>::operator=;
+        virtual T Mult(const VectorView<T>& vect) const override;
 
     private:
         std::vector<T> data_;
 
 };
+
+template <typename T>
+T Vector<T>::Mult(const VectorView<T>& vect) const
+{
+    return VectorView<T>::Mult(vect);
+}
 
 template <typename T>
 Vector<T>::Vector(size_t size)

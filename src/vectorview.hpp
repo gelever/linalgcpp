@@ -303,11 +303,7 @@ VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
 template <typename T, typename T2>
 double InnerProduct(const VectorView<T>& lhs, const VectorView<T2>& rhs)
 {
-    assert(lhs.size() == rhs.size());
-
-    double start = 0.0;
-
-    return std::inner_product(std::begin(lhs), std::end(lhs), std::begin(rhs), start);
+    return lhs.Mult(rhs);
 }
 
 template <typename T>
@@ -319,7 +315,11 @@ double VectorView<T>::L2Norm() const
 template <typename T>
 T VectorView<T>::Mult(const VectorView<T>& vect) const
 {
-    return InnerProduct(*this, vect);
+    assert(vect.size() == size());
+
+    T start = 0.0;
+
+    return std::inner_product(begin(), end(), std::begin(vect), start);
 }
 
 template <typename T>
