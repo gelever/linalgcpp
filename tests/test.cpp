@@ -863,6 +863,25 @@ void test_parser()
         node_node.Print("node node");
     */
 
+    {
+        std::vector<double> out_vect(10, 1.0);
+        WriteBinary(out_vect, "vect.bin");
+
+        std::vector<double> in_vect = ReadBinaryVect("vect.bin");
+
+        std::cout << "out vect: " << out_vect;
+        std::cout << "in vect: " << in_vect;
+
+        WriteBinary(sp_out, "mat.bin");
+
+        auto sp_in = ReadBinaryMat("mat.bin");
+
+        sp_out.Print("Mat out:");
+        sp_out.PrintDense("Mat  out:");
+        sp_in.Print("Mat In:");
+        sp_in.PrintDense("Mat In:");
+    }
+
 
 }
 
@@ -1180,7 +1199,6 @@ int main(int argc, char** argv)
     test_coo();
     test_vector();
     test_sparse();
-    test_parser();
     test_operator();
     test_solvers();
     test_lil();
@@ -1188,6 +1206,7 @@ int main(int argc, char** argv)
     test_blockmatrix();
     test_blockvector();
     test_blockoperator();
+    test_parser();
 
     return EXIT_SUCCESS;
 }
