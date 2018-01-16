@@ -306,6 +306,11 @@ class SparseMatrix : public Operator
         */
         void ScaleCols(const std::vector<T>& values);
 
+        /*! @brief Permute the columns
+            @param perm permutation to apply
+        */
+        void PermuteCols(const std::vector<int>& perm);
+
         /// Operator Requirement, calls the templated Mult
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement, calls the templated MultAT
@@ -1052,6 +1057,20 @@ void SparseMatrix<T>::ScaleCols(const std::vector<T>& values)
         {
             data_[j] *= values[indices_[j]];
         }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::PermuteCols(const std::vector<int>& perm)
+{
+    assert(perm.size() == cols_);
+
+    for (size_t i = 0; i < indices_.size(); ++i)
+    {
+        assert(perm[indices_[i]] >= 0);
+        assert(perm[indices_[i]] < static_cast<int>(cols_));
+
+        indices_[i] = perm[indices_[i]];
     }
 }
 

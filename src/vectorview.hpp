@@ -33,8 +33,11 @@ class VectorView
         /*! @brief Default Constructor of zero size */
         VectorView();
 
-        /*! @brief Constructor of with data */
+        /*! @brief Constructor with data */
         VectorView(T* data, size_t size);
+
+        /*! @brief Copy with vector */
+        VectorView(std::vector<T>& vect) noexcept;
 
         /*! @brief Copy Constructor */
         VectorView(VectorView& vect) noexcept;
@@ -135,6 +138,13 @@ class VectorView
         */
         virtual double L2Norm() const;
 
+        /*! @brief Randomize the entries in a integer vector
+            @param lo lower range limit
+            @param hi upper range limit
+            @param seed seed to rng, if positive
+        */
+        virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
+
     protected:
         //void SetData(T* data, size_t size);
 
@@ -160,6 +170,13 @@ VectorView<T>::VectorView(T* data, size_t size)
 template <typename T>
 VectorView<T>::VectorView(VectorView<T>& vect) noexcept
     : data_(vect.data_), size_(vect.size_)
+{
+
+}
+
+template <typename T>
+VectorView<T>::VectorView(std::vector<T>& vect) noexcept
+    : data_(vect.data()), size_(vect.size())
 {
 
 }
@@ -625,6 +642,12 @@ void Randomize(VectorView<double>& vect, double lo = 0.0, double hi = 1.0, int s
     @param seed seed to rng, if positive
 */
 void Randomize(VectorView<int>& vect, int lo = 0, int hi = 1, int seed = -1);
+
+template <typename T>
+void VectorView<T>::Randomize(int lo, int hi, int seed)
+{
+    linalgcpp::Randomize(*this, lo, hi, seed);
+}
 
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize

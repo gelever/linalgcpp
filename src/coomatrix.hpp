@@ -120,6 +120,22 @@ class CooMatrix : public Operator
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
 
+        /*! @brief Permute the rows
+            @param perm permutation to apply
+        */
+        void PermuteRows(const std::vector<int>& perm);
+
+        /*! @brief Permute the columns
+            @param perm permutation to apply
+        */
+        void PermuteCols(const std::vector<int>& perm);
+
+        /*! @brief Permute both rows and columns
+            @param row_perm permutation to apply to rows
+            @param col_perm permutation to apply to cols
+        */
+        void PermuteRowsCols(const std::vector<int>& row_perm, const std::vector<int>& col_perm);
+
         /*! @brief Generate a sparse matrix from the entries
             @retval SparseMatrix containing all the entries
 
@@ -334,6 +350,53 @@ DenseMatrix CooMatrix<T>::ToDense() const
     }
 
     return dense;
+}
+
+template <typename T>
+void CooMatrix<T>::PermuteRows(const std::vector<int>& perm)
+{
+    size_t rows;
+    size_t cols;
+    std::tie(rows, cols) = FindSize();
+
+    assert(perm.size() == rows);
+
+    for (auto& entry : entries_)
+    {
+        std::get<0>(entry) = perm[std::get<0>(entry)];
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::PermuteCols(const std::vector<int>& perm)
+{
+    size_t rows;
+    size_t cols;
+    std::tie(rows, cols) = FindSize();
+
+    assert(perm.size() == cols);
+
+    for (auto& entry : entries_)
+    {
+        std::get<1>(entry) = perm[std::get<1>(entry)];
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::PermuteRowsCols(const std::vector<int>& row_perm, const std::vector<int>& col_perm)
+{
+    size_t rows;
+    size_t cols;
+    std::tie(rows, cols) = FindSize();
+
+    assert(row_perm.size() == rows);
+    assert(col_perm.size() == cols);
+
+    for (auto& entry : entries_)
+    {
+        std::get<0>(entry) = row_perm[std::get<0>(entry)];
+        std::get<1>(entry) = col_perm[std::get<1>(entry)];
+    }
 }
 
 template <typename T>
