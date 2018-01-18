@@ -275,6 +275,26 @@ class DenseMatrix : public Operator
         */
         bool operator==(const DenseMatrix& other) const;
 
+        /*! @brief Get a single column view from the matrix,
+                   Avoids the copy, but must own data
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        VectorView<double> GetColView(size_t col);
+
+        /*! @brief Get a single column view from the matrix,
+                   Avoids the copy, but return immutable view
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        const VectorView<double> GetColView(size_t col) const;
+
+        /*! @brief Get a single column from the matrix
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        void GetCol(size_t col, VectorView<double>& vect);
+
         /*! @brief Get a single column from the matrix
             @param col the column to get
             @param vect set this vect to the column values
@@ -585,6 +605,31 @@ void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<T2>& output) con
 
         output[j] = val;
     }
+}
+
+inline
+VectorView<double> DenseMatrix::GetColView(size_t col)
+{
+    assert(col >= 0 && col < cols_);
+
+    return VectorView<double>(data_.data() + (col * rows_), rows_);
+}
+
+inline
+const VectorView<double> DenseMatrix::GetColView(size_t col) const
+{
+    assert(col >= 0 && col < cols_);
+    double* data = const_cast<double*>(data_.data());
+
+    return VectorView<double>(data + (col * rows_), rows_);
+}
+
+inline
+void DenseMatrix::GetCol(size_t col, VectorView<double>& vect)
+{
+    assert(col >= 0 && col < cols_);
+
+    vect = VectorView<double>(data_.data() + (col * rows_), rows_);
 }
 
 template <typename T>

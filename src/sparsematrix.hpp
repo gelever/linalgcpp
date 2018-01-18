@@ -1039,7 +1039,7 @@ void SparseMatrix<T>::ScaleRows(const std::vector<T>& values)
 {
     for (size_t i = 0; i < rows_; ++i)
     {
-        const double scale = values[i];
+        const T scale = values[i];
 
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {

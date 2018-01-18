@@ -637,9 +637,14 @@ void test_dense()
 
     Vector<double> row_1 = d2.GetRow(1);
     Vector<double> col_1 = d2.GetCol(1);
+    VectorView<double> col_view = d2.GetColView(1);
 
     row_1.Print("Row 1 of d2");
     col_1.Print("Col 1 of d2");
+    col_view.Print("Col view of Col 1 of d2");
+
+    col_view[0] = -20.0;
+    d2.Print("d2 modify through view");
 
     row_1 = 5.0;
     col_1 = 5.0;
@@ -672,6 +677,14 @@ void test_dense()
 
     DenseMatrix d2_T = d2.Transpose();
     d2_T.Print("d2^T:");
+
+    const DenseMatrix d2_const = d2;
+    d2_const.Print("d2 const:");
+    const auto& d2_const_view = d2_const.GetColView(0);
+    std::cout << "d2[0] "  << d2_const_view[0] << "\n";
+    d2_const.GetColView(0).Print("D2 Col 0");
+
+    // d2_const_view[0] = 1.0; // Fails correctly
 }
 
 void test_vector()
@@ -1087,8 +1100,8 @@ void test_blockvector()
     vect_empty.Print("Vect Empty:");
     vect.Print("Vect:");
 
-    VectorView<double> view0 {vect.GetBlock(0)};
-    VectorView<double> view1 {vect.GetBlock(1)};
+    VectorView<double> view0 = vect.GetBlock(0);
+    VectorView<double> view1 = vect.GetBlock(1);
     // VectorView<double> view2 = vect.GetBlock(2); // Fails correctly
 
     view0.Print("Block 0");
@@ -1122,9 +1135,9 @@ void test_blockvector()
         };
 
         test_const(vect_const.GetBlock(0));
-        vect_const.GetBlock(0).Print("only rvalue works ?");
-        const auto& test0 = vect_const.GetBlock(0);
-        const auto& test1 = vect_const.GetBlock(1);
+        vect_const.GetBlock(0).Print("rvalue works ?");
+        const VectorView<double>& test0 = vect_const.GetBlock(0);
+        const VectorView<double>& test1 = vect_const.GetBlock(1);
 
         test0.Print("test0:");
         test1.Print("test1:");

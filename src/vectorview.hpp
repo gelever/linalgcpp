@@ -45,8 +45,11 @@ class VectorView
         /*! @brief Move Constructor */
         VectorView(VectorView&& vect) noexcept;
 
-        /*! @brief Assignment Constructor */
+        /*! @brief Assignment Operator */
         VectorView& operator=(VectorView& vect) noexcept;
+
+        /*! @brief Assignment Operator */
+        VectorView& operator=(VectorView&& vect) noexcept;
 
         /*! @brief Destructor */
         ~VectorView() noexcept = default;
@@ -189,6 +192,15 @@ VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
 
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(VectorView<T>& vect) noexcept
+{
+    data_ = vect.data_;
+    size_ = vect.size_;
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::operator=(VectorView<T>&& vect) noexcept
 {
     data_ = vect.data_;
     size_ = vect.size_;
@@ -605,7 +617,7 @@ T Sum(const VectorView<T>& vect)
 template <typename T>
 double Mean(const VectorView<T>& vect)
 {
-    return Sum(vect) / vect.size();
+    return Sum(vect) / (double) vect.size();
 }
 
 /*! @brief Print an std vector to a stream
