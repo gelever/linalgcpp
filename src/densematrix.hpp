@@ -31,7 +31,7 @@ class DenseMatrix : public Operator
             and columns
             @param size the number of rows and columns
         */
-        DenseMatrix(size_t size);
+        explicit DenseMatrix(size_t size);
 
         /*! @brief Rectangle Constructor of setting the number of rows
             and columns
@@ -51,13 +51,13 @@ class DenseMatrix : public Operator
         DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data);
 
         /*! @brief Copy Constructor */
-        DenseMatrix(const DenseMatrix&) = default;
+        DenseMatrix(const DenseMatrix& other) noexcept;
 
         /*! @brief Move constructor */
-        DenseMatrix(DenseMatrix&&);
+        DenseMatrix(DenseMatrix&& other) noexcept;
 
         /*! @brief Set this matrix equal to other */
-        DenseMatrix& operator=(DenseMatrix other);
+        DenseMatrix& operator=(DenseMatrix other) noexcept;
 
         /*! @brief Destructor */
         ~DenseMatrix() noexcept = default;
@@ -96,8 +96,23 @@ class DenseMatrix : public Operator
         /*! @brief Print the entries of this matrix in dense format
             @param label the label to print before the list of entries
             @param out stream to print to
+            @param width total width of each entry including negative
+            @param precision precision to print to
         */
-        void Print(const std::string& label = "", std::ostream& out = std::cout) const;
+        void Print(const std::string& label = "", std::ostream& out = std::cout, int width = 8, int precision = 4) const;
+
+        /*! @brief Get the transpose of this matrix
+            @retval transpose the tranpose
+        */
+        DenseMatrix Transpose() const;
+
+        /*! @brief Store the transpose of this matrix
+                   into the user provided matrix
+            @param transpose transpose the tranpose
+
+            @note Size must be set beforehand!
+        */
+        void Transpose(DenseMatrix& transpose) const;
 
         /*! @brief Index operator
             @param row row index
@@ -118,7 +133,7 @@ class DenseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T>
-        Vector<double> Mult(const Vector<T>& input) const;
+        Vector<double> Mult(const VectorView<T>& input) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -126,14 +141,14 @@ class DenseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename T>
-        Vector<double> MultAT(const Vector<T>& input) const;
+        Vector<double> MultAT(const VectorView<T>& input) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
             @param output the output vector y
         */
         template <typename T, typename T2>
-        void Mult(const Vector<T>& input, Vector<T2>& output) const;
+        void Mult(const VectorView<T>& input, VectorView<T2>& output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -141,7 +156,7 @@ class DenseMatrix : public Operator
             @param output the output vector y
         */
         template <typename T, typename T2>
-        void MultAT(const Vector<T>& input, Vector<T2>& output) const;
+        void MultAT(const VectorView<T>& input, VectorView<T2>& output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -254,19 +269,45 @@ class DenseMatrix : public Operator
         */
         DenseMatrix& operator=(double val);
 
+        /*! @brief Check if the dense matrices are equal
+            @param other the other DenseMatrix
+            @retval true if the dense matrices are close enough to equal
+        */
+        bool operator==(const DenseMatrix& other) const;
+
+        /*! @brief Get a single column view from the matrix,
+                   Avoids the copy, but must own data
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        VectorView<double> GetColView(size_t col);
+
+        /*! @brief Get a single column view from the matrix,
+                   Avoids the copy, but return immutable view
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        const VectorView<double> GetColView(size_t col) const;
+
+        /*! @brief Get a single column from the matrix
+            @param col the column to get
+            @param vect set this vect to the column values
+        */
+        void GetCol(size_t col, VectorView<double>& vect);
+
         /*! @brief Get a single column from the matrix
             @param col the column to get
             @param vect set this vect to the column values
         */
         template <typename T = double>
-        void GetCol(size_t col, Vector<T>& vect) const;
+        void GetCol(size_t col, VectorView<T>& vect) const;
 
         /*! @brief Get a single row from the matrix
             @param row the row to get
             @param vect set this vect to the row values
         */
         template <typename T = double>
-        void GetRow(size_t row, Vector<T>& vect) const;
+        void GetRow(size_t row, VectorView<T>& vect) const;
 
         /*! @brief Get a single column from the matrix
             @param col the column to get
@@ -287,14 +328,14 @@ class DenseMatrix : public Operator
             @param vect the values to set
         */
         template <typename T = double>
-        void SetCol(size_t col, const Vector<T>& vect);
+        void SetCol(size_t col, const VectorView<T>& vect);
 
         /*! @brief Set a single row vector's values
             @param row the row to set
             @param vect the values to set
         */
         template <typename T = double>
-        void SetRow(size_t row, const Vector<T>& vect);
+        void SetRow(size_t row, const VectorView<T>& vect);
 
         /*! @brief Get a range of rows from the matrix
             @param start start of range, inclusive
@@ -310,6 +351,18 @@ class DenseMatrix : public Operator
         */
         void GetRow(size_t start, size_t end, DenseMatrix& dense) const;
 
+        /*! @brief Get a selection of rows from the matrix
+            @param rows rows to select
+            @retval DenseMatrix the selection of rows
+        */
+        DenseMatrix GetRow(const std::vector<int>& rows) const;
+
+        /*! @brief Get a selection of rows from the matrix
+            @param rows rows to select
+            @param dense dense matrix that will hold the selection
+        */
+        void GetRow(const std::vector<int>& rows, DenseMatrix& dense) const;
+
         /*! @brief Set a range of rows from the matrix
             @param start start of range, inclusive
             @param dense dense matrix that holds the range
@@ -318,14 +371,14 @@ class DenseMatrix : public Operator
 
         /*! @brief Get a range of columns from the matrix
             @param start start of range, inclusive
-            @param end end of range, inclusive
+            @param end end of range, exclusive
             @retval DenseMatrix the range of columns
         */
         DenseMatrix GetCol(size_t start, size_t end) const;
 
         /*! @brief Get a range of columns from the matrix
             @param start start of range, inclusive
-            @param end end of range, inclusive
+            @param end end of range, exclusive
             @param dense dense matrix that will hold the range
         */
         void GetCol(size_t start, size_t end, DenseMatrix& dense) const;
@@ -340,8 +393,8 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @retval dense dense matrix that will hold the range
         */
         DenseMatrix GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const;
@@ -350,8 +403,8 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @param dense dense matrix that will hold the range
         */
         void GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, DenseMatrix& dense) const;
@@ -360,16 +413,75 @@ class DenseMatrix : public Operator
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
-            @param end_i end of row range, inclusive
-            @param end_j end of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
             @param dense dense matrix that holds the range
         */
         void SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, const DenseMatrix& dense);
 
+        /*! @brief Solve eigenvalue problem AQ = LQ,
+                   where Q are eigenvectors and L is eigenvalues
+                   A is replaced with the computed eigenvectors
+            @warning this replaces this matrix with the eigenvectors!
+            @returns eigenvalues the computed eigenvalues
+        */
+        std::vector<double> EigenSolve();
+
+        /*! @brief Solve eigenvalue problem AQ = LQ,
+                   where Q are eigenvectors and L is eigenvalues
+            @param[out] eigenvectors DenseMatrix to hold the computed eigenvectors
+            @returns eigenvalues the computed eigenvalues
+        */
+        std::vector<double> EigenSolve(DenseMatrix& eigenvectors) const;
+
+        /*! @brief Compute singular values and vectors A = U * S * VT
+                   Where S is returned and A is replaced with VT
+            @warning this replaces this matrix with U!
+            @returns singular_values the computed singular_values
+        */
+        std::vector<double> SVD();
+
+        /*! @brief Compute singular values and vectors A = U * S * VT
+                   Where S is returned and A is replaced with U
+            @param[out] VT DenseMatrix to hold the computed U
+            @returns singular_values the computed singular_values
+        */
+        std::vector<double> SVD(DenseMatrix& U) const;
+
+        /*! @brief Compute QR decomposition
+            @warning this replaces this matrix with Q!
+        */
+        void QR();
+
+        /*! @brief Compute QR decomposition
+            @param Q Stores Q instead of overwriting
+        */
+        void QR(DenseMatrix& Q) const;
+
+        /*! @brief Scale rows by given values
+            @param values scale per row
+        */
+        void ScaleRows(const std::vector<double>& values);
+
+        /*! @brief Scale cols by given values
+            @param values scale per cols
+        */
+        void ScaleCols(const std::vector<double>& values);
+
+        /*! @brief Get Diagonal entries
+            @returns diag diagonal entries
+        */
+        std::vector<double> GetDiag() const;
+
+        /*! @brief Get Diagonal entries
+            @param array to hold diag diagonal entries
+        */
+        void GetDiag(std::vector<double>& diag) const;
+
         /// Operator Requirement, calls the templated Mult
-        void Mult(const Vector<double>& input, Vector<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const Vector<double>& input, Vector<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
     private:
         size_t rows_;
@@ -421,10 +533,8 @@ double DenseMatrix::Sum() const
 {
     assert(data_.size());
 
-    double total = 0.0;
-    std::accumulate(begin(data_), end(data_), total);
-
-    return total;
+    double sum = std::accumulate(begin(data_), end(data_), 0.0);
+    return sum;
 }
 
 inline
@@ -444,7 +554,7 @@ double DenseMatrix::Min() const
 }
 
 template <typename T>
-Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
+Vector<double> DenseMatrix::Mult(const VectorView<T>& input) const
 {
     Vector<double> output(rows_);
     Mult(input, output);
@@ -453,7 +563,7 @@ Vector<double> DenseMatrix::Mult(const Vector<T>& input) const
 }
 
 template <typename T, typename T2>
-void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
+void DenseMatrix::Mult(const VectorView<T>& input, VectorView<T2>& output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -470,7 +580,7 @@ void DenseMatrix::Mult(const Vector<T>& input, Vector<T2>& output) const
 }
 
 template <typename T>
-Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
+Vector<double> DenseMatrix::MultAT(const VectorView<T>& input) const
 {
     Vector<double> output(cols_);
     MultAT(input, output);
@@ -479,7 +589,7 @@ Vector<double> DenseMatrix::MultAT(const Vector<T>& input) const
 }
 
 template <typename T, typename T2>
-void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
+void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<T2>& output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
@@ -497,8 +607,33 @@ void DenseMatrix::MultAT(const Vector<T>& input, Vector<T2>& output) const
     }
 }
 
+inline
+VectorView<double> DenseMatrix::GetColView(size_t col)
+{
+    assert(col >= 0 && col < cols_);
+
+    return VectorView<double>(data_.data() + (col * rows_), rows_);
+}
+
+inline
+const VectorView<double> DenseMatrix::GetColView(size_t col) const
+{
+    assert(col >= 0 && col < cols_);
+    double* data = const_cast<double*>(data_.data());
+
+    return VectorView<double>(data + (col * rows_), rows_);
+}
+
+inline
+void DenseMatrix::GetCol(size_t col, VectorView<double>& vect)
+{
+    assert(col >= 0 && col < cols_);
+
+    vect = VectorView<double>(data_.data() + (col * rows_), rows_);
+}
+
 template <typename T>
-void DenseMatrix::GetCol(size_t col, Vector<T>& vect) const
+void DenseMatrix::GetCol(size_t col, VectorView<T>& vect) const
 {
     assert(col >= 0 && col < cols_);
     assert(vect.size() == rows_);
@@ -510,7 +645,7 @@ void DenseMatrix::GetCol(size_t col, Vector<T>& vect) const
 }
 
 template <typename T>
-void DenseMatrix::GetRow(size_t row, Vector<T>& vect) const
+void DenseMatrix::GetRow(size_t row, VectorView<T>& vect) const
 {
     assert(row >= 0 && row < rows_);
     assert(vect.size() == cols_);
@@ -534,13 +669,13 @@ template <typename T>
 Vector<T> DenseMatrix::GetRow(size_t row) const
 {
     Vector<T> vect(cols_);
-    GetCol(row, vect);
+    GetRow(row, vect);
 
     return vect;
 }
 
 template <typename T>
-void DenseMatrix::SetCol(size_t col, const Vector<T>& vect)
+void DenseMatrix::SetCol(size_t col, const VectorView<T>& vect)
 {
     assert(col >= 0 && col < cols_);
     assert(vect.size() == rows_);
@@ -552,7 +687,7 @@ void DenseMatrix::SetCol(size_t col, const Vector<T>& vect)
 }
 
 template <typename T>
-void DenseMatrix::SetRow(size_t row, const Vector<T>& vect)
+void DenseMatrix::SetRow(size_t row, const VectorView<T>& vect)
 {
     assert(row >= 0 && row < rows_);
     assert(vect.size() == cols_);

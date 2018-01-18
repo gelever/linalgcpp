@@ -13,8 +13,86 @@
 
 using namespace linalgcpp;
 
+void test_lil()
+{
+    LilMatrix<double> A;
+
+    {
+        LilMatrix<int> lil(3, 3);
+        lil.AddSym(0, 0, 1);
+        lil.AddSym(0, 1, 2);
+        lil.AddSym(0, 2, 3);
+
+        LilMatrix<int> lil2(lil);
+        lil2.AddSym(0, 0, 1);
+
+        LilMatrix<int> lil3;
+        lil3 = lil2;
+        lil3.AddSym(0, 0, 1);
+
+        constexpr int size = 100;
+        LilMatrix<int> lil_large(size);
+
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = 0; j < size; j += 2)
+            {
+                lil_large.AddSym(i, j, i * j);
+                lil_large.AddSym(j, i, i * j);
+            }
+        }
+
+        auto lil_sparse = lil.ToSparse();
+        auto lil_sparse2 = lil2.ToSparse();
+        auto lil_sparse3 = lil3.ToSparse();
+        auto lil_sparse_large = lil_large.ToSparse();
+
+        lil_sparse.Print("Lil:");
+        lil_sparse2.Print("Lil2:");
+        lil_sparse3.Print("Lil3:");
+
+        auto lil_dense = lil.ToDense();
+        auto lil_dense2 = lil2.ToDense();
+        auto lil_dense3 = lil3.ToDense();
+
+        lil_dense.Print("Lil:");
+        lil_dense2.Print("Lil2:");
+        lil_dense3.Print("Lil3:");
+
+        LilMatrix<double> lil_zero(size);
+        lil_zero.Add(2, 2, 1e-8);
+        lil_zero.Add(2, 1, 1e-5);
+        lil_zero.Print("Lil3: with zero");
+        lil_zero.EliminateZeros(1e-6);
+        lil_zero.Print("Lil3: No zero");
+    }
+
+}
 void test_sparse()
 {
+    // test empty
+    {
+        SparseMatrix<double> A;
+        SparseMatrix<double> A2(10);
+        SparseMatrix<double> A3(10, 10);
+
+
+        Vector<double> x(10, 1.0);
+        auto y = A2.Mult(x);
+
+        assert(AbsMin(y) == 0.0);
+        assert(AbsMax(y) == 0.0);
+    }
+
+    // Test create diag
+    {
+        std::vector<double> data(3, 3.0);
+        SparseMatrix<double> A(data);
+        std::cout << "0 1 2 3: "  <<  A.GetIndptr();
+        std::cout << "0 1 2 : " << A.GetIndices();
+        std::cout << "3 3 3 : " << A.GetData();
+    }
+
     const int size = 3;
     const int nnz = 5;
 
@@ -130,7 +208,10 @@ void test_sparse()
     auto ba = A.MultAT(rhs);
     ba.Print("ba:");
 
-    auto B = A;
+    SparseMatrix<double> B;
+    B = A;
+
+    SparseMatrix<double> B2(A);
 
     auto C = A.Mult(B);
     C.PrintDense("C:");
@@ -266,9 +347,46 @@ void test_sparse()
 
 void test_coo()
 {
+    // Empty coo
     {
         CooMatrix<int> coo;
         SparseMatrix<int> sp_coo = coo.ToSparse();
+        sp_coo.Print("Empty:");
+
+        DenseMatrix dense_coo = coo.ToDense();
+        dense_coo.Print("Empty:");
+    }
+
+    // Copy coo
+    {
+        CooMatrix<int> coo(3, 3);
+        coo.AddSym(0, 0, 1);
+        coo.AddSym(0, 1, 2);
+        coo.AddSym(0, 2, 3);
+
+        CooMatrix<int> coo2(coo);
+        coo2.AddSym(0, 0, 1);
+
+        CooMatrix<int> coo3;
+        coo3 = coo2;
+        coo3.AddSym(0, 0, 1);
+
+        coo.Print("Coo 1:");
+        coo2.Print("Coo 2:");
+        coo3.Print("Coo 3:");
+    }
+
+    {
+        constexpr int size = 1000;
+        CooMatrix<int> coo_large(size);
+
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = 0; j < size; j += 2)
+            {
+                coo_large.AddSym(i, j, i * j);
+            }
+        }
     }
 
     // With setting specfic size
@@ -405,24 +523,22 @@ void test_coo()
         std::cout << "coo^T y: " << y;
     }
 
+    // Eliminate zeros
     {
-        const size_t size = 10;
+        CooMatrix<int> coo(3, 3);
+        coo.AddSym(0, 0, 1);
+        coo.AddSym(0, 1, 0);
+        coo.AddSym(0, 1, 1e-10);
+        coo.AddSym(0, 2, 3);
 
-        CooMatrix<double> coo(size);
-        coo.Add(0, 0, 1.0);
-        coo.Add(0, 1, 2.0);
-        coo.Add(1, 1, 3.0);
+        coo.Print("Coo with zero:");
 
-        try
-        {
-            printf("Coo: %.2f\n", coo(0, 0));
-            printf("Coo: %.2f\n", coo(1, 0));
-        }
-        catch (std::runtime_error e)
-        {
-            printf("Out of bounds coo: %s\n", e.what());
-        }
+        coo.EliminateZeros();
+        coo.Print("Coo no zero:");
 
+        const double tolerance = 1e-8;
+        coo.EliminateZeros(tolerance);
+        coo.Print("Coo no really small:");
     }
 
 }
@@ -435,6 +551,9 @@ void test_dense()
     DenseMatrix d2(size);
     DenseMatrix d3(size, size);
     DenseMatrix d4(d3);
+    DenseMatrix d5;
+    d5 = d3;
+
 
     d2(0, 0) = 0.0;
     d2(1, 1) = 1.0;
@@ -518,9 +637,14 @@ void test_dense()
 
     Vector<double> row_1 = d2.GetRow(1);
     Vector<double> col_1 = d2.GetCol(1);
+    VectorView<double> col_view = d2.GetColView(1);
 
     row_1.Print("Row 1 of d2");
     col_1.Print("Col 1 of d2");
+    col_view.Print("Col view of Col 1 of d2");
+
+    col_view[0] = -20.0;
+    d2.Print("d2 modify through view");
 
     row_1 = 5.0;
     col_1 = 5.0;
@@ -530,10 +654,10 @@ void test_dense()
 
     d2.Print("d2 with row and col 1 set to 5.0");
 
-    DenseMatrix rows_0_1 = d2.GetRow(1, 2);
+    DenseMatrix rows_0_1 = d2.GetRow(1, 3);
     rows_0_1.Print("Rows 1,2 of d2");
 
-    DenseMatrix cols_0_1 = d2.GetCol(1, 2);
+    DenseMatrix cols_0_1 = d2.GetCol(1, 3);
     cols_0_1.Print("Cols 1,2 of d2");
 
     rows_0_1 = -0.5;
@@ -544,12 +668,23 @@ void test_dense()
     d2.SetCol(3, cols_0_1);
     d2.Print("d2 with cols 3,4 set to -9.5");
 
-    DenseMatrix submat = d2.GetSubMatrix(1, 1, 3, 3);
+    DenseMatrix submat = d2.GetSubMatrix(1, 1, 4, 4);
     submat.Print("(1,1) : (3,3) submatrix of d2");
 
     submat = 100;
-    d2.SetSubMatrix(2, 2, 4, 4, submat);
+    d2.SetSubMatrix(2, 2, 5, 5, submat);
     d2.Print("d2 with submatrix (2,2):(4,4) set to 100");
+
+    DenseMatrix d2_T = d2.Transpose();
+    d2_T.Print("d2^T:");
+
+    const DenseMatrix d2_const = d2;
+    d2_const.Print("d2 const:");
+    const auto& d2_const_view = d2_const.GetColView(0);
+    std::cout << "d2[0] "  << d2_const_view[0] << "\n";
+    d2_const.GetColView(0).Print("D2 Col 0");
+
+    // d2_const_view[0] = 1.0; // Fails correctly
 }
 
 void test_vector()
@@ -559,37 +694,84 @@ void test_vector()
     Vector<double> v1;
     Vector<double> v2(size);
     Vector<double> v3(size, 3.0);
+    Vector<double> v3_copy(v3);
+    Vector<double> v3_equal;
+    v3_equal = v3;
 
-    std::cout << "v1:";
-    std::cout << v1;
-    std::cout << "v2:";
-    std::cout << v2;
-    std::cout << "v3:";
-    std::cout << v3;
+    std::cout << "v1:" << v1;
+    std::cout << "v2:" << v2;
+    std::cout << "v3:" << v3;
 
     Normalize(v3);
-    std::cout << "v3 normalized:";
-    std::cout << v3;
+    assert(std::fabs(L2Norm(v3) - 1.0) < 1e-10);
 
-    std::cout << "v3[0]:" << v3[0] << "\n";
+    std::cout << "v3 normalized:" << v3;
 
-    auto v4 = v3 * v3;
-    std::cout << "v3 * v3: " << v4 << "\n";
+    std::cout << "v3_copy:" << v3_copy;
+    std::cout << "v3_equal:" << v3_equal;
 
-    const int alpha = 3;
+    std::cout << "v3_copy == v3_equal: ";
+    std::cout << std::boolalpha << (v3_copy == v3_equal) << "\n";
+
+    std::cout << "v3_copy == v3 normalized: ";
+    std::cout << std::boolalpha << (v3_copy == v3) << "\n";
+
+    std::cout << "v3[0]: " << v3[0] << "\n";
+
+    auto v3v3 = v3 * v3;
+    std::cout << "v3 * v3: " << v3v3 << "\n";
+
+    const double alpha = 3;
     const double beta = 5.1;
 
     std::cout << "v3 *= 3: " << (v3 *= alpha);
     std::cout << "v3 /= 5.1: " << (v3 /= beta);
 
-    std::cout << "3 * v3: " << alpha * v3;
-    std::cout << "v3 * 3: " << v3 * alpha;
+    std::cout << "3 * v3: " << alpha* v3;
+    std::cout << "v3 * 3: " << v3* alpha;
 
-    std::cout << "v3 * 5.1" << v3 * beta;
-    std::cout << "5.1 * v3" << beta * v3;
+    std::cout << "v3 * 5.1" << v3* beta;
+    std::cout << "5.1 * v3" << beta* v3;
 
     std::cout << "v3 / 5.1" << v3 / beta;
     std::cout << "5.1 / v3" << beta / v3;
+
+    std::cout << "v3 = 3" << (v3 = alpha);
+    std::cout << "v3 = 5" << (v3 = beta);
+
+    std::iota(std::begin(v3), std::end(v3), 0);
+    std::cout << "iota(v3)" << v3;
+
+    std::cout << "v3 - (1.5 * v3_copy): " << v3.Sub(1.5, v3_copy);
+    std::cout << "v3 + (0.5 * v3_copy): " << v3.Add(0.5, v3_copy);
+
+    v3.Add(alpha, v3_copy).Sub(beta, v3_equal);
+    std::cout << "v3 + (alpha * v3_copy) - (beta * v3_equal): " << v3;
+
+    // Entry-wise operators
+    std::cout << "(v3)_i * (v3_copy)_i: " << (v3 *= v3_copy);
+    std::cout << "(v3)_i / (v3_copy)_i: " << (v3 /= v3_copy);
+
+    std::cout << "(v3) += 3" << (v3 += alpha);
+    std::cout << "(v3) -= 5.1" << (v3 -= beta);
+
+    // Remove constant vector v := Mean(v3)
+    SubAvg(v3);
+    std::cout << "SubAvg(v3)" << v3;
+
+    // Vector Stats
+    std::cout << "Max(v3):    " << Max(v3) << "\n";
+    std::cout << "Min(v3):    " << Min(v3) << "\n";
+
+    std::cout << "AbsMax(v3): " << AbsMax(v3) << "\n";
+    std::cout << "AbsMin(v3): " << AbsMin(v3) << "\n";
+
+    std::cout << "Sum(v3):    " << Sum(v3) << "\n";
+    std::cout << "Mean(v3):   " << Mean(v3) << "\n";
+
+    std::cout << "Sum(v3_copy):    " << Sum(v3_copy) << "\n";
+    std::cout << "Mean(v3_copy):    " << Mean(v3_copy) << "\n";
+
 }
 
 void test_parser()
@@ -694,6 +876,25 @@ void test_parser()
         node_node.Print("node node");
     */
 
+    {
+        std::vector<double> out_vect(10, 1.0);
+        WriteBinary(out_vect, "vect.bin");
+
+        std::vector<double> in_vect = ReadBinaryVect("vect.bin");
+
+        std::cout << "out vect: " << out_vect;
+        std::cout << "in vect: " << in_vect;
+
+        WriteBinary(sp_out, "mat.bin");
+
+        auto sp_in = ReadBinaryMat("mat.bin");
+
+        sp_out.Print("Mat out:");
+        sp_out.PrintDense("Mat  out:");
+        sp_in.Print("Mat In:");
+        sp_in.PrintDense("Mat In:");
+    }
+
 
 }
 
@@ -759,6 +960,7 @@ void test_solvers()
         coo.AddSym(i, i, 2.0);
         coo.AddSym(i, i + 1, -1.0);
     }
+
     coo.AddSym(size - 1, size - 1, 2.0);
 
     SparseMatrix<double> A = coo.ToSparse();
@@ -786,6 +988,7 @@ void test_solvers()
         x_coo.Print("x_coo:");
         Ax.Print("Ax:");
     }
+
     printf("CG error: %.2e\n", error);
 
     std::vector<double> diag(size, 0.5);
@@ -797,17 +1000,226 @@ void test_solvers()
     double perror = L2Norm(pres);
 
     printf("PCG error: %.2e\n", perror);
+
+    Vector<double> mx = MINRES(A, b, max_iter, tol, verbose);
+    Vector<double> mAx = A.Mult(mx);
+    Vector<double> mres = b - mAx;
+    double merror = L2Norm(mres);
+
+    printf("MINRES error: %.2e\n", merror);
+
+    Vector<double> pmx = PMINRES(A, M, b, max_iter, tol, verbose);
+    Vector<double> pmAx = A.Mult(pmx);
+    Vector<double> pmres = b - pmAx;
+    double pmerror = L2Norm(pmres);
+
+    printf("pMINRES error: %.2e\n", pmerror);
+
+    std::cout << pmx;
+}
+
+void test_blockmatrix()
+{
+    std::vector<size_t> row_offsets{0, 2, 4};
+    std::vector<size_t> col_offsets{0, 2, 4};
+
+    BlockMatrix<double> A;
+    BlockMatrix<double> A2(row_offsets);
+    BlockMatrix<double> A3(row_offsets, col_offsets);
+
+    CooMatrix<double> coo(2, 2);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 2.0);
+
+    SparseMatrix<double> block = coo.ToSparse();
+
+    A2.GetBlock(0, 0).PrintDense("A(0,0)");
+
+    A2.Print("A");
+    A2.PrintDense("A Dense");
+
+    A2.SetBlock(0, 0, block);
+    A2.SetBlock(0, 1, block);
+    A2.SetBlock(1, 0, block);
+    A2.SetBlock(1, 1, block);
+
+    A2.Print("A");
+    A2.PrintDense("A Dense");
+
+    A2.GetBlock(0, 0).PrintDense("A(0,0)");
+
+    A2.Combine().PrintDense("A combined");
+
+    Vector<double> x(A2.Cols());
+    Vector<double> y(A2.Cols());
+
+    //x[0] = 0;
+    //x[1] = 1;
+    //x[2] = 2;
+    //x[3] = 3;
+
+    Randomize(x);
+    Randomize(y);
+
+    A2.Mult(x, y);
+
+    y.Print("y = Ax");
+
+    A2.MultAT(x, y);
+
+    y.Print("y = ATx");
+
+    Randomize(x);
+    Randomize(y);
+    auto Ax = A2.Mult(x);
+    auto Ay = A2.Mult(y);
+
+    auto yAx = InnerProduct(y, Ax);
+    auto xAy = InnerProduct(x, Ay);
+
+    printf("%.8f %.8f\n", y.Mult(Ax), x.Mult(Ay));
+    printf("%.8f %.8f\n", yAx, xAy);
+}
+
+void test_blockvector()
+{
+    CooMatrix<double> coo(4, 4);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 2.0);
+    coo.Add(2, 2, 3.0);
+    coo.Add(3, 3, 4.0);
+    auto sparse = coo.ToSparse();
+
+    std::vector<size_t> offsets{0, 2, 4};
+
+    BlockVector<double> vect_empty;
+    BlockVector<double> vect(offsets);
+
+    Randomize(vect);
+
+    vect_empty.Print("Vect Empty:");
+    vect.Print("Vect:");
+
+    VectorView<double> view0 = vect.GetBlock(0);
+    VectorView<double> view1 = vect.GetBlock(1);
+    // VectorView<double> view2 = vect.GetBlock(2); // Fails correctly
+
+    view0.Print("Block 0");
+    view1.Print("Block 1");
+
+    printf("V0 * V1: %.8f\n", view0.Mult(view1));
+
+    Normalize(view0);
+    Normalize(view1);
+
+    vect.Print("Vect Block Normalized through view:");
+
+    view0[0] = -100.0;
+    view1[0] = -200.0;
+
+    vect.Print("Vect Modified through view:");
+
+
+    {
+        Vector<double> vect(offsets.back());
+
+        vect[0] = 1.0;
+        vect[1] = 2.0;
+        vect[2] = 3.0;
+        vect[3] = 4.0;
+
+        const BlockVector<double> vect_const(vect, offsets);
+        auto test_const = [] (const VectorView<double>& test)
+        {
+            test.Print("test");
+        };
+
+        test_const(vect_const.GetBlock(0));
+        vect_const.GetBlock(0).Print("rvalue works ?");
+        const VectorView<double>& test0 = vect_const.GetBlock(0);
+        const VectorView<double>& test1 = vect_const.GetBlock(1);
+
+        test0.Print("test0:");
+        test1.Print("test1:");
+
+        // test0[0] = 1.0; // Fails correctly
+
+        test_const(test1);
+    }
+
+}
+
+void test_blockoperator()
+{
+    CooMatrix<double> coo(2, 2);
+    coo.Add(0, 0, 1.0);
+    coo.Add(1, 1, 1.0);
+    auto sparse = coo.ToSparse();
+    auto dense = coo.ToDense();
+
+    std::vector<size_t> offsets{0, 2, 4};
+
+    Vector<double> x(offsets.back(), 1.0);
+    Vector<double> y(offsets.back(), 0.0);
+
+    {
+        BlockOperator b;
+    }
+
+    {
+        BlockOperator b(offsets);
+        b.Mult(x, y);
+        y.Print("y:");
+    }
+    {
+        BlockOperator b(offsets, offsets);
+        b.Mult(x, y);
+        y.Print("y:");
+    }
+    // Symmetric
+    {
+        BlockOperator b(offsets, offsets);
+        b.SetBlock(0, 0, sparse);
+        b.SetBlock(0, 1, dense);
+        b.SetBlock(1, 0, dense);
+        b.SetBlock(1, 1, coo);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
+    // Not Symmetric
+    {
+        BlockOperator b(offsets, offsets);
+        b.SetBlock(0, 0, coo);
+        b.SetBlock(0, 1, sparse);
+        b.SetBlock(1, 1, dense);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
 }
 
 int main(int argc, char** argv)
 {
-    test_dense();
     test_coo();
     test_vector();
     test_sparse();
-    test_parser();
     test_operator();
     test_solvers();
+    test_lil();
+    test_dense();
+    test_blockmatrix();
+    test_blockvector();
+    test_blockoperator();
+    test_parser();
 
     return EXIT_SUCCESS;
 }

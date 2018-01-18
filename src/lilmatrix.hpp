@@ -1,7 +1,7 @@
 /*! @file */
 
-#ifndef COOMATRIX_HPP__
-#define COOMATRIX_HPP__
+#ifndef LILMATRIX_HPP__
+#define LILMATRIX_HPP__
 
 #include <vector>
 #include <memory>
@@ -9,9 +9,8 @@
 #include <functional>
 #include <queue>
 #include <tuple>
-#include <assert.h>
-
 #include <list>
+#include <assert.h>
 
 #include "sparsematrix.hpp"
 #include "densematrix.hpp"
@@ -19,51 +18,51 @@
 namespace linalgcpp
 {
 
-/*! @brief Coordinate Matrix that keeps track
+/*! @brief Linked List Matrix that keeps track
            of individual entries in a matrix.
 
     @note Multiple entries for a single coordinate
     are summed together
 */
 template <typename T>
-class CooMatrix : public Operator
+class LilMatrix : public Operator
 {
     public:
         /*! @brief Default Constructor
             The size of the matrix is determined
             by the largest entry.
         */
-        CooMatrix();
+        LilMatrix();
 
         /*! @brief Square Constructor
             @param size the number of rows and columns
         */
-        explicit CooMatrix(int size);
+        explicit LilMatrix(int size);
 
         /*! @brief Rectangle Constructor
             @param rows the number of rows
             @param cols the number of columns
         */
-        CooMatrix(int rows, int cols);
+        LilMatrix(int rows, int cols);
 
         /*! @brief Copy Constructor */
-        CooMatrix(const CooMatrix& other) noexcept;
+        LilMatrix(const LilMatrix& other) noexcept;
 
         /*! @brief Move Constructor */
-        CooMatrix(CooMatrix&& other) noexcept;
+        LilMatrix(LilMatrix&& other) noexcept;
 
         /*! @brief Assignment Operator */
-        CooMatrix& operator=(CooMatrix other) noexcept;
+        LilMatrix& operator=(LilMatrix other) noexcept;
 
         /*! @brief Destructor */
-        ~CooMatrix() noexcept = default;
+        ~LilMatrix() noexcept = default;
 
         /*! @brief Swap two matrices
             @param lhs left hand side matrix
             @param rhs right hand side matrix
         */
         template <typename T2>
-        friend void Swap(CooMatrix<T2>& lhs, CooMatrix<T2>& rhs);
+        friend void Swap(LilMatrix<T2>& lhs, LilMatrix<T2>& rhs);
 
         /*! @brief Get the number of rows.
             @retval the number of rows
@@ -120,22 +119,6 @@ class CooMatrix : public Operator
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
 
-        /*! @brief Permute the rows
-            @param perm permutation to apply
-        */
-        void PermuteRows(const std::vector<int>& perm);
-
-        /*! @brief Permute the columns
-            @param perm permutation to apply
-        */
-        void PermuteCols(const std::vector<int>& perm);
-
-        /*! @brief Permute both rows and columns
-            @param row_perm permutation to apply to rows
-            @param col_perm permutation to apply to cols
-        */
-        void PermuteRowsCols(const std::vector<int>& row_perm, const std::vector<int>& col_perm);
-
         /*! @brief Generate a sparse matrix from the entries
             @retval SparseMatrix containing all the entries
 
@@ -166,6 +149,7 @@ class CooMatrix : public Operator
         */
         void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
 
+
         /*! @brief Print all entries
             @param label label to print before data
             @param out stream to print to
@@ -185,32 +169,31 @@ class CooMatrix : public Operator
 
         bool size_set_;
 
-        mutable std::vector<std::tuple<int, int, T>> entries_;
-        //mutable std::list<std::tuple<int, int, T>> entries_;
+        mutable std::vector<std::list<std::pair<int, T>>> entries_;
 };
 
 template <typename T>
-CooMatrix<T>::CooMatrix()
+LilMatrix<T>::LilMatrix()
     : rows_(0), cols_(0), size_set_(false)
 {
 }
 
 template <typename T>
-CooMatrix<T>::CooMatrix(int size) : CooMatrix(size, size)
+LilMatrix<T>::LilMatrix(int size) : LilMatrix(size, size)
 {
 
 }
 
 template <typename T>
-CooMatrix<T>::CooMatrix(int rows, int cols)
-    : rows_(rows), cols_(cols), size_set_(true)
+LilMatrix<T>::LilMatrix(int rows, int cols)
+    : rows_(rows), cols_(cols), size_set_(true), entries_(rows_)
 {
     assert(rows >= 0);
     assert(cols >= 0);
 }
 
 template <typename T>
-CooMatrix<T>::CooMatrix(const CooMatrix& other) noexcept
+LilMatrix<T>::LilMatrix(const LilMatrix& other) noexcept
     : rows_(other.rows_), cols_(other.cols_),
       size_set_(other.size_set_), entries_(other.entries_)
 {
@@ -218,13 +201,13 @@ CooMatrix<T>::CooMatrix(const CooMatrix& other) noexcept
 }
 
 template <typename T>
-CooMatrix<T>::CooMatrix(CooMatrix&& other) noexcept
+LilMatrix<T>::LilMatrix(LilMatrix&& other) noexcept
 {
     Swap(*this, other);
 }
 
 template <typename T>
-CooMatrix<T>& CooMatrix<T>::operator=(CooMatrix other) noexcept
+LilMatrix<T>& LilMatrix<T>::operator=(LilMatrix other) noexcept
 {
     Swap(*this, other);
 
@@ -232,7 +215,7 @@ CooMatrix<T>& CooMatrix<T>::operator=(CooMatrix other) noexcept
 }
 
 template <typename T>
-void Swap(CooMatrix<T>& lhs, CooMatrix<T>& rhs)
+void Swap(LilMatrix<T>& lhs, LilMatrix<T>& rhs)
 {
     std::swap(lhs.rows_, rhs.rows_);
     std::swap(lhs.cols_, rhs.cols_);
@@ -241,7 +224,7 @@ void Swap(CooMatrix<T>& lhs, CooMatrix<T>& rhs)
 }
 
 template <typename T>
-size_t CooMatrix<T>::Rows() const
+size_t LilMatrix<T>::Rows() const
 {
     size_t rows;
     std::tie(rows, std::ignore) = FindSize();
@@ -250,7 +233,7 @@ size_t CooMatrix<T>::Rows() const
 }
 
 template <typename T>
-size_t CooMatrix<T>::Cols() const
+size_t LilMatrix<T>::Cols() const
 {
     size_t cols;
     std::tie(std::ignore, cols) = FindSize();
@@ -259,7 +242,7 @@ size_t CooMatrix<T>::Cols() const
 }
 
 template <typename T>
-void CooMatrix<T>::SetSize(size_t rows, size_t cols)
+void LilMatrix<T>::SetSize(size_t rows, size_t cols)
 {
     size_set_ = true;
 
@@ -268,7 +251,7 @@ void CooMatrix<T>::SetSize(size_t rows, size_t cols)
 }
 
 template <typename T>
-void CooMatrix<T>::Add(int i, int j, T val)
+void LilMatrix<T>::Add(int i, int j, T val)
 {
     assert(i >= 0);
     assert(j >= 0);
@@ -279,12 +262,16 @@ void CooMatrix<T>::Add(int i, int j, T val)
         assert(static_cast<size_t>(i) < rows_);
         assert(static_cast<size_t>(j) < cols_);
     }
+    else if (static_cast<size_t>(i) >= entries_.size())
+    {
+        entries_.resize(i + 1);
+    }
 
-    entries_.emplace_back(i, j, val);
+    entries_[i].emplace_front(j, val);
 }
 
 template <typename T>
-void CooMatrix<T>::AddSym(int i, int j, T val)
+void LilMatrix<T>::AddSym(int i, int j, T val)
 {
     Add(i, j, val);
 
@@ -295,14 +282,14 @@ void CooMatrix<T>::AddSym(int i, int j, T val)
 }
 
 template <typename T>
-void CooMatrix<T>::Add(const std::vector<int>& indices,
+void LilMatrix<T>::Add(const std::vector<int>& indices,
                        const DenseMatrix& values)
 {
     Add(indices, indices, values);
 }
 
 template <typename T>
-void CooMatrix<T>::Add(const std::vector<int>& rows,
+void LilMatrix<T>::Add(const std::vector<int>& rows,
                        const std::vector<int>& cols,
                        const DenseMatrix& values)
 {
@@ -327,7 +314,7 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 }
 
 template <typename T>
-DenseMatrix CooMatrix<T>::ToDense() const
+DenseMatrix LilMatrix<T>::ToDense() const
 {
     if (entries_.size() == 0)
     {
@@ -340,78 +327,37 @@ DenseMatrix CooMatrix<T>::ToDense() const
 
     DenseMatrix dense(rows, cols);
 
-    for (const auto& entry : entries_)
-    {
-        int i = std::get<0>(entry);
-        int j = std::get<1>(entry);
-        double val = std::get<2>(entry);
+    const size_t size = entries_.size();
 
-        dense(i, j) += val;
+    for (size_t i = 0; i < size; ++i)
+    {
+        for (const auto& node : entries_[i])
+        {
+            dense(i, node.first) += node.second;
+        }
     }
 
     return dense;
 }
 
 template <typename T>
-void CooMatrix<T>::PermuteRows(const std::vector<int>& perm)
-{
-    size_t rows;
-    size_t cols;
-    std::tie(rows, cols) = FindSize();
-
-    assert(perm.size() == rows);
-
-    for (auto& entry : entries_)
-    {
-        std::get<0>(entry) = perm[std::get<0>(entry)];
-    }
-}
-
-template <typename T>
-void CooMatrix<T>::PermuteCols(const std::vector<int>& perm)
-{
-    size_t rows;
-    size_t cols;
-    std::tie(rows, cols) = FindSize();
-
-    assert(perm.size() == cols);
-
-    for (auto& entry : entries_)
-    {
-        std::get<1>(entry) = perm[std::get<1>(entry)];
-    }
-}
-
-template <typename T>
-void CooMatrix<T>::PermuteRowsCols(const std::vector<int>& row_perm, const std::vector<int>& col_perm)
-{
-    size_t rows;
-    size_t cols;
-    std::tie(rows, cols) = FindSize();
-
-    assert(row_perm.size() == rows);
-    assert(col_perm.size() == cols);
-
-    for (auto& entry : entries_)
-    {
-        std::get<0>(entry) = row_perm[std::get<0>(entry)];
-        std::get<1>(entry) = col_perm[std::get<1>(entry)];
-    }
-}
-
-template <typename T>
 template <typename T2>
-SparseMatrix<T2> CooMatrix<T>::ToSparse() const
+SparseMatrix<T2> LilMatrix<T>::ToSparse() const
 {
     size_t rows;
     size_t cols;
     std::tie(rows, cols) = FindSize();
-
-    std::sort(std::begin(entries_), std::end(entries_));
 
     if (entries_.size() == 0)
     {
         return SparseMatrix<T2>(rows, cols);
+    }
+
+    const size_t size = entries_.size();
+
+    for (auto& row : entries_)
+    {
+        row.sort();
     }
 
     const size_t nnz = entries_.size();
@@ -425,126 +371,134 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 
     indptr[0] = 0;
 
-    int current_row = 0;
-
-    for (const auto& tup : entries_)
+    for (size_t i = 0; i < size; ++i)
     {
-        const int i = std::get<0>(tup);
-        const int j = std::get<1>(tup);
-        const T2 val = std::get<2>(tup);
+        const size_t current_row = static_cast<size_t>(indptr[i]);
 
-        // Set Indptr if at new row
-        if (i != current_row)
+        for (const auto& node : entries_[i])
         {
-            for (int ii = current_row; ii < i; ++ii)
+            const int& j = node.first;
+            const T& val = node.second;
+
+            if (indices.size() != current_row && j == indices.back())
             {
-                indptr[ii + 1] = data.size();
+                data.back() += val;
+            }
+            else
+            {
+                indices.push_back(j);
+                data.push_back(val);
             }
         }
 
-        // Add data and indices
-        if (indices.size() && j == indices.back() && i == current_row)
-        {
-            data.back() += val;
-        }
-        else
-        {
-            indices.push_back(j);
-            data.push_back(val);
-        }
-
-        current_row = i;
+        indptr[i + 1] = data.size();
     }
-
-    std::fill(begin(indptr) + current_row + 1,
-              end(indptr), data.size());
 
     return SparseMatrix<T2>(indptr, indices, data, rows, cols);
 }
 
 template <typename T>
-void CooMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void LilMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
 
     output = 0;
 
-    for (const auto& entry : entries_)
-    {
-        const int i = std::get<0>(entry);
-        const int j = std::get<1>(entry);
-        const double val = std::get<2>(entry);
+    const size_t size = entries_.size();
 
-        output[i] += val * input[j];
+    for (size_t i = 0; i < size; ++i)
+    {
+        const auto& list = entries_[i];
+
+        for (const auto& node : list)
+        {
+            const int j = node.first;
+            const T val = node.second;
+
+            output[i] += val * input[j];
+        }
     }
 }
 
 template <typename T>
-void CooMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void LilMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
 
     output = 0;
 
-    for (const auto& entry : entries_)
-    {
-        const int i = std::get<0>(entry);
-        const int j = std::get<1>(entry);
-        const double val = std::get<2>(entry);
+    const size_t size = entries_.size();
 
-        output[j] += val * input[i];
+    for (size_t i = 0; i < size; ++i)
+    {
+        const auto& list = entries_[i];
+
+        for (const auto& node : list)
+        {
+            const int j = node.first;
+            const T val = node.second;
+
+            output[j] += val * input[i];
+        }
     }
 }
 
 template <typename T>
-void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
+void LilMatrix<T>::Print(const std::string& label, std::ostream& out) const
 {
     out << label << "\n";
 
-    for (const auto& entry : entries_)
-    {
-        const int i = std::get<0>(entry);
-        const int j = std::get<1>(entry);
-        const T val = std::get<2>(entry);
+    const size_t size = entries_.size();
 
-        out << "(" << i << ", " << j << ") " << val << "\n";
+    for (size_t i = 0; i < size; ++i)
+    {
+        const auto& list = entries_[i];
+
+        for (const auto& node : list)
+        {
+            const int j = node.first;
+            const T val = node.second;
+
+            out << "(" << i << ", " << j << ") " << val << "\n";
+        }
     }
 
     out << "\n";
 }
 
 template <typename T>
-void CooMatrix<T>::EliminateZeros(double tolerance)
+void LilMatrix<T>::EliminateZeros(double tolerance)
 {
-    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
-                                  [&](const auto & entry)
+    for (auto& row : entries_)
     {
-        const double val = std::get<1>(entry);
-        return std::abs(val) < tolerance;
-    }),
-    std::end(entries_));
+        row.erase(std::remove_if(std::begin(row), std::end(row),
+                                 [&](const auto & entry)
+        {
+            return std::abs(entry.second) < tolerance;
+        }),
+        std::end(row));
+    }
 }
 
 template <typename T>
-std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
+std::tuple<size_t, size_t> LilMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
         return std::tuple<size_t, size_t> {rows_, cols_};
     }
 
-    int rows = 0;
+    const size_t rows = entries_.size();
     int cols = 0;
 
-    for (const auto& entry : entries_)
+    for (const auto& row : entries_)
     {
-        const int i = std::get<0>(entry);
-        const int j = std::get<1>(entry);
-
-        rows = std::max(rows, i);
-        cols = std::max(cols, j);
+        for (const auto& node : row)
+        {
+            cols = std::max(cols, node.first);
+        }
     }
 
     return std::tuple<size_t, size_t> {rows + 1, cols + 1};
@@ -552,4 +506,4 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
 
 } // namespace linalgcpp
 
-#endif // COOMATRIX_HPP__
+#endif // LILMATRIX_HPP__
