@@ -29,6 +29,8 @@ If it compiles, then the library should behave as expected.  There should be no 
 segfaults, memory leaks, invalid reads/writes, etc. from the library.
 
 # Formats
+There are many basic building blocks in this library. These provide the 
+basic framework to build much more complex applications.
 ## Matrix
 The following matrix will be used to show how data in layed out:
 ```
