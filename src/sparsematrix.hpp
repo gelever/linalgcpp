@@ -50,9 +50,9 @@ class SparseMatrix : public Operator
             @param rows number of rows in the matrix
             @param cols number of cols in the matrix
         */
-        SparseMatrix(const std::vector<int>& indptr,
-                     const std::vector<int>& indices,
-                     const std::vector<T>& data,
+        SparseMatrix(std::vector<int> indptr,
+                     std::vector<int> indices,
+                     std::vector<T> data,
                      int rows, int cols);
 
         /*! @brief Diagonal Constructor
@@ -351,12 +351,12 @@ SparseMatrix<T>::SparseMatrix(int rows, int cols)
 }
 
 template <typename T>
-SparseMatrix<T>::SparseMatrix(const std::vector<int>& indptr,
-                              const std::vector<int>& indices,
-                              const std::vector<T>& data,
+SparseMatrix<T>::SparseMatrix(std::vector<int> indptr,
+                              std::vector<int> indices,
+                              std::vector<T> data,
                               int rows, int cols)
     : rows_(rows), cols_(cols), nnz_(data.size()),
-      indptr_(indptr), indices_(indices), data_(data)
+      indptr_(std::move(indptr)), indices_(std::move(indices)), data_(std::move(data))
 {
     assert(rows_ >= 0);
     assert(cols_ >= 0);
@@ -954,7 +954,7 @@ auto SparseMatrix<T>::Mult(const SparseMatrix<T2>& rhs) const
         }
     }
 
-    return SparseMatrix<T3>(out_indptr, out_indices, out_data,
+    return SparseMatrix<T3>(std::move(out_indptr), std::move(out_indices), std::move(out_data),
                             rows_, rhs.Cols());
 }
 
@@ -1030,7 +1030,7 @@ SparseMatrix<T2> operator*(T3 val, SparseMatrix<T2> rhs)
 template <typename T>
 T SparseMatrix<T>::Sum() const
 {
-    T sum = std::accumulate(std::begin(data_), std::end(data_), 0.0);
+    T sum = std::accumulate(std::begin(data_), std::end(data_), (T)0);
     return sum;
 }
 

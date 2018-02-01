@@ -24,16 +24,10 @@ class CGSolver : public Operator
                  double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
         /*! Get size of operator */
-        size_t Rows() const override
-        {
-            return A_.Rows();
-        }
+        size_t Rows() const override;
 
         /*! Get size of operator */
-        size_t Cols() const override
-        {
-            return A_.Cols();
-        }
+        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -67,16 +61,10 @@ class PCGSolver : public Operator
         PCGSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override
-        {
-            return A_.Rows();
-        }
+        size_t Rows() const override;
 
         /*! Get size of operator */
-        size_t Cols() const override
-        {
-            return A_.Cols();
-        }
+        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -109,16 +97,10 @@ class MINRESSolver : public Operator
         MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override
-        {
-            return A_.Rows();
-        }
+        size_t Rows() const override;
 
         /*! Get size of operator */
-        size_t Cols() const override
-        {
-            return A_.Cols();
-        }
+        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -153,16 +135,10 @@ class PMINRESSolver : public Operator
         PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
         /*! Get size of operator */
-        size_t Rows() const override
-        {
-            return A_.Rows();
-        }
+        size_t Rows() const override;
 
         /*! Get size of operator */
-        size_t Cols() const override
-        {
-            return A_.Cols();
-        }
+        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for

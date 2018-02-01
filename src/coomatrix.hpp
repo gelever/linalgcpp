@@ -459,7 +459,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     std::fill(begin(indptr) + current_row + 1,
               end(indptr), data.size());
 
-    return SparseMatrix<T2>(indptr, indices, data, rows, cols);
+    return SparseMatrix<T2>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
 
 template <typename T>
