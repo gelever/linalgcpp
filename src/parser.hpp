@@ -104,7 +104,6 @@ std::vector<T> ReadBinaryVect(const std::string& file_name)
 
     size_t size = 0;
     file.read(reinterpret_cast<char*>(&size), sizeof(size));
-    printf("Size: %ld\n", size);
 
     std::vector<T> vect(size);
 
