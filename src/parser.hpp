@@ -470,6 +470,98 @@ void WriteTable(const SparseMatrix<T>& mat, const std::string& file_name)
     file.close();
 }
 
+/*! @brief Read a CSR Matrix from disk.
+    rows cols indptr indices data
+
+    @param file_name file to read
+    @retval SparseMatrix matrix of data read from disk
+*/
+template <typename T = double>
+SparseMatrix<T> ReadCSR(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    size_t rows;
+    size_t cols;
+
+    file >> rows >> cols;
+
+    std::vector<int> indptr(rows + 1);
+
+    for (size_t i = 0; i < rows + 1; ++i)
+    {
+        file >> indptr[i];
+    }
+
+    int nnz = indptr.back();
+
+    std::vector<int> indices(nnz);
+    std::vector<T> data(nnz);
+
+    for (int i = 0; i < nnz; ++i)
+    {
+        file >> indices[i];
+    }
+
+    for (int i = 0; i < nnz; ++i)
+    {
+        file >> data[i];
+    }
+
+    file.close();
+
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data),
+                           rows, cols);
+}
+
+/*! @brief Write a CSR Matrix to disk.
+    rows cols indptr indices data
+
+    @param SparseMatrix matrix of data read from disk
+    @param file_name file to read
+*/
+template <typename T = double>
+void WriteCSR(const SparseMatrix<T>& mat, const std::string& file_name)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    const std::vector<int>& indptr = mat.GetIndptr();
+    const std::vector<int>& indices = mat.GetIndices();
+    const std::vector<T>& data = mat.GetData();
+
+    const int rows = mat.Rows();
+    const int cols = mat.Cols();
+
+    file << rows << "\n" << cols << "\n";
+
+    for (auto i : indptr)
+    {
+        file << i << "\n";
+    }
+
+    for (auto i : indices)
+    {
+        file << i << "\n";
+    }
+
+    for (auto i : data)
+    {
+        file << i << "\n";
+    }
+
+    file.close();
+}
+
 } // namespace mylinalg
 
 #endif // PARSER_HPP__
