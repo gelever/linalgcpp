@@ -230,7 +230,8 @@ class SparseMatrix : public Operator
         auto Mult(const SparseMatrix<T2>& rhs) const;
 
         /*! @brief Genereates the transpose of this matrix*/
-        SparseMatrix<T> Transpose() const;
+        template <typename U = T>
+        SparseMatrix<U> Transpose() const;
 
         /*! @brief Get the diagonal entries
             @retval the diagonal entries
@@ -556,11 +557,12 @@ void SparseMatrix<T>::MultAT(const DenseMatrix& input, DenseMatrix& output) cons
 }
 
 template <typename T>
-SparseMatrix<T> SparseMatrix<T>::Transpose() const
+template <typename U>
+SparseMatrix<U> SparseMatrix<T>::Transpose() const
 {
     std::vector<int> out_indptr(cols_ + 1, 0);
     std::vector<int> out_indices(nnz_);
-    std::vector<T> out_data(nnz_);
+    std::vector<U> out_data(nnz_);
 
     for (const int& col : indices_)
     {
@@ -592,8 +594,8 @@ SparseMatrix<T> SparseMatrix<T>::Transpose() const
 
     out_indptr[0] = 0;
 
-    return SparseMatrix(out_indptr, out_indices, out_data,
-                        cols_, rows_);
+    return SparseMatrix<U>(std::move(out_indptr), std::move(out_indices), std::move(out_data),
+                           cols_, rows_);
 }
 
 template <typename T>
