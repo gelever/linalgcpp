@@ -120,7 +120,7 @@ BlockMatrix<T>::BlockMatrix()
 
 template <typename T>
 BlockMatrix<T>::BlockMatrix(std::vector<size_t> offsets) :
-    row_offsets_(offsets), col_offsets_(std::move(offsets)),
+    row_offsets_(offsets), col_offsets_(offsets),
     A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1)),
     rows_(row_offsets_.back()), cols_(col_offsets_.back())
 {
@@ -175,7 +175,7 @@ void BlockMatrix<T>::SetBlock(size_t i, size_t j, SparseMatrix<T> mat)
     assert(i < row_offsets_.size() - 1);
     assert(j < col_offsets_.size() - 1);
     assert(mat.Rows() == (row_offsets_[i + 1] - row_offsets_[i]));
-    assert(mat.Cols() == (col_offsets_[i + 1] - col_offsets_[i]));
+    assert(mat.Cols() == (col_offsets_[j + 1] - col_offsets_[j]));
 
     Swap(A_[i][j], mat);
 }
