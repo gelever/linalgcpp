@@ -365,6 +365,12 @@ SparseMatrix<T>::SparseMatrix(std::vector<int> indptr,
     assert(indptr_.size() == rows_ + 1u);
     assert(indices_.size() == data_.size());
     assert(indptr_[0] == 0);
+
+    if (indices_.size() > 0)
+    {
+        assert(*std::max_element(std::begin(indices_), std::end(indices_)) < static_cast<int>(cols_));
+        assert(*std::min_element(std::begin(indices_), std::end(indices_)) >= 0);
+    }
 }
 
 template <typename T>
