@@ -307,6 +307,16 @@ class SparseMatrix : public Operator
         */
         void ScaleCols(const std::vector<T>& values);
 
+        /*! @brief Scale rows by inverse of given values
+            @param values scale per row
+        */
+        void InverseScaleRows(const std::vector<T>& values);
+
+        /*! @brief Scale cols by inverse of given values
+            @param values scale per cols
+        */
+        void InverseScaleCols(const std::vector<T>& values);
+
         /*! @brief Permute the columns
             @param perm permutation to apply
         */
@@ -389,7 +399,6 @@ SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other) noexcept
 {
 
 }
-
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix(SparseMatrix<T>&& other) noexcept
@@ -1045,6 +1054,8 @@ T SparseMatrix<T>::Sum() const
 template <typename T>
 void SparseMatrix<T>::ScaleRows(const std::vector<T>& values)
 {
+    assert(values.size() == rows_);
+
     for (size_t i = 0; i < rows_; ++i)
     {
         const T scale = values[i];
@@ -1059,11 +1070,47 @@ void SparseMatrix<T>::ScaleRows(const std::vector<T>& values)
 template <typename T>
 void SparseMatrix<T>::ScaleCols(const std::vector<T>& values)
 {
+    assert(values.size() == cols_);
+
     for (size_t i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
             data_[j] *= values[indices_[j]];
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::InverseScaleRows(const std::vector<T>& values)
+{
+    assert(values.size() == rows_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        const T scale = values[i];
+        assert(scale != (T)0);
+
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            data_[j] /= scale;
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::InverseScaleCols(const std::vector<T>& values)
+{
+    assert(values.size() == cols_);
+
+    for (size_t i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            auto scale = values[indices_[j]];
+            assert(scale != (T)0);
+
+            data_[j] /= scale;
         }
     }
 }
