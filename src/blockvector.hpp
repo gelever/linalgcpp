@@ -27,27 +27,27 @@ class BlockVector : public Vector<T>
         BlockVector();
 
         /*! @brief Constructor with given offsets */
-        explicit BlockVector(std::vector<size_t> offsets);
+        explicit BlockVector(std::vector<int> offsets);
 
         /*! @brief Constructor with given offsets and values*/
-        explicit BlockVector(std::vector<size_t> offsets, T val);
+        explicit BlockVector(std::vector<int> offsets, T val);
 
         /*! @brief Constructor with given data and offsets */
-        explicit BlockVector(const VectorView<T>& data, std::vector<size_t> offsets);
+        explicit BlockVector(const VectorView<T>& data, std::vector<int> offsets);
 
-        const std::vector<size_t>& GetOffsets() const;
+        const std::vector<int>& GetOffsets() const;
 
         /*! @brief Get a view of a block */
-        VectorView<T> GetBlock(size_t block);
+        VectorView<T> GetBlock(int block);
 
         /*! @brief Get a const view of a block
             @note returns const rvalue reference (const VectorView<T>&&)
         */
-        const auto GetBlock(size_t block) const;
+        const auto GetBlock(int block) const;
 
         using Vector<T>::operator=;
     private:
-        std::vector<size_t> offsets_;
+        std::vector<int> offsets_;
 };
 
 template <typename T>
@@ -58,49 +58,49 @@ BlockVector<T>::BlockVector()
 }
 
 template <typename T>
-BlockVector<T>::BlockVector(std::vector<size_t> offsets)
+BlockVector<T>::BlockVector(std::vector<int> offsets)
     : Vector<T>(offsets.back()), offsets_(offsets)
 {
 
 }
 
 template <typename T>
-BlockVector<T>::BlockVector(std::vector<size_t> offsets, T val)
+BlockVector<T>::BlockVector(std::vector<int> offsets, T val)
     : Vector<T>(offsets.back(), val), offsets_(offsets)
 {
 
 }
 
 template <typename T>
-BlockVector<T>::BlockVector(const VectorView<T>& data, std::vector<size_t> offsets)
+BlockVector<T>::BlockVector(const VectorView<T>& data, std::vector<int> offsets)
     : Vector<T>(data), offsets_(offsets)
 {
 
 }
 template <typename T>
-const std::vector<size_t>& BlockVector<T>::GetOffsets() const
+const std::vector<int>& BlockVector<T>::GetOffsets() const
 {
     return offsets_;
 }
 
 template <typename T>
-VectorView<T> BlockVector<T>::GetBlock(size_t block)
+VectorView<T> BlockVector<T>::GetBlock(int block)
 {
-    assert(block < offsets_.size() - 1);
+    assert(block < static_cast<int>(offsets_.size()) - 1);
 
     T* data = Vector<T>::begin() + offsets_[block];
-    size_t size = offsets_[block + 1] - offsets_[block];
+    int size = offsets_[block + 1] - offsets_[block];
 
     return VectorView<T> {data, size};
 }
 
 template <typename T>
-const auto BlockVector<T>::GetBlock(size_t block) const
+const auto BlockVector<T>::GetBlock(int block) const
 {
-    assert(block < offsets_.size() - 1);
+    assert(block < static_cast<int>(offsets_.size()) - 1);
 
     T* data = const_cast<T*>(Vector<T>::begin() + offsets_[block]);
-    size_t size = offsets_[block + 1] - offsets_[block];
+    int size = offsets_[block + 1] - offsets_[block];
 
     return VectorView<T> {data, size};
 }

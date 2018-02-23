@@ -33,46 +33,37 @@ class BlockMatrix : public Operator
         BlockMatrix();
 
         /*! @brief Square Constructor with given symmetric offsets*/
-        explicit BlockMatrix(std::vector<size_t> offsets);
+        explicit BlockMatrix(std::vector<int> offsets);
 
         /*! @brief Rectangle Constructor with given offsets*/
-        BlockMatrix(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets);
+        BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_offsets);
 
         /*! @brief Default deconstructor */
         ~BlockMatrix() noexcept = default;
-        /*! @brief The number of rows in this matrix
-            @retval the number of rows
-        */
-        size_t Rows() const override;
-
-        /*! @brief The number of columns in this matrix
-            @retval the number of columns
-        */
-        size_t Cols() const override;
 
         /*! @brief Get the row offsets
             @retval the row offsets
         */
-        const std::vector<size_t>& GetRowOffsets() const;
+        const std::vector<int>& GetRowOffsets() const;
 
         /*! @brief Get the col offsets
             @retval the col offsets
         */
-        const std::vector<size_t>& GetColOffsets() const;
+        const std::vector<int>& GetColOffsets() const;
 
         /*! @brief Get a block
             @param i row index
             @param j column index
             @retval SparseMatrix at index (i, j)
         */
-        const SparseMatrix<T>& GetBlock(size_t i, size_t j) const;
+        const SparseMatrix<T>& GetBlock(int i, int j) const;
 
         /*! @brief Set a block
             @param i row index
             @param j column index
             @param SparseMatrix at index (i, j)
         */
-        void SetBlock(size_t i, size_t j, SparseMatrix<T> mat);
+        void SetBlock(int i, int j, SparseMatrix<T> mat);
 
         /*! @brief Get the transpose matrix
         */
@@ -102,82 +93,68 @@ class BlockMatrix : public Operator
         using Operator::Mult;
 
     private:
-        std::vector<size_t> row_offsets_;
-        std::vector<size_t> col_offsets_;
+        std::vector<int> row_offsets_;
+        std::vector<int> col_offsets_;
 
         std::vector<std::vector<SparseMatrix<T>>> A_;
-
-        size_t rows_;
-        size_t cols_;
 };
 
 template <typename T>
 BlockMatrix<T>::BlockMatrix()
-    : row_offsets_(1, 0), col_offsets_(1, 0), rows_(0), cols_(0)
+    : row_offsets_(1, 0), col_offsets_(1, 0)
 {
 
 }
 
 template <typename T>
-BlockMatrix<T>::BlockMatrix(std::vector<size_t> offsets) :
+BlockMatrix<T>::BlockMatrix(std::vector<int> offsets) :
+    Operator(offsets.back(), offsets.back()),
     row_offsets_(offsets), col_offsets_(offsets),
-    A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1)),
-    rows_(row_offsets_.back()), cols_(col_offsets_.back())
+    A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1))
 {
 
 }
 
 template <typename T>
-BlockMatrix<T>::BlockMatrix(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets)
-    : row_offsets_(std::move(row_offsets)), col_offsets_(std::move(col_offsets)),
-      A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1)),
-      rows_(row_offsets_.back()), cols_(col_offsets_.back())
+BlockMatrix<T>::BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_offsets)
+    : Operator(row_offsets.back(), col_offsets.back()),
+      row_offsets_(std::move(row_offsets)), col_offsets_(std::move(col_offsets)),
+      A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1))
 {
 
 }
 
 template <typename T>
-size_t BlockMatrix<T>::Rows() const
-{
-    return rows_;
-}
-
-template <typename T>
-size_t BlockMatrix<T>::Cols() const
-{
-    return cols_;
-}
-
-template <typename T>
-const std::vector<size_t>& BlockMatrix<T>::GetRowOffsets() const
+const std::vector<int>& BlockMatrix<T>::GetRowOffsets() const
 {
     return row_offsets_;
 }
 
 template <typename T>
-const std::vector<size_t>& BlockMatrix<T>::GetColOffsets() const
+const std::vector<int>& BlockMatrix<T>::GetColOffsets() const
 {
     return col_offsets_;
 }
 
 template <typename T>
-const SparseMatrix<T>& BlockMatrix<T>::GetBlock(size_t i, size_t j) const
+const SparseMatrix<T>& BlockMatrix<T>::GetBlock(int i, int j) const
 {
-    assert(i < row_offsets_.size() - 1);
-    assert(j < col_offsets_.size() - 1);
+    assert(i < static_cast<int>(row_offsets_.size()) - 1);
+    assert(j < static_cast<int>(col_offsets_.size()) - 1);
 
     return A_[i][j];
 }
 
 template <typename T>
-void BlockMatrix<T>::SetBlock(size_t i, size_t j, SparseMatrix<T> mat)
+void BlockMatrix<T>::SetBlock(int i, int j, SparseMatrix<T> mat)
 {
-    assert(i < row_offsets_.size() - 1);
-    assert(j < col_offsets_.size() - 1);
+    assert(i < static_cast<int>(row_offsets_.size()) - 1);
+    assert(j < static_cast<int>(col_offsets_.size()) - 1);
+
     assert(mat.Rows() == (row_offsets_[i + 1] - row_offsets_[i]));
     assert(mat.Cols() == (col_offsets_[j + 1] - col_offsets_[j]));
 
-    Swap(A_[i][j], mat);
+    swap(A_[i][j], mat);
 }
 
 template <typename T>
@@ -185,12 +162,12 @@ BlockMatrix<T> BlockMatrix<T>::Transpose() const
 {
     BlockMatrix<T> transpose(col_offsets_, row_offsets_);
 
-    const size_t row_blocks = row_offsets_.size() - 1;
-    const size_t col_blocks = col_offsets_.size() - 1;
+    const int row_blocks = row_offsets_.size() - 1;
+    const int col_blocks = col_offsets_.size() - 1;
 
-    for (size_t i = 0; i < row_blocks; ++i)
+    for (int i = 0; i < row_blocks; ++i)
     {
-        for (size_t j = 0; j < col_blocks; ++j)
+        for (int j = 0; j < col_blocks; ++j)
         {
             transpose.SetBlock(j, i, GetBlock(i, j));
         }
@@ -202,7 +179,7 @@ BlockMatrix<T> BlockMatrix<T>::Transpose() const
 template <typename T>
 SparseMatrix<T> BlockMatrix<T>::Combine() const
 {
-    size_t nnz = 0;
+    int nnz = 0;
 
     for (const auto& row : A_)
     {
@@ -218,15 +195,18 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
 
     indptr[0] = 0;
 
-    size_t nnz_count = 0;
+    int row_size = row_offsets_.size();
+    int col_size = col_offsets_.size();
 
-    for (size_t i = 0; i < row_offsets_.size() - 1; ++i)
+    int nnz_count = 0;
+
+    for (int i = 0; i < row_size - 1; ++i)
     {
-        size_t local_row = 0;
+        int local_row = 0;
 
-        for (size_t row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
+        for (int row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
         {
-            for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
+            for (int j = 0; j < col_size - 1; ++j)
             {
                 const auto& mat = A_[i][j];
 
@@ -267,9 +247,12 @@ void BlockMatrix<T>::Print(const std::string& label, std::ostream& out) const
 {
     out << label << "\n";
 
-    for (size_t i = 0; i < row_offsets_.size() - 1; ++i)
+    const int row_size = row_offsets_.size();
+    const int col_size = col_offsets_.size();
+
+    for (int i = 0; i < row_size - 1; ++i)
     {
-        for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
+        for (int j = 0; j < col_size - 1; ++j)
         {
             const auto& mat = A_[i][j];
 
@@ -295,15 +278,18 @@ void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& o
 
     output = 0.0;
 
-    for (size_t i = 0; i < row_offsets_.size() - 1; ++i)
-    {
-        size_t local_row = 0;
+    const int row_size = row_offsets_.size();
+    const int col_size = col_offsets_.size();
 
-        for (size_t row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
+    for (int i = 0; i < row_size - 1; ++i)
+    {
+        int local_row = 0;
+
+        for (int row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
         {
             double val = 0.0;
 
-            for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
+            for (int j = 0; j < col_size - 1; ++j)
             {
                 const auto& mat = A_[i][j];
 
@@ -323,7 +309,7 @@ void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& o
 
                 for (int jj = start; jj < end; ++jj)
                 {
-                    const size_t col = offset + mat_indices[jj];
+                    const int col = offset + mat_indices[jj];
 
                     val += mat_data[jj] * input[col];
 
@@ -345,13 +331,16 @@ void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>&
 
     output = 0.0;
 
-    for (size_t i = 0; i < row_offsets_.size() - 1; ++i)
-    {
-        size_t local_row = 0;
+    const int row_size = row_offsets_.size();
+    const int col_size = col_offsets_.size();
 
-        for (size_t row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
+    for (int i = 0; i < row_size - 1; ++i)
+    {
+        int local_row = 0;
+
+        for (int row = row_offsets_[i]; row < row_offsets_[i + 1]; ++row)
         {
-            for (size_t j = 0; j < col_offsets_.size() - 1; ++j)
+            for (int j = 0; j < col_size - 1; ++j)
             {
                 const auto& mat = A_[i][j];
 
@@ -371,7 +360,7 @@ void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>&
 
                 for (int jj = start; jj < end; ++jj)
                 {
-                    const size_t col = offset + mat_indices[jj];
+                    const int col = offset + mat_indices[jj];
 
                     output[col] += mat_data[jj] * input[row];
                 }

@@ -32,43 +32,46 @@ DenseMatrix::DenseMatrix()
 {
 }
 
-DenseMatrix::DenseMatrix(size_t size)
+DenseMatrix::DenseMatrix(int size)
     : DenseMatrix(size, size)
 {
 }
 
-DenseMatrix::DenseMatrix(size_t rows, size_t cols)
-    : rows_(rows), cols_(cols), data_(rows * cols, 0.0)
+DenseMatrix::DenseMatrix(int rows, int cols)
+    : DenseMatrix(rows, cols, std::vector<double>(rows * cols, 0.0))
 {
 }
 
-DenseMatrix::DenseMatrix(size_t rows, size_t cols, const std::vector<double>& data)
-    : rows_(rows), cols_(cols), data_(data)
+DenseMatrix::DenseMatrix(int rows, int cols, std::vector<double> data)
+    : Operator(rows, cols), data_(std::move(data))
 {
-    assert(data.size() == rows * cols);
+    assert(rows >= 0);
+    assert(cols >= 0);
+
+    assert(static_cast<int>(data_.size()) == rows * cols);
 }
 
 DenseMatrix::DenseMatrix(const DenseMatrix& other) noexcept
-    : rows_(other.rows_), cols_(other.cols_), data_(other.data_)
+    : Operator(other), data_(other.data_)
 {
 }
 
 DenseMatrix::DenseMatrix(DenseMatrix&& other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 }
 
 DenseMatrix& DenseMatrix::operator=(DenseMatrix other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 
     return *this;
 }
 
-void Swap(DenseMatrix& lhs, DenseMatrix& rhs)
+void swap(DenseMatrix& lhs, DenseMatrix& rhs) noexcept
 {
-    std::swap(lhs.rows_, rhs.rows_);
-    std::swap(lhs.cols_, rhs.cols_);
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
     std::swap(lhs.data_, rhs.data_);
 }
 
@@ -77,9 +80,9 @@ void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, 
 {
     out << label << "\n";
 
-    for (size_t i = 0; i < rows_; ++i)
+    for (int i = 0; i < rows_; ++i)
     {
-        for (size_t j = 0; j < cols_; ++j)
+        for (int j = 0; j < cols_; ++j)
         {
             out << std::setw(width) << std::setprecision(precision)
                 << std::fixed << (*this)(i, j);
@@ -106,9 +109,9 @@ void DenseMatrix::Transpose(DenseMatrix& transpose) const
     assert(transpose.Rows() == cols_);
     assert(transpose.Cols() == rows_);
 
-    for (size_t i = 0; i < rows_; ++i)
+    for (int i = 0; i < rows_; ++i)
     {
-        for (size_t j = 0; j < cols_; ++j)
+        for (int j = 0; j < cols_; ++j)
         {
             transpose(j, i) = (*this)(i, j);
         }
@@ -228,9 +231,9 @@ DenseMatrix& DenseMatrix::operator-=(const DenseMatrix& other)
     assert(rows_ == other.Rows());
     assert(cols_ == other.Cols());
 
-    const size_t nnz = rows_ * cols_;
+    const int nnz = rows_ * cols_;
 
-    for (size_t i = 0; i < nnz; ++i)
+    for (int i = 0; i < nnz; ++i)
     {
         data_[i] -= other.data_[i];
     }
@@ -243,9 +246,9 @@ DenseMatrix& DenseMatrix::operator+=(const DenseMatrix& other)
     assert(rows_ == other.Rows());
     assert(cols_ == other.Cols());
 
-    const size_t nnz = rows_ * cols_;
+    const int nnz = rows_ * cols_;
 
-    for (size_t i = 0; i < nnz; ++i)
+    for (int i = 0; i < nnz; ++i)
     {
         data_[i] += other.data_[i];
     }
@@ -316,9 +319,9 @@ bool DenseMatrix::operator==(const DenseMatrix& other) const
 
     constexpr double tol = 1e-12;
 
-    for (size_t j = 0; j < cols_; ++j)
+    for (int j = 0; j < cols_; ++j)
     {
-        for (size_t i = 0; i < rows_; ++i)
+        for (int i = 0; i < rows_; ++i)
         {
             if (std::fabs((*this)(i, j) - other(i, j)) > tol)
             {
@@ -330,9 +333,9 @@ bool DenseMatrix::operator==(const DenseMatrix& other) const
     return true;
 }
 
-DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
+DenseMatrix DenseMatrix::GetRow(int start, int end) const
 {
-    const size_t num_rows = end - start;
+    const int num_rows = end - start;
     DenseMatrix dense(num_rows, cols_);
 
     GetRow(start, end, dense);
@@ -340,7 +343,7 @@ DenseMatrix DenseMatrix::GetRow(size_t start, size_t end) const
     return dense;
 }
 
-void DenseMatrix::GetRow(size_t start, size_t end, DenseMatrix& dense) const
+void DenseMatrix::GetRow(int start, int end, DenseMatrix& dense) const
 {
     GetSubMatrix(start, 0, end, cols_, dense);
 }
@@ -357,32 +360,31 @@ DenseMatrix DenseMatrix::GetRow(const std::vector<int>& rows) const
 void DenseMatrix::GetRow(const std::vector<int>& rows, DenseMatrix& dense) const
 {
     assert(dense.Cols() == Cols());
-    assert(dense.Rows() == rows.size());
+    assert(dense.Rows() == static_cast<int>(rows.size()));
 
-    const size_t num_rows = rows.size();
-    const size_t num_cols = Cols();
+    const int num_rows = rows.size();
+    const int num_cols = Cols();
 
-    for (size_t i = 0; i < num_rows; ++i)
+    for (int i = 0; i < num_rows; ++i)
     {
         const int row = rows[i];
 
-        for (size_t j = 0; j < num_cols; ++j)
+        for (int j = 0; j < num_cols; ++j)
         {
             dense(i, j) = (*this)(row, j);
         }
     }
-
 }
 
-void DenseMatrix::SetRow(size_t start, const DenseMatrix& dense)
+void DenseMatrix::SetRow(int start, const DenseMatrix& dense)
 {
-    const size_t end = start + dense.Rows();
+    const int end = start + dense.Rows();
     SetSubMatrix(start, 0, end, cols_, dense);
 }
 
-DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
+DenseMatrix DenseMatrix::GetCol(int start, int end) const
 {
-    const size_t num_cols = end - start;
+    const int num_cols = end - start;
     DenseMatrix dense(rows_, num_cols);
 
     GetCol(start, end, dense);
@@ -390,21 +392,21 @@ DenseMatrix DenseMatrix::GetCol(size_t start, size_t end) const
     return dense;
 }
 
-void DenseMatrix::GetCol(size_t start, size_t end, DenseMatrix& dense) const
+void DenseMatrix::GetCol(int start, int end, DenseMatrix& dense) const
 {
     GetSubMatrix(0, start, rows_, end, dense);
 }
 
-void DenseMatrix::SetCol(size_t start, const DenseMatrix& dense)
+void DenseMatrix::SetCol(int start, const DenseMatrix& dense)
 {
-    const size_t end = start + dense.Cols();
+    const int end = start + dense.Cols();
     SetSubMatrix(0, start, rows_, end, dense);
 }
 
-DenseMatrix DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j) const
+DenseMatrix DenseMatrix::GetSubMatrix(int start_i, int start_j, int end_i, int end_j) const
 {
-    const size_t num_rows = end_i - start_i;
-    const size_t num_cols = end_j - start_j;
+    const int num_rows = end_i - start_i;
+    const int num_cols = end_j - start_j;
 
     DenseMatrix dense(num_rows, num_cols);
     GetSubMatrix(start_i, start_j, end_i, end_j, dense);
@@ -412,7 +414,7 @@ DenseMatrix DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end
     return dense;
 }
 
-void DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, DenseMatrix& dense) const
+void DenseMatrix::GetSubMatrix(int start_i, int start_j, int end_i, int end_j, DenseMatrix& dense) const
 {
     assert(start_i >= 0 && start_i < rows_);
     assert(start_j >= 0 && start_j < cols_);
@@ -420,19 +422,19 @@ void DenseMatrix::GetSubMatrix(size_t start_i, size_t start_j, size_t end_i, siz
     assert(end_j >= 0 && end_j <= cols_);
     assert(end_i >= start_i && end_j >= start_j);
 
-    const size_t num_rows = end_i - start_i;
-    const size_t num_cols = end_j - start_j;
+    const int num_rows = end_i - start_i;
+    const int num_cols = end_j - start_j;
 
-    for (size_t j = 0; j < num_cols; ++j)
+    for (int j = 0; j < num_cols; ++j)
     {
-        for (size_t i = 0; i < num_rows; ++i)
+        for (int i = 0; i < num_rows; ++i)
         {
             dense(i, j) = (*this)(i + start_i, j + start_j);
         }
     }
 }
 
-void DenseMatrix::SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, size_t end_j, const DenseMatrix& dense)
+void DenseMatrix::SetSubMatrix(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense)
 {
     assert(start_i >= 0 && start_i < rows_);
     assert(start_j >= 0 && start_j < cols_);
@@ -440,12 +442,12 @@ void DenseMatrix::SetSubMatrix(size_t start_i, size_t start_j, size_t end_i, siz
     assert(end_j >= 0 && end_j <= cols_);
     assert(end_i >= start_i && end_j >= start_j);
 
-    const size_t num_rows = end_i - start_i;
-    const size_t num_cols = end_j - start_j;
+    const int num_rows = end_i - start_i;
+    const int num_cols = end_j - start_j;
 
-    for (size_t j = 0; j < num_cols; ++j)
+    for (int j = 0; j < num_cols; ++j)
     {
-        for (size_t i = 0; i < num_rows; ++i)
+        for (int i = 0; i < num_rows; ++i)
         {
             (*this)(i + start_i, j + start_j) = dense(i, j);
         }
@@ -546,9 +548,9 @@ std::vector<double> DenseMatrix::SVD()
 
 void DenseMatrix::ScaleRows(const std::vector<double>& values)
 {
-    for (size_t j = 0; j < cols_; ++j)
+    for (int j = 0; j < cols_; ++j)
     {
-        for (size_t i = 0; i < rows_; ++i)
+        for (int i = 0; i < rows_; ++i)
         {
             (*this)(i, j) *= values[i];
         }
@@ -557,11 +559,11 @@ void DenseMatrix::ScaleRows(const std::vector<double>& values)
 
 void DenseMatrix::ScaleCols(const std::vector<double>& values)
 {
-    for (size_t j = 0; j < cols_; ++j)
+    for (int j = 0; j < cols_; ++j)
     {
         const double scale = values[j];
 
-        for (size_t i = 0; i < rows_; ++i)
+        for (int i = 0; i < rows_; ++i)
         {
             (*this)(i, j) *= scale;
         }
@@ -639,9 +641,9 @@ std::vector<double> DenseMatrix::GetDiag() const
 void DenseMatrix::GetDiag(std::vector<double>& diag) const
 {
     assert(rows_ == cols_);
-    assert(diag.size() == rows_);
+    assert(static_cast<int>(diag.size()) == rows_);
 
-    for (size_t i = 0; i < rows_; ++i)
+    for (int i = 0; i < rows_; ++i)
     {
         diag[i] = (*this)(i, i);
     }

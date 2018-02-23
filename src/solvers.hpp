@@ -23,12 +23,6 @@ class CGSolver : public Operator
         CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
                  double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
-        /*! Get size of operator */
-        size_t Rows() const override;
-
-        /*! Get size of operator */
-        size_t Cols() const override;
-
         /*! @brief Solve
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
@@ -60,12 +54,6 @@ class PCGSolver : public Operator
         */
         PCGSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
-        /*! Get size of operator */
-        size_t Rows() const override;
-
-        /*! Get size of operator */
-        size_t Cols() const override;
-
         /*! @brief Solve
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
@@ -95,12 +83,6 @@ class MINRESSolver : public Operator
             @param verbose display additional iteration information
         */
         MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
-
-        /*! Get size of operator */
-        size_t Rows() const override;
-
-        /*! Get size of operator */
-        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -133,12 +115,6 @@ class PMINRESSolver : public Operator
             @param verbose display additional iteration information
         */
         PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
-
-        /*! Get size of operator */
-        size_t Rows() const override;
-
-        /*! Get size of operator */
-        size_t Cols() const override;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for

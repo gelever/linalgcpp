@@ -19,8 +19,18 @@ namespace linalgcpp
 class Operator
 {
     public:
-        /*! @brief Default Constructor */
-        Operator() = default;
+        /*! @brief Zero Size Constructor */
+        Operator();
+
+        /*! @brief Square Constructor */
+        Operator(int size);
+
+        /*! @brief Rectangle Constructor */
+        Operator(int rows, int cols);
+
+        Operator(const Operator&) noexcept;
+        Operator(Operator&&) noexcept;
+        Operator& operator=(Operator&&) noexcept;
 
         /*! @brief Destructor */
         virtual ~Operator() noexcept = default;
@@ -28,12 +38,18 @@ class Operator
         /*! @brief The number of rows in this operator
             @retval the number of rows
         */
-        virtual size_t Rows() const = 0;
+        virtual int Rows() const;
 
         /*! @brief The number of columns in this operator
             @retval the number of columns
         */
-        virtual size_t Cols() const = 0;
+        virtual int Cols() const;
+
+        /*! @brief Swap two operator
+            @param lhs left hand side operator
+            @param rhs right hand side operator
+        */
+        friend void swap(Operator& lhs, Operator& rhs) noexcept;
 
         /*! @brief Apply the action to a vector: Ax = y
             @param input the input vector x
@@ -65,6 +81,9 @@ class Operator
             @retval double the A inner product
         */
         double InnerProduct(const VectorView<double>& x, const VectorView<double>& y) const;
+    protected:
+        int rows_;
+        int cols_;
 };
 
 inline

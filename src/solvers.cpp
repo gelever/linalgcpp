@@ -5,20 +5,10 @@ namespace linalgcpp
 
 CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose,
                    double (*Dot)(const VectorView<double>&, const VectorView<double>&))
-    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
+    : Operator(A), A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
       Dot_(Dot)
 {
     assert(A_.Rows() == A_.Cols());
-}
-
-size_t CGSolver::Rows() const
-{
-    return A_.Rows();
-}
-
-size_t CGSolver::Cols() const
-{
-    return A_.Cols();
 }
 
 void CGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
@@ -85,22 +75,13 @@ void CG(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
 }
 
 PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
-    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
+    : Operator(A), A_(A), M_(M), max_iter_(max_iter), tol_(tol),
+      verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
       z_(A.Rows())
 {
     assert(A_.Rows() == A_.Cols());
     assert(A_.Rows() == M_.Cols());
     assert(M_.Rows() == M_.Cols());
-}
-
-size_t PCGSolver::Rows() const
-{
-    return A_.Rows();
-}
-
-size_t PCGSolver::Cols() const
-{
-    return A_.Cols();
 }
 
 void PCGSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
@@ -172,22 +153,12 @@ void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, Vect
 }
 
 MINRESSolver::MINRESSolver(const Operator& A, int max_iter, double tol, bool verbose)
-    : A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose),
+    : Operator(A), A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose),
       w0_(A.Rows()), w1_(A.Rows()),
       v0_(A.Rows()), v1_(A.Rows()),
       q_(A.Rows())
 {
     assert(A_.Rows() == A_.Cols());
-}
-
-size_t MINRESSolver::Rows() const
-{
-    return A_.Rows();
-}
-
-size_t MINRESSolver::Cols() const
-{
-    return A_.Cols();
 }
 
 void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
@@ -262,8 +233,8 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) cons
             break;
         }
 
-        Swap(v0_, v1_);
-        Swap(w0_, w1_);
+        swap(v0_, v1_);
+        swap(w0_, w1_);
     }
 }
 
@@ -287,7 +258,7 @@ void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& 
 }
 
 PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
-    : A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
+    : Operator(A), A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
       w0_(A.Rows()), w1_(A.Rows()),
       v0_(A.Rows()), v1_(A.Rows()),
       u1_(A.Rows()), q_(A.Rows())
@@ -295,16 +266,6 @@ PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter,
     assert(A_.Rows() == A_.Cols());
     assert(A_.Rows() == M_.Cols());
     assert(M_.Rows() == M_.Cols());
-}
-
-size_t PMINRESSolver::Rows() const
-{
-    return A_.Rows();
-}
-
-size_t PMINRESSolver::Cols() const
-{
-    return A_.Cols();
 }
 
 void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) const
@@ -384,9 +345,9 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
             break;
         }
 
-        Swap(u1_, q_);
-        Swap(v0_, v1_);
-        Swap(w0_, w1_);
+        swap(u1_, q_);
+        swap(v0_, v1_);
+        swap(w0_, w1_);
     }
 
 }

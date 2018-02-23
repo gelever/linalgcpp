@@ -27,13 +27,13 @@ class Vector : public VectorView<T>
         /*! @brief Constructor of setting the size
             @param size the length of the vector
         */
-        explicit Vector(size_t size);
+        explicit Vector(int size);
 
         /*! @brief Constructor of setting the size and intial values
             @param size the length of the vector
             @param val the initial value to set all entries to
         */
-        Vector(size_t size, T val);
+        Vector(int size, T val);
 
         /*! @brief Constructor from view
             @note deep copy
@@ -76,7 +76,7 @@ class Vector : public VectorView<T>
             @param rhs right hand side vector
         */
         template <typename T2>
-        friend void Swap(Vector<T2>& lhs, Vector<T2>& rhs);
+        friend void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept;
 
         using VectorView<T>::operator=;
         virtual T Mult(const VectorView<T>& vect) const override;
@@ -93,7 +93,7 @@ T Vector<T>::Mult(const VectorView<T>& vect) const
 }
 
 template <typename T>
-Vector<T>::Vector(size_t size)
+Vector<T>::Vector(int size)
 {
     data_.resize(size);
 
@@ -102,7 +102,7 @@ Vector<T>::Vector(size_t size)
 }
 
 template <typename T>
-Vector<T>::Vector(size_t size, T val)
+Vector<T>::Vector(int size, T val)
 {
     data_.resize(size, val);
 
@@ -140,7 +140,7 @@ Vector<T>::Vector(const Vector<T>& vect) noexcept
 template <typename T>
 Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
-    Swap(*this, vect);
+    swap(*this, vect);
 
     VectorView<T> set_view(data_.data(), data_.size());
     VectorView<T>::operator=(set_view);
@@ -173,7 +173,7 @@ Vector<T>& Vector<T>::operator=(const VectorView<T>& vect) noexcept
 template <typename T>
 Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 {
-    Swap(*this, vect);
+    swap(*this, vect);
 
     VectorView<T> set_view(data_.data(), data_.size());
     VectorView<T>::operator=(set_view);
@@ -182,9 +182,9 @@ Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 }
 
 template <typename T2>
-void Swap(Vector<T2>& lhs, Vector<T2>& rhs)
+void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept
 {
-    Swap(static_cast<VectorView<T2>&>(lhs), static_cast<VectorView<T2>&>(rhs));
+    swap(static_cast<VectorView<T2>&>(lhs), static_cast<VectorView<T2>&>(rhs));
     std::swap(lhs.data_, rhs.data_);
 }
 
