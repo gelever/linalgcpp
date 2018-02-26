@@ -14,3 +14,4 @@
 #include "parser.hpp"
 #include "operator.hpp"
 #include "solvers.hpp"
+#include "eigensolver.hpp"

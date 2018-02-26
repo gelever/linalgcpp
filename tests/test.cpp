@@ -265,7 +265,7 @@ void test_sparse()
         }
 
         auto submat = sparse.GetSubMatrix(rows, cols, marker);
-        printf("%ld %ld %ld\n", submat.Rows(), submat.Cols(), submat.nnz());
+        printf("%d %d %d\n", submat.Rows(), submat.Cols(), submat.nnz());
 
         CooMatrix<double> coo2 = coo;
         auto sparse2 = coo2.ToSparse();
@@ -289,8 +289,8 @@ void test_sparse()
 
     // Test Sort Indices
     {
-        const size_t size = 2;
-        const size_t nnz = 4;
+        const int size = 2;
+        const int nnz = 4;
         std::vector<int> indptr(size + 1);
         std::vector<int> indices(nnz);
         std::vector<double> data(nnz);
@@ -314,7 +314,7 @@ void test_sparse()
 
         A_sort.PrintDense("A:");
 
-        for (size_t i = 0; i < nnz; ++i)
+        for (int i = 0; i < nnz; ++i)
         {
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
@@ -323,7 +323,7 @@ void test_sparse()
 
         A_sort.PrintDense("A Sorted:");
 
-        for (size_t i = 0; i < nnz; ++i)
+        for (int i = 0; i < nnz; ++i)
         {
             printf("%d %.2f\n", A_sort.GetIndices()[i], A_sort.GetData()[i]);
         }
@@ -497,7 +497,7 @@ void test_coo()
 
     // With Mult
     {
-        const size_t size = 10;
+        const int size = 10;
 
         CooMatrix<double> coo(size);
         coo.Add(0, 0, 1.0);
@@ -869,10 +869,10 @@ void test_parser()
         SparseMatrix<int> elem_elem = elem_node.Mult(node_elem);
         SparseMatrix<int> node_node = node_elem.Mult(elem_node);
 
-        printf("Elem Node: %ld %ld\n", elem_node.Rows(), elem_node.Cols());
-        printf("Node Elem: %ld %ld\n", node_elem.Rows(), node_elem.Cols());
-        printf("Elem Elem: %ld %ld\n", elem_elem.Rows(), elem_elem.Cols());
-        printf("Node Node: %ld %ld\n", node_node.Rows(), node_node.Cols());
+        printf("Elem Node: %d %d\n", elem_node.Rows(), elem_node.Cols());
+        printf("Node Elem: %d %d\n", node_elem.Rows(), node_elem.Cols());
+        printf("Elem Elem: %d %d\n", elem_elem.Rows(), elem_elem.Cols());
+        printf("Node Node: %d %d\n", node_node.Rows(), node_node.Cols());
         node_node.Print("node node");
     */
 
@@ -951,11 +951,11 @@ void test_operator()
 
 void test_solvers()
 {
-    const size_t size = 5;
+    const int size = 5;
 
     CooMatrix<double> coo(size, size);
 
-    for (size_t i = 0; i < size - 1; ++i)
+    for (int i = 0; i < size - 1; ++i)
     {
         coo.AddSym(i, i, 2.0);
         coo.AddSym(i, i + 1, -1.0);
@@ -1020,8 +1020,8 @@ void test_solvers()
 
 void test_blockmatrix()
 {
-    std::vector<size_t> row_offsets{0, 2, 4};
-    std::vector<size_t> col_offsets{0, 2, 4};
+    std::vector<int> row_offsets{0, 2, 4};
+    std::vector<int> col_offsets{0, 2, 4};
 
     BlockMatrix<double> A;
     BlockMatrix<double> A2(row_offsets);
@@ -1090,7 +1090,7 @@ void test_blockvector()
     coo.Add(3, 3, 4.0);
     auto sparse = coo.ToSparse();
 
-    std::vector<size_t> offsets{0, 2, 4};
+    std::vector<int> offsets{0, 2, 4};
 
     BlockVector<double> vect_empty;
     BlockVector<double> vect(offsets);
@@ -1157,7 +1157,7 @@ void test_blockoperator()
     auto sparse = coo.ToSparse();
     auto dense = coo.ToDense();
 
-    std::vector<size_t> offsets{0, 2, 4};
+    std::vector<int> offsets{0, 2, 4};
 
     Vector<double> x(offsets.back(), 1.0);
     Vector<double> y(offsets.back(), 0.0);

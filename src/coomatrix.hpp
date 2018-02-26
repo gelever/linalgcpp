@@ -30,8 +30,10 @@ class CooMatrix : public Operator
 {
     public:
         /*! @brief Default Constructor
-            The size of the matrix is determined
-            by the largest entry.
+
+            @note If the matrix size was not specified during
+            creation, then the number of rows is determined
+            by the maximum element.
         */
         CooMatrix();
 
@@ -63,31 +65,13 @@ class CooMatrix : public Operator
             @param rhs right hand side matrix
         */
         template <typename T2>
-        friend void Swap(CooMatrix<T2>& lhs, CooMatrix<T2>& rhs);
-
-        /*! @brief Get the number of rows.
-            @retval the number of rows
-
-            @note If the matrix size was not specified during
-            creation, then the number of rows is determined
-            by the maximum element.
-        */
-        size_t Rows() const override;
-
-        /*! @brief Get the number of columns.
-            @retval the number of columns
-
-            @note If the matrix size was not specified during
-            creation, then the number of columns is determined
-            by the maximum element
-        */
-        size_t Cols() const override;
+        friend void swap(CooMatrix<T2>& lhs, CooMatrix<T2>& rhs) noexcept;
 
         /*! @brief Set the size of the matrix
             @param rows the number of rows
             @param cols the number of columns
         */
-        void SetSize(size_t rows, size_t cols);
+        void SetSize(int rows, int cols);
 
         /*! @brief Add an entry to the matrix
             @param i row index
@@ -178,10 +162,7 @@ class CooMatrix : public Operator
         void EliminateZeros(double tolerance = 0);
 
     private:
-        std::tuple<size_t, size_t> FindSize() const;
-
-        size_t rows_;
-        size_t cols_;
+        std::tuple<int, int> FindSize() const;
 
         bool size_set_;
 
@@ -191,7 +172,7 @@ class CooMatrix : public Operator
 
 template <typename T>
 CooMatrix<T>::CooMatrix()
-    : rows_(0), cols_(0), size_set_(false)
+    : size_set_(false)
 {
 }
 
@@ -203,16 +184,13 @@ CooMatrix<T>::CooMatrix(int size) : CooMatrix(size, size)
 
 template <typename T>
 CooMatrix<T>::CooMatrix(int rows, int cols)
-    : rows_(rows), cols_(cols), size_set_(true)
+    : Operator(rows, cols), size_set_(true)
 {
-    assert(rows >= 0);
-    assert(cols >= 0);
 }
 
 template <typename T>
 CooMatrix<T>::CooMatrix(const CooMatrix& other) noexcept
-    : rows_(other.rows_), cols_(other.cols_),
-      size_set_(other.size_set_), entries_(other.entries_)
+    : Operator(other), size_set_(other.size_set_), entries_(other.entries_)
 {
 
 }
@@ -220,47 +198,32 @@ CooMatrix<T>::CooMatrix(const CooMatrix& other) noexcept
 template <typename T>
 CooMatrix<T>::CooMatrix(CooMatrix&& other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 }
 
 template <typename T>
 CooMatrix<T>& CooMatrix<T>::operator=(CooMatrix other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 
     return *this;
 }
 
 template <typename T>
-void Swap(CooMatrix<T>& lhs, CooMatrix<T>& rhs)
+void swap(CooMatrix<T>& lhs, CooMatrix<T>& rhs) noexcept
 {
-    std::swap(lhs.rows_, rhs.rows_);
-    std::swap(lhs.cols_, rhs.cols_);
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
     std::swap(lhs.size_set_, rhs.size_set_);
     std::swap(lhs.entries_, rhs.entries_);
 }
 
 template <typename T>
-size_t CooMatrix<T>::Rows() const
+void CooMatrix<T>::SetSize(int rows, int cols)
 {
-    size_t rows;
-    std::tie(rows, std::ignore) = FindSize();
+    assert(rows >= 0);
+    assert(cols >= 0);
 
-    return rows;
-}
-
-template <typename T>
-size_t CooMatrix<T>::Cols() const
-{
-    size_t cols;
-    std::tie(std::ignore, cols) = FindSize();
-
-    return cols;
-}
-
-template <typename T>
-void CooMatrix<T>::SetSize(size_t rows, size_t cols)
-{
     size_set_ = true;
 
     rows_ = rows;
@@ -276,8 +239,8 @@ void CooMatrix<T>::Add(int i, int j, T val)
 
     if (size_set_)
     {
-        assert(static_cast<size_t>(i) < rows_);
-        assert(static_cast<size_t>(j) < cols_);
+        assert(i < rows_);
+        assert(j < cols_);
     }
 
     entries_.emplace_back(i, j, val);
@@ -334,8 +297,8 @@ DenseMatrix CooMatrix<T>::ToDense() const
         return DenseMatrix();
     }
 
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
     DenseMatrix dense(rows, cols);
@@ -355,11 +318,11 @@ DenseMatrix CooMatrix<T>::ToDense() const
 template <typename T>
 void CooMatrix<T>::PermuteRows(const std::vector<int>& perm)
 {
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
-    assert(perm.size() == rows);
+    assert(static_cast<int>(perm.size()) == rows);
 
     for (auto& entry : entries_)
     {
@@ -370,11 +333,11 @@ void CooMatrix<T>::PermuteRows(const std::vector<int>& perm)
 template <typename T>
 void CooMatrix<T>::PermuteCols(const std::vector<int>& perm)
 {
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
-    assert(perm.size() == cols);
+    assert(static_cast<int>(perm.size()) == cols);
 
     for (auto& entry : entries_)
     {
@@ -385,12 +348,12 @@ void CooMatrix<T>::PermuteCols(const std::vector<int>& perm)
 template <typename T>
 void CooMatrix<T>::PermuteRowsCols(const std::vector<int>& row_perm, const std::vector<int>& col_perm)
 {
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
-    assert(row_perm.size() == rows);
-    assert(col_perm.size() == cols);
+    assert(static_cast<int>(row_perm.size()) == rows);
+    assert(static_cast<int>(col_perm.size()) == cols);
 
     for (auto& entry : entries_)
     {
@@ -403,8 +366,8 @@ template <typename T>
 template <typename T2>
 SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 {
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
     std::sort(std::begin(entries_), std::end(entries_));
@@ -528,11 +491,11 @@ void CooMatrix<T>::EliminateZeros(double tolerance)
 }
 
 template <typename T>
-std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
+std::tuple<int, int> CooMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
-        return std::tuple<size_t, size_t> {rows_, cols_};
+        return std::tuple<int, int> {rows_, cols_};
     }
 
     int rows = 0;
@@ -547,7 +510,7 @@ std::tuple<size_t, size_t> CooMatrix<T>::FindSize() const
         cols = std::max(cols, j);
     }
 
-    return std::tuple<size_t, size_t> {rows + 1, cols + 1};
+    return std::tuple<int, int> {rows + 1, cols + 1};
 }
 
 } // namespace linalgcpp

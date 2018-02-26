@@ -34,7 +34,7 @@ class VectorView
         VectorView();
 
         /*! @brief Constructor with data */
-        VectorView(T* data, size_t size);
+        VectorView(T* data, int size);
 
         /*! @brief Copy with vector */
         VectorView(std::vector<T>& vect) noexcept;
@@ -59,7 +59,7 @@ class VectorView
             @param rhs right hand side vector
         */
         template <typename T2>
-        friend void Swap(VectorView<T2>& lhs, VectorView<T2>& rhs);
+        friend void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept;
 
         /*! @brief STL like begin. Points to start of data
             @retval pointer to the start of data
@@ -85,18 +85,18 @@ class VectorView
             @param i index into vector
             @retval reference to value at index i
         */
-        virtual T& operator[](size_t i);
+        virtual T& operator[](int i);
 
         /*! @brief Const index operator
             @param i index into vector
             @retval const reference to value at index i
         */
-        virtual const T& operator[](size_t i) const;
+        virtual const T& operator[](int i) const;
 
         /*! @brief Get the length of the vector
             @retval the length of the vector
         */
-        virtual size_t size() const;
+        virtual int size() const;
 
         /*! @brief Sets all entries to a scalar value
             @param val the value to set all entries to
@@ -149,11 +149,11 @@ class VectorView
         virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
 
     protected:
-        //void SetData(T* data, size_t size);
+        //void SetData(T* data, int size);
 
     private:
         T* data_;
-        size_t size_;
+        int size_;
 };
 
 template <typename T>
@@ -164,30 +164,33 @@ VectorView<T>::VectorView()
 }
 
 template <typename T>
-VectorView<T>::VectorView(T* data, size_t size)
+VectorView<T>::VectorView(T* data, int size)
     : data_(data), size_(size)
 {
-
+    assert(size_ >= 0);
+    assert(data_);
 }
 
 template <typename T>
 VectorView<T>::VectorView(VectorView<T>& vect) noexcept
     : data_(vect.data_), size_(vect.size_)
 {
-
+    assert(size_ >= 0);
+    assert(data_);
 }
 
 template <typename T>
 VectorView<T>::VectorView(std::vector<T>& vect) noexcept
     : data_(vect.data()), size_(vect.size())
 {
-
+    assert(size_ >= 0);
+    assert(data_);
 }
 
 template <typename T>
 VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
 {
-    Swap(*this, vect);
+    swap(*this, vect);
 }
 
 template <typename T>
@@ -209,7 +212,7 @@ VectorView<T>& VectorView<T>::operator=(VectorView<T>&& vect) noexcept
 }
 
 template <typename T2>
-void Swap(VectorView<T2>& lhs, VectorView<T2>& rhs)
+void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept
 {
     std::swap(lhs.data_, rhs.data_);
     std::swap(lhs.size_, rhs.size_);
@@ -248,7 +251,7 @@ const T* VectorView<T>::end() const
 }
 
 template <typename T>
-T& VectorView<T>::operator[](size_t i)
+T& VectorView<T>::operator[](int i)
 {
     assert(i < size_);
 
@@ -256,7 +259,7 @@ T& VectorView<T>::operator[](size_t i)
 }
 
 template <typename T>
-const T& VectorView<T>::operator[](size_t i) const
+const T& VectorView<T>::operator[](int i) const
 {
     assert(i < size_);
 
@@ -264,7 +267,7 @@ const T& VectorView<T>::operator[](size_t i) const
 }
 
 template <typename T>
-size_t VectorView<T>::size() const
+int VectorView<T>::size() const
 {
     return size_;
 }
@@ -274,7 +277,7 @@ void VectorView<T>::Print(const std::string& label, std::ostream& out) const
 {
     out << label << "\n";
 
-    for (size_t i = 0; i < size_; ++i)
+    for (int i = 0; i < size_; ++i)
     {
         out << data_[i] << "\n";
     }
@@ -287,7 +290,7 @@ VectorView<T>& VectorView<T>::Add(double alpha, const VectorView<T>& rhs)
 {
     assert(rhs.size_ == size_);
 
-    for (size_t i = 0; i < size_; ++i)
+    for (int i = 0; i < size_; ++i)
     {
         data_[i] += alpha * rhs[i];
     }
@@ -308,7 +311,7 @@ VectorView<T>& VectorView<T>::Sub(double alpha, const VectorView<T>& rhs)
 {
     assert(rhs.size_ == size_);
 
-    for (size_t i = 0; i < size_; ++i)
+    for (int i = 0; i < size_; ++i)
     {
         data_[i] -= alpha * rhs[i];
     }
@@ -391,9 +394,9 @@ VectorView<T>& operator*=(VectorView<T>& lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const size_t size = lhs.size();
+    const int size = lhs.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         lhs[i] *= rhs[i];
     }
@@ -410,9 +413,9 @@ VectorView<T>& operator/=(VectorView<T>& lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const size_t size = lhs.size();
+    const int size = lhs.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         assert(rhs[i] != 0.0);
 
@@ -431,9 +434,9 @@ VectorView<T>& operator+=(VectorView<T>& lhs, const VectorView<T2>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const size_t size = lhs.size();
+    const int size = lhs.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         lhs[i] += rhs[i];
     }
@@ -450,9 +453,9 @@ VectorView<T>& operator-=(VectorView<T>& lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
-    const size_t size = lhs.size();
+    const int size = lhs.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         lhs[i] -= rhs[i];
     }
@@ -535,10 +538,10 @@ bool operator==(const VectorView<T>& lhs, const VectorView<T2>& rhs)
         return false;
     }
 
-    const size_t size = lhs.size();
+    const int size = lhs.size();
     constexpr double tol = 1e-12;
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         if (std::fabs(lhs[i] - rhs[i]) > tol)
         {

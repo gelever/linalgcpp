@@ -32,47 +32,37 @@ class BlockOperator : public Operator
         BlockOperator();
 
         /*! @brief Square Constructor with given symmetric offsets*/
-        explicit BlockOperator(std::vector<size_t> offsets);
+        explicit BlockOperator(std::vector<int> offsets);
 
         /*! @brief Rectangle Constructor with given offsets*/
-        BlockOperator(std::vector<size_t> row_offsets, std::vector<size_t> col_offsets);
+        BlockOperator(std::vector<int> row_offsets, std::vector<int> col_offsets);
 
         /*! @brief Default deconstructor */
         ~BlockOperator() noexcept = default;
 
-        /*! @brief The number of rows in this matrix
-            @retval the number of rows
-        */
-        size_t Rows() const override;
-
-        /*! @brief The number of columns in this matrix
-            @retval the number of columns
-        */
-        size_t Cols() const override;
-
         /*! @brief Get the row offsets
             @retval the row offsets
         */
-        const std::vector<size_t>& GetRowOffsets() const;
+        const std::vector<int>& GetRowOffsets() const;
 
         /*! @brief Get the col offsets
             @retval the col offsets
         */
-        const std::vector<size_t>& GetColOffsets() const;
+        const std::vector<int>& GetColOffsets() const;
 
         /*! @brief Get a block
             @param i row index
             @param j column index
             @retval SparseMatrix at index (i, j)
         */
-        const Operator* GetBlock(size_t i, size_t j) const;
+        const Operator* GetBlock(int i, int j) const;
 
         /*! @brief Set a block
             @param i row index
             @param j column index
             @param SparseMatrix at index (i, j)
         */
-        void SetBlock(size_t i, size_t j, const Operator& op);
+        void SetBlock(int i, int j, const Operator& op);
 
         /*! @brief Get the transpose matrix
         */
@@ -87,13 +77,10 @@ class BlockOperator : public Operator
         using Operator::Mult;
 
     private:
-        std::vector<size_t> row_offsets_;
-        std::vector<size_t> col_offsets_;
+        std::vector<int> row_offsets_;
+        std::vector<int> col_offsets_;
 
         std::vector<std::vector<const Operator*>> A_;
-
-        size_t rows_;
-        size_t cols_;
 
         mutable BlockVector<double> x_;
         mutable BlockVector<double> y_;

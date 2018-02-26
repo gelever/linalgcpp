@@ -62,7 +62,7 @@ class LilMatrix : public Operator
             @param rhs right hand side matrix
         */
         template <typename T2>
-        friend void Swap(LilMatrix<T2>& lhs, LilMatrix<T2>& rhs);
+        friend void swap(LilMatrix<T2>& lhs, LilMatrix<T2>& rhs) noexcept;
 
         /*! @brief Get the number of rows.
             @retval the number of rows
@@ -71,7 +71,7 @@ class LilMatrix : public Operator
             creation, then the number of rows is determined
             by the maximum element.
         */
-        size_t Rows() const override;
+        int Rows() const override;
 
         /*! @brief Get the number of columns.
             @retval the number of columns
@@ -80,13 +80,13 @@ class LilMatrix : public Operator
             creation, then the number of columns is determined
             by the maximum element
         */
-        size_t Cols() const override;
+        int Cols() const override;
 
         /*! @brief Set the size of the matrix
             @param rows the number of rows
             @param cols the number of columns
         */
-        void SetSize(size_t rows, size_t cols);
+        void SetSize(int rows, int cols);
 
         /*! @brief Add an entry to the matrix
             @param i row index
@@ -162,10 +162,7 @@ class LilMatrix : public Operator
         void EliminateZeros(double tolerance = 0);
 
     private:
-        std::tuple<size_t, size_t> FindSize() const;
-
-        size_t rows_;
-        size_t cols_;
+        std::tuple<int, int> FindSize() const;
 
         bool size_set_;
 
@@ -174,7 +171,7 @@ class LilMatrix : public Operator
 
 template <typename T>
 LilMatrix<T>::LilMatrix()
-    : rows_(0), cols_(0), size_set_(false)
+    : size_set_(false)
 {
 }
 
@@ -186,15 +183,14 @@ LilMatrix<T>::LilMatrix(int size) : LilMatrix(size, size)
 
 template <typename T>
 LilMatrix<T>::LilMatrix(int rows, int cols)
-    : rows_(rows), cols_(cols), size_set_(true), entries_(rows_)
+    : Operator(rows, cols), size_set_(true), entries_(rows_)
 {
-    assert(rows >= 0);
-    assert(cols >= 0);
+
 }
 
 template <typename T>
 LilMatrix<T>::LilMatrix(const LilMatrix& other) noexcept
-    : rows_(other.rows_), cols_(other.cols_),
+    : Operator(other),
       size_set_(other.size_set_), entries_(other.entries_)
 {
 
@@ -203,46 +199,46 @@ LilMatrix<T>::LilMatrix(const LilMatrix& other) noexcept
 template <typename T>
 LilMatrix<T>::LilMatrix(LilMatrix&& other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 }
 
 template <typename T>
 LilMatrix<T>& LilMatrix<T>::operator=(LilMatrix other) noexcept
 {
-    Swap(*this, other);
+    swap(*this, other);
 
     return *this;
 }
 
 template <typename T>
-void Swap(LilMatrix<T>& lhs, LilMatrix<T>& rhs)
+void swap(LilMatrix<T>& lhs, LilMatrix<T>& rhs) noexcept
 {
-    std::swap(lhs.rows_, rhs.rows_);
-    std::swap(lhs.cols_, rhs.cols_);
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
     std::swap(lhs.size_set_, rhs.size_set_);
     std::swap(lhs.entries_, rhs.entries_);
 }
 
 template <typename T>
-size_t LilMatrix<T>::Rows() const
+int LilMatrix<T>::Rows() const
 {
-    size_t rows;
+    int rows;
     std::tie(rows, std::ignore) = FindSize();
 
     return rows;
 }
 
 template <typename T>
-size_t LilMatrix<T>::Cols() const
+int LilMatrix<T>::Cols() const
 {
-    size_t cols;
+    int cols;
     std::tie(std::ignore, cols) = FindSize();
 
     return cols;
 }
 
 template <typename T>
-void LilMatrix<T>::SetSize(size_t rows, size_t cols)
+void LilMatrix<T>::SetSize(int rows, int cols)
 {
     size_set_ = true;
 
@@ -259,8 +255,8 @@ void LilMatrix<T>::Add(int i, int j, T val)
 
     if (size_set_)
     {
-        assert(static_cast<size_t>(i) < rows_);
-        assert(static_cast<size_t>(j) < cols_);
+        assert(i < rows_);
+        assert(j < cols_);
     }
     else if (static_cast<size_t>(i) >= entries_.size())
     {
@@ -321,15 +317,15 @@ DenseMatrix LilMatrix<T>::ToDense() const
         return DenseMatrix();
     }
 
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
     DenseMatrix dense(rows, cols);
 
-    const size_t size = entries_.size();
+    const int size = entries_.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         for (const auto& node : entries_[i])
         {
@@ -344,8 +340,8 @@ template <typename T>
 template <typename T2>
 SparseMatrix<T2> LilMatrix<T>::ToSparse() const
 {
-    size_t rows;
-    size_t cols;
+    int rows;
+    int cols;
     std::tie(rows, cols) = FindSize();
 
     if (entries_.size() == 0)
@@ -353,14 +349,14 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
         return SparseMatrix<T2>(rows, cols);
     }
 
-    const size_t size = entries_.size();
+    const int size = entries_.size();
 
     for (auto& row : entries_)
     {
         row.sort();
     }
 
-    const size_t nnz = entries_.size();
+    const int nnz = entries_.size();
 
     std::vector<int> indptr(rows + 1, 0);
     std::vector<int> indices;
@@ -371,16 +367,17 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
 
     indptr[0] = 0;
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
-        const size_t current_row = static_cast<size_t>(indptr[i]);
+        const int current_row = indptr[i];
 
         for (const auto& node : entries_[i])
         {
             const int& j = node.first;
             const T& val = node.second;
 
-            if (indices.size() != current_row && j == indices.back())
+            if (static_cast<int>(indices.size()) != current_row
+                && j == indices.back())
             {
                 data.back() += val;
             }
@@ -405,9 +402,9 @@ void LilMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& out
 
     output = 0;
 
-    const size_t size = entries_.size();
+    const int size = entries_.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         const auto& list = entries_[i];
 
@@ -429,9 +426,9 @@ void LilMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& o
 
     output = 0;
 
-    const size_t size = entries_.size();
+    const int size = entries_.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         const auto& list = entries_[i];
 
@@ -450,9 +447,9 @@ void LilMatrix<T>::Print(const std::string& label, std::ostream& out) const
 {
     out << label << "\n";
 
-    const size_t size = entries_.size();
+    const int size = entries_.size();
 
-    for (size_t i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         const auto& list = entries_[i];
 
@@ -483,14 +480,14 @@ void LilMatrix<T>::EliminateZeros(double tolerance)
 }
 
 template <typename T>
-std::tuple<size_t, size_t> LilMatrix<T>::FindSize() const
+std::tuple<int, int> LilMatrix<T>::FindSize() const
 {
     if (size_set_)
     {
-        return std::tuple<size_t, size_t> {rows_, cols_};
+        return std::tuple<int, int> {rows_, cols_};
     }
 
-    const size_t rows = entries_.size();
+    const int rows = entries_.size();
     int cols = 0;
 
     for (const auto& row : entries_)
@@ -501,7 +498,7 @@ std::tuple<size_t, size_t> LilMatrix<T>::FindSize() const
         }
     }
 
-    return std::tuple<size_t, size_t> {rows + 1, cols + 1};
+    return std::tuple<int, int> {rows + 1, cols + 1};
 }
 
 } // namespace linalgcpp
