@@ -124,6 +124,18 @@ class SparseMatrix : public Operator
         */
         std::vector<int> GetIndices(int row) const;
 
+        /*! @brief Get view of the indices from one row
+            @param row the row to get
+            @retval indices the indices from one row
+        */
+        VectorView<int> GetIndicesView(int row);
+
+        /*! @brief Get view of the indices from one row
+            @param row the row to get
+            @retval indices the indices from one row
+        */
+        const VectorView<int>& GetIndicesView(int row) const;
+
         /*! @brief Get the entries from one row
             @param row the row to get
             @retval the data from one row
@@ -186,31 +198,43 @@ class SparseMatrix : public Operator
         template <typename T2 = T, typename T3 = T>
         void MultAT(const VectorView<T2>& input, VectorView<T3>& output) const;
 
-        /*! @brief Multiplies a dense matrix: AX = Y
-            @param input the input dense matrix X
-            @retval output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix: AB = C
+            @param input the input dense matrix B
+            @retval output the output dense matrix C
         */
         DenseMatrix Mult(const DenseMatrix& input) const;
 
         /*! @brief Multiplies a dense matrix by the transpose
-            of this matrix: A^T X = Y
-            @param input the input dense matrix X
-            @retval output the output dense matrix Y
+            of this matrix: A^T B = C
+            @param input the input dense matrix B
+            @retval output the output dense matrix C
         */
         DenseMatrix MultAT(const DenseMatrix& input) const;
 
-        /*! @brief Multiplies a dense matrix: AX = Y
-            @param input the input dense matrix X
-            @retval output the output dense matrix Y
+        /*! @brief Multiplies a dense matrix and stores the result transposed: A B = C^T
+            @param input the input dense matrix B
+            @retval output the output dense matrix C
+        */
+        DenseMatrix MultCT(const DenseMatrix& input) const;
+
+        /*! @brief Multiplies a dense matrix: AB = C
+            @param input the input dense matrix B
+            @retval output the output dense matrix C
         */
         void Mult(const DenseMatrix& input, DenseMatrix& output) const;
 
         /*! @brief Multiplies a dense matrix by the transpose
-            of this matrix: A^T X = Y
-            @param input the input dense matrix X
-            @param output the output dense matrix Y
+            of this matrix: A^T B = C
+            @param input the input dense matrix B
+            @param output the output dense matrix C
         */
         void MultAT(const DenseMatrix& input, DenseMatrix& output) const;
+
+        /*! @brief Multiplies a dense matrix and stores the result transposed: A B = C^T
+            @param input the input dense matrix B
+            @param output the output dense matrix C
+        */
+        void MultCT(const DenseMatrix& input, DenseMatrix& output) const;
 
         /*! @brief Multiplies a sparse matrix: AB = C
             @param rhs the input sparse matrix B
@@ -286,6 +310,26 @@ class SparseMatrix : public Operator
             @retval sum Sum of all data
         */
         T Sum() const;
+
+        /*! @brief Scale rows by diagonal matrix
+            @param values scale per row
+        */
+        void ScaleRows(const SparseMatrix<T>& values);
+
+        /*! @brief Scale cols by diagonal matrix
+            @param values scale per cols
+        */
+        void ScaleCols(const SparseMatrix<T>& values);
+
+        /*! @brief Scale rows by inverse of diagonal matrix
+            @param values scale per row
+        */
+        void InverseScaleRows(const SparseMatrix<T>& values);
+
+        /*! @brief Scale cols by inverse of diagonal matrix
+            @param values scale per cols
+        */
+        void InverseScaleCols(const SparseMatrix<T>& values);
 
         /*! @brief Scale rows by given values
             @param values scale per row
@@ -510,6 +554,15 @@ DenseMatrix SparseMatrix<T>::MultAT(const DenseMatrix& input) const
 }
 
 template <typename T>
+DenseMatrix SparseMatrix<T>::MultCT(const DenseMatrix& input) const
+{
+    DenseMatrix output(input.Cols(), rows_);
+    MultCT(input, output);
+
+    return output;
+}
+
+template <typename T>
 void SparseMatrix<T>::Mult(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(input.Rows() == cols_);
@@ -551,6 +604,31 @@ void SparseMatrix<T>::MultAT(const DenseMatrix& input, DenseMatrix& output) cons
             {
                 output(indices_[j], k) += data_[j] * input(i, k);
             }
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::MultCT(const DenseMatrix& input, DenseMatrix& output) const
+{
+    assert(input.Rows() == cols_);
+    assert(output.Rows() == input.Cols());
+    assert(output.Cols() == rows_);
+
+    output = 0.0;
+
+    for (int k = 0; k < input.Cols(); ++k)
+    {
+        for (int i = 0; i < rows_; ++i)
+        {
+            double val = 0.0;
+
+            for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+            {
+                val += data_[j] * input(indices_[j], k);
+            }
+
+            output(k, i) = val;
         }
     }
 }
@@ -689,6 +767,8 @@ SparseMatrix<T> SparseMatrix<T>::GetSubMatrix(const std::vector<int>& rows,
     {
         const int row = rows[i];
 
+        assert(row < rows_);
+
         for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
         {
             if (marker[indices_[j]] != -1)
@@ -787,6 +867,36 @@ std::vector<int> SparseMatrix<T>::GetIndices(int row) const
     const int end = indptr_[row + 1];
 
     return std::vector<int>(begin(indices_) + start, begin(indices_) + end);
+}
+
+template <typename T>
+inline
+VectorView<int> SparseMatrix<T>::GetIndicesView(int row)
+{
+    assert(row >= 0 && row < rows_);
+
+    const int start = indptr_[row];
+    const int end = indptr_[row + 1];
+    const int size = end - start;
+
+    int* data = indices_.data() + start;
+
+    return VectorView<int>{data, size};
+}
+
+template <typename T>
+inline
+const VectorView<int>& SparseMatrix<T>::GetIndicesView(int row) const
+{
+    assert(row >= 0 && row < rows_);
+
+    const int start = indptr_[row];
+    const int end = indptr_[row + 1];
+    const int size = end - start;
+
+    int* data = const_cast<int*>(indices_.data()) + start;
+
+    return VectorView<int>{data, size};
 }
 
 template <typename T>
@@ -1019,6 +1129,30 @@ T SparseMatrix<T>::Sum() const
 {
     T sum = std::accumulate(std::begin(data_), std::end(data_), (T)0);
     return sum;
+}
+
+template <typename T>
+void SparseMatrix<T>::ScaleRows(const SparseMatrix<T>& values)
+{
+    ScaleRows(values.GetData());
+}
+
+template <typename T>
+void SparseMatrix<T>::ScaleCols(const SparseMatrix<T>& values)
+{
+    ScaleCols(values.GetData());
+}
+
+template <typename T>
+void SparseMatrix<T>::InverseScaleRows(const SparseMatrix<T>& values)
+{
+    InverseScaleRows(values.GetData());
+}
+
+template <typename T>
+void SparseMatrix<T>::InverseScaleCols(const SparseMatrix<T>& values)
+{
+    InverseScaleCols(values.GetData());
 }
 
 template <typename T>

@@ -68,6 +68,46 @@ class DenseMatrix : public Operator
         */
         friend void swap(DenseMatrix& lhs, DenseMatrix& rhs) noexcept;
 
+        /*! @brief Get Data pointer */
+        double* GetData();
+
+        /*! @brief Get Data pointer */
+        const double* GetData() const;
+
+        /*! @brief Copies data to input array
+            @param data copied data
+        */
+        void CopyData(std::vector<double>& data) const;
+
+        /*! @brief Square Resizes Matrix
+            @param size square size to set
+
+            @warning new entries not initialized!
+        */
+        void Resize(int size);
+
+        /*! @brief Square Resizes Matrix and sets new values if 
+                   new size is larger than previous
+            @param size square size to set
+            @param val values of new entries
+        */
+        void Resize(int size, double val);
+
+        /*! @brief Rectangle Resizes Matrix
+            @param size square size to set
+
+            @warning new entries not initialized!
+        */
+        void Resize(int rows, int cols);
+
+        /*! @brief Rectangle Resizes Matrix and sets new values if 
+                   new size is larger than previous
+            @param size square size to set
+            @param val values of new entries
+        */
+        void Resize(int rows, int cols, double val);
+
+
         /*! @brief Computes the sum of all entries
             @retval the sum of all entries
         */
@@ -409,21 +449,6 @@ class DenseMatrix : public Operator
         */
         void SetSubMatrix(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense);
 
-        /*! @brief Solve eigenvalue problem AQ = LQ,
-                   where Q are eigenvectors and L is eigenvalues
-                   A is replaced with the computed eigenvectors
-            @warning this replaces this matrix with the eigenvectors!
-            @returns eigenvalues the computed eigenvalues
-        */
-        std::vector<double> EigenSolve();
-
-        /*! @brief Solve eigenvalue problem AQ = LQ,
-                   where Q are eigenvectors and L is eigenvalues
-            @param[out] eigenvectors DenseMatrix to hold the computed eigenvectors
-            @returns eigenvalues the computed eigenvalues
-        */
-        std::vector<double> EigenSolve(DenseMatrix& eigenvectors) const;
-
         /*! @brief Compute singular values and vectors A = U * S * VT
                    Where S is returned and A is replaced with VT
             @warning this replaces this matrix with U!
@@ -502,6 +527,18 @@ const double& DenseMatrix::operator()(int row, int col) const
     assert(col < cols_);
 
     return data_[row + (col * rows_)];
+}
+
+inline
+double* DenseMatrix::GetData()
+{
+    return data_.data();
+}
+
+inline
+const double* DenseMatrix::GetData() const
+{
+    return data_.data();
 }
 
 inline

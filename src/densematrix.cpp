@@ -8,10 +8,6 @@ extern "C"
                 const double* B, const int* ldb, const double* beta,
                 double* C, const int* ldc);
 
-    void dsyevd_(const char* jobz, const char* uplo, const int* n,
-                 double* A, const int* lda, double* w, double* work,
-                 const int* lwork, int* iwork, const int* liwork, int* info);
-
     void dgesvd_(const char* jobu, const char* jobvt, const int* m, const int* n,
                  double* A, const int* lda, double* S, double* U, const int* ldu,
                  double* VT, const int* ldvt, double* work, const int* lwork, int* info);
@@ -28,7 +24,6 @@ namespace linalgcpp
 {
 
 DenseMatrix::DenseMatrix()
-    : DenseMatrix(0)
 {
 }
 
@@ -73,6 +68,42 @@ void swap(DenseMatrix& lhs, DenseMatrix& rhs) noexcept
     swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
 
     std::swap(lhs.data_, rhs.data_);
+}
+
+void DenseMatrix::CopyData(std::vector<double>& data) const
+{
+    data.resize(data_.size());
+    std::copy(std::begin(data_), std::end(data_), std::begin(data));
+}
+
+void DenseMatrix::Resize(int size)
+{
+    Resize(size, size);
+}
+
+void DenseMatrix::Resize(int rows, int cols)
+{
+    assert(rows >= 0);
+    assert(cols >= 0);
+
+    rows_ = rows;
+    cols_ = cols;
+    data_.resize(rows * cols);
+}
+
+void DenseMatrix::Resize(int size, double val)
+{
+    Resize(size, size, val);
+}
+
+void DenseMatrix::Resize(int rows, int cols, double val)
+{
+    assert(rows >= 0);
+    assert(cols >= 0);
+
+    rows_ = rows;
+    cols_ = cols;
+    data_.resize(rows * cols, val);
 }
 
 
@@ -452,48 +483,6 @@ void DenseMatrix::SetSubMatrix(int start_i, int start_j, int end_i, int end_j, c
             (*this)(i + start_i, j + start_j) = dense(i, j);
         }
     }
-}
-
-std::vector<double> DenseMatrix::EigenSolve(DenseMatrix& eigenvectors) const
-{
-    eigenvectors = *this;
-
-    return eigenvectors.EigenSolve();
-}
-
-std::vector<double> DenseMatrix::EigenSolve()
-{
-    assert(Rows() == Cols());
-
-    const int size = Rows();
-    std::vector<double> eigenvalues(size);
-
-    const char* jobz = "V";
-    const char* uplo = "U";
-    const int* n = &size;
-    double* A = data_.data();
-    const int* lda = &size;
-    double* w = eigenvalues.data();
-    int info;
-
-    int lwork = -1;
-    int liwork = -1;
-    double qwork;
-    int qiwork;
-
-    dsyevd_(jobz, uplo, n, A, lda, w, &qwork, &lwork, &qiwork, &liwork, &info);
-
-    lwork = static_cast<int>(qwork);
-    liwork = qiwork;
-
-    std::vector<double> work(lwork);
-    std::vector<int> iwork(liwork);
-
-    dsyevd_(jobz, uplo, n, A, lda, w, work.data(), &lwork, iwork.data(), &liwork, &info);
-
-    assert(info == 0);
-
-    return eigenvalues;
 }
 
 std::vector<double> DenseMatrix::SVD(DenseMatrix& U) const
