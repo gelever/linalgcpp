@@ -38,6 +38,18 @@ class BlockMatrix : public Operator
         /*! @brief Rectangle Constructor with given offsets*/
         BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_offsets);
 
+        /*! @brief Copy deconstructor */
+        BlockMatrix(const BlockMatrix<T>& other) noexcept;
+
+        /*! @brief Move deconstructor */
+        BlockMatrix(BlockMatrix<T>&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        BlockMatrix& operator=(BlockMatrix<T> other) noexcept;
+
+        template <typename U>
+        friend void swap(BlockMatrix<U>& lhs, BlockMatrix<U>& rhs) noexcept;
+
         /*! @brief Default deconstructor */
         ~BlockMatrix() noexcept = default;
 
@@ -122,6 +134,38 @@ BlockMatrix<T>::BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_o
       A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1))
 {
 
+}
+
+template <typename T>
+BlockMatrix<T>::BlockMatrix(const BlockMatrix<T>& other) noexcept
+    : Operator(other), row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
+      A_(other.A_)
+{
+
+}
+
+template <typename T>
+BlockMatrix<T>::BlockMatrix(BlockMatrix<T>&& other) noexcept
+{
+    swap(*this, other);
+}
+
+template <typename T>
+BlockMatrix<T>& BlockMatrix<T>::operator=(BlockMatrix<T> other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+template <typename T>
+void swap(BlockMatrix<T>& lhs, BlockMatrix<T>& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
+    swap(lhs.row_offsets_, rhs.row_offsets_);
+    swap(lhs.col_offsets_, rhs.col_offsets_);
+    swap(lhs.A_, rhs.A_);
 }
 
 template <typename T>

@@ -28,8 +28,13 @@ class Operator
         /*! @brief Rectangle Constructor */
         Operator(int rows, int cols);
 
+        /*! @brief Copy Constructor */
         Operator(const Operator&) noexcept;
+
+        /*! @brief Move Constructor */
         Operator(Operator&&) noexcept;
+
+        /*! @brief Assignement Operator */
         Operator& operator=(Operator&&) noexcept;
 
         /*! @brief Destructor */

@@ -29,6 +29,31 @@ BlockOperator::BlockOperator(std::vector<int> row_offsets, std::vector<int> col_
 
 }
 
+BlockOperator::BlockOperator(const BlockOperator& other) noexcept
+    : Operator(other), 
+      row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
+      A_(other.A_), x_(other.x_), y_(other.y_)
+{
+
+}
+
+BlockOperator::BlockOperator(BlockOperator&& other) noexcept
+{
+    swap(*this, other);
+}
+
+void swap(BlockOperator& lhs, BlockOperator& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
+    swap(lhs.row_offsets_, rhs.row_offsets_);
+    swap(lhs.col_offsets_, rhs.col_offsets_);
+    swap(lhs.A_, rhs.A_);
+    swap(lhs.x_, rhs.x_);
+    swap(lhs.y_, rhs.y_);
+}
+
+
 const std::vector<int>& BlockOperator::GetRowOffsets() const
 {
     return row_offsets_;
