@@ -177,16 +177,16 @@ class DenseMatrix : public Operator
             @param input the input vector x
             @param output the output vector y
         */
-        template <typename T, typename T2>
-        void Mult(const VectorView<T>& input, VectorView<T2>& output) const;
+        template <typename T, typename U>
+        void Mult(const VectorView<T>& input, VectorView<U>& output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
-        template <typename T, typename T2>
-        void MultAT(const VectorView<T>& input, VectorView<T2>& output) const;
+        template <typename T, typename U>
+        void MultAT(const VectorView<T>& input, VectorView<U>& output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -575,8 +575,8 @@ Vector<double> DenseMatrix::Mult(const VectorView<T>& input) const
     return output;
 }
 
-template <typename T, typename T2>
-void DenseMatrix::Mult(const VectorView<T>& input, VectorView<T2>& output) const
+template <typename T, typename U>
+void DenseMatrix::Mult(const VectorView<T>& input, VectorView<U>& output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -601,15 +601,15 @@ Vector<double> DenseMatrix::MultAT(const VectorView<T>& input) const
     return output;
 }
 
-template <typename T, typename T2>
-void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<T2>& output) const
+template <typename T, typename U>
+void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<U>& output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
 
     for (int j = 0; j < cols_; ++j)
     {
-        T2 val = 0;
+        U val = 0;
 
         for (int i = 0; i < rows_; ++i)
         {

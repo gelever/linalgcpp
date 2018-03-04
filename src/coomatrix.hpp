@@ -64,8 +64,8 @@ class CooMatrix : public Operator
             @param lhs left hand side matrix
             @param rhs right hand side matrix
         */
-        template <typename T2>
-        friend void swap(CooMatrix<T2>& lhs, CooMatrix<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(CooMatrix<U>& lhs, CooMatrix<U>& rhs) noexcept;
 
         /*! @brief Set the size of the matrix
             @param rows the number of rows
@@ -126,8 +126,8 @@ class CooMatrix : public Operator
             @note Multiple entries for a single coordinate
             are summed together
         */
-        template <typename T2 = T>
-        SparseMatrix<T2> ToSparse() const;
+        template <typename U = T>
+        SparseMatrix<U> ToSparse() const;
 
         /*! @brief Generate a dense matrix from the entries
             @retval DenseMatrix containing all the entries
@@ -136,6 +136,14 @@ class CooMatrix : public Operator
             are summed together
         */
         DenseMatrix ToDense() const;
+
+        /*! @brief Generate a dense matrix from the entries
+            @param DenseMatrix containing all the entries
+
+            @note Multiple entries for a single coordinate
+            are summed together
+        */
+        void ToDense(DenseMatrix& dense) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
@@ -292,16 +300,22 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
-    if (entries_.size() == 0)
-    {
-        return DenseMatrix();
-    }
+    DenseMatrix dense;
+    ToDense(dense);
+
+    return dense;
+}
+
+template <typename T>
+void CooMatrix<T>::ToDense(DenseMatrix& dense) const
+{
 
     int rows;
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    DenseMatrix dense(rows, cols);
+    dense.Resize(rows, cols);
+    dense = 0.0;
 
     for (const auto& entry : entries_)
     {
@@ -311,8 +325,6 @@ DenseMatrix CooMatrix<T>::ToDense() const
 
         dense(i, j) += val;
     }
-
-    return dense;
 }
 
 template <typename T>
@@ -363,8 +375,8 @@ void CooMatrix<T>::PermuteRowsCols(const std::vector<int>& row_perm, const std::
 }
 
 template <typename T>
-template <typename T2>
-SparseMatrix<T2> CooMatrix<T>::ToSparse() const
+template <typename U>
+SparseMatrix<U> CooMatrix<T>::ToSparse() const
 {
     int rows;
     int cols;
@@ -374,14 +386,14 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 
     if (entries_.size() == 0)
     {
-        return SparseMatrix<T2>(rows, cols);
+        return SparseMatrix<U>(rows, cols);
     }
 
     const size_t nnz = entries_.size();
 
     std::vector<int> indptr(rows + 1, 0);
     std::vector<int> indices;
-    std::vector<T2> data;
+    std::vector<U> data;
 
     indices.reserve(nnz);
     data.reserve(nnz);
@@ -394,7 +406,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     {
         const int i = std::get<0>(tup);
         const int j = std::get<1>(tup);
-        const T2 val = std::get<2>(tup);
+        const U val = std::get<2>(tup);
 
         // Set Indptr if at new row
         if (i != current_row)
@@ -422,7 +434,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     std::fill(begin(indptr) + current_row + 1,
               end(indptr), data.size());
 
-    return SparseMatrix<T2>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
+    return SparseMatrix<U>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
 
 template <typename T>

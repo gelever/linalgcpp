@@ -163,8 +163,8 @@ void swap(BlockMatrix<T>& lhs, BlockMatrix<T>& rhs) noexcept
 {
     swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
 
-    swap(lhs.row_offsets_, rhs.row_offsets_);
-    swap(lhs.col_offsets_, rhs.col_offsets_);
+    std::swap(lhs.row_offsets_, rhs.row_offsets_);
+    std::swap(lhs.col_offsets_, rhs.col_offsets_);
     swap(lhs.A_, rhs.A_);
 }
 
@@ -283,7 +283,7 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
         }
     }
 
-    return SparseMatrix<T>(indptr, indices, data, rows_, cols_);
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data), rows_, cols_);
 }
 
 template <typename T>

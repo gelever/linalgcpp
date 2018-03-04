@@ -165,6 +165,11 @@ class SparseMatrix : public Operator
         */
         DenseMatrix ToDense() const;
 
+        /*! @brief Generate a dense version of this matrix
+            @param dense holds the dense version of this matrix
+        */
+        void ToDense(DenseMatrix& dense) const;
+
         /*! @brief Sort the column indices in each row */
         void SortIndices();
 
@@ -485,6 +490,17 @@ DenseMatrix SparseMatrix<T>::ToDense() const
 {
     DenseMatrix dense(rows_, cols_);
 
+    ToDense(dense);
+
+    return dense;
+}
+
+template <typename T>
+void SparseMatrix<T>::ToDense(DenseMatrix& dense) const
+{
+    dense.Resize(rows_, cols_);
+    dense = 0.0;
+
     for (int i = 0; i < rows_; ++i)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
@@ -492,8 +508,6 @@ DenseMatrix SparseMatrix<T>::ToDense() const
             dense(i, indices_[j]) = data_[j];
         }
     }
-
-    return dense;
 }
 
 template <typename T>
@@ -804,7 +818,7 @@ SparseMatrix<T> SparseMatrix<T>::GetSubMatrix(const std::vector<int>& rows,
         marker[i] = -1;
     }
 
-    return SparseMatrix<T>(out_indptr, out_indices, out_data,
+    return SparseMatrix<T>(std::move(out_indptr), std::move(out_indices), std::move(out_data),
                            out_rows, out_cols);
 }
 

@@ -75,8 +75,8 @@ class Vector : public VectorView<T>
             @param lhs left hand side vector
             @param rhs right hand side vector
         */
-        template <typename T2>
-        friend void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(Vector<U>& lhs, Vector<U>& rhs) noexcept;
 
         using VectorView<T>::operator=;
         virtual T Mult(const VectorView<T>& vect) const override;
@@ -181,10 +181,10 @@ Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
     return *this;
 }
 
-template <typename T2>
-void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept
+template <typename U>
+void swap(Vector<U>& lhs, Vector<U>& rhs) noexcept
 {
-    swap(static_cast<VectorView<T2>&>(lhs), static_cast<VectorView<T2>&>(rhs));
+    swap(static_cast<VectorView<U>&>(lhs), static_cast<VectorView<U>&>(rhs));
     std::swap(lhs.data_, rhs.data_);
 }
 

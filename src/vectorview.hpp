@@ -58,8 +58,8 @@ class VectorView
             @param lhs left hand side vector
             @param rhs right hand side vector
         */
-        template <typename T2>
-        friend void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(VectorView<U>& lhs, VectorView<U>& rhs) noexcept;
 
         /*! @brief STL like begin. Points to start of data
             @retval pointer to the start of data
@@ -211,8 +211,8 @@ VectorView<T>& VectorView<T>::operator=(VectorView<T>&& vect) noexcept
     return *this;
 }
 
-template <typename T2>
-void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept
+template <typename U>
+void swap(VectorView<U>& lhs, VectorView<U>& rhs) noexcept
 {
     std::swap(lhs.data_, rhs.data_);
     std::swap(lhs.size_, rhs.size_);
@@ -332,8 +332,8 @@ VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
     @param rhs right hand side vector y
     @retval the inner product
 */
-template <typename T, typename T2>
-double InnerProduct(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+double InnerProduct(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     return lhs.Mult(rhs);
 }
@@ -379,8 +379,8 @@ double L2Norm(const VectorView<T>& vect)
     @param rhs right hand side vector y
     @retval the inner product
 */
-template <typename T, typename T2>
-double operator*(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+double operator*(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     return InnerProduct(lhs, rhs);
 }
@@ -429,8 +429,8 @@ VectorView<T>& operator/=(VectorView<T>& lhs, const VectorView<T>& rhs)
     @param lhs left hand side vector x
     @param rhs right hand side vector y
 */
-template <typename T, typename T2>
-VectorView<T>& operator+=(VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+VectorView<T>& operator+=(VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
@@ -530,8 +530,8 @@ VectorView<T>& operator-=(VectorView<T>& lhs, T val)
     @param rhs right hand side vector
     @retval true if vectors are close enough to equal
 */
-template <typename T, typename T2>
-bool operator==(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+bool operator==(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     if (lhs.size() != rhs.size())
     {

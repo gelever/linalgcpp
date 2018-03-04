@@ -61,8 +61,8 @@ class LilMatrix : public Operator
             @param lhs left hand side matrix
             @param rhs right hand side matrix
         */
-        template <typename T2>
-        friend void swap(LilMatrix<T2>& lhs, LilMatrix<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(LilMatrix<U>& lhs, LilMatrix<U>& rhs) noexcept;
 
         /*! @brief Get the number of rows.
             @retval the number of rows
@@ -125,8 +125,8 @@ class LilMatrix : public Operator
             @note Multiple entries for a single coordinate
             are summed together
         */
-        template <typename T2 = T>
-        SparseMatrix<T2> ToSparse() const;
+        template <typename U = T>
+        SparseMatrix<U> ToSparse() const;
 
         /*! @brief Generate a dense matrix from the entries
             @retval DenseMatrix containing all the entries
@@ -135,6 +135,14 @@ class LilMatrix : public Operator
             are summed together
         */
         DenseMatrix ToDense() const;
+
+        /*! @brief Generate a dense matrix from the entries
+            @param DenseMatrix containing all the entries
+
+            @note Multiple entries for a single coordinate
+            are summed together
+        */
+        void ToDense(DenseMatrix& dense) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
@@ -312,16 +320,22 @@ void LilMatrix<T>::Add(const std::vector<int>& rows,
 template <typename T>
 DenseMatrix LilMatrix<T>::ToDense() const
 {
-    if (entries_.size() == 0)
-    {
-        return DenseMatrix();
-    }
+    DenseMatrix dense;
+    ToDense(dense);
+
+    return dense;
+}
+
+template <typename T>
+void LilMatrix<T>::ToDense(DenseMatrix& dense) const
+{
 
     int rows;
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    DenseMatrix dense(rows, cols);
+    dense.Resize(rows, cols);
+    dense = 0.0;
 
     const int size = entries_.size();
 
@@ -332,13 +346,11 @@ DenseMatrix LilMatrix<T>::ToDense() const
             dense(i, node.first) += node.second;
         }
     }
-
-    return dense;
 }
 
 template <typename T>
-template <typename T2>
-SparseMatrix<T2> LilMatrix<T>::ToSparse() const
+template <typename U>
+SparseMatrix<U> LilMatrix<T>::ToSparse() const
 {
     int rows;
     int cols;
@@ -346,7 +358,7 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
 
     if (entries_.size() == 0)
     {
-        return SparseMatrix<T2>(rows, cols);
+        return SparseMatrix<U>(rows, cols);
     }
 
     const int size = entries_.size();
@@ -360,7 +372,7 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
 
     std::vector<int> indptr(rows + 1, 0);
     std::vector<int> indices;
-    std::vector<T2> data;
+    std::vector<U> data;
 
     indices.reserve(nnz);
     data.reserve(nnz);
@@ -391,7 +403,7 @@ SparseMatrix<T2> LilMatrix<T>::ToSparse() const
         indptr[i + 1] = data.size();
     }
 
-    return SparseMatrix<T2>(indptr, indices, data, rows, cols);
+    return SparseMatrix<U>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
 
 template <typename T>
