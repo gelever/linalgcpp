@@ -97,5 +97,33 @@ void Operator::MultAT(const VectorView<double>& input, VectorView<double>& outpu
     throw std::runtime_error("The operator MultAT not defined!\n");
 }
 
+template <typename T>
+inline
+int SumCols(const std::vector<T>& ops)
+{
+    int total = 0;
+
+    for (const auto& op : ops)
+    {
+        total += op.Cols();
+    }
+
+    return total;
+}
+
+template <typename T>
+inline
+int SumRows(const std::vector<T>& ops)
+{
+    int total = 0;
+
+    for (const auto& op : ops)
+    {
+        total += op.Rows();
+    }
+
+    return total;
+}
+
 }
 #endif // OPERATOR_HPP__

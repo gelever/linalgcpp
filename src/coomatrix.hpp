@@ -73,6 +73,11 @@ class CooMatrix : public Operator
         */
         void SetSize(int rows, int cols);
 
+        /*! @brief Reserve space for entries
+            @param size the number of entries
+        */
+        void Reserve(int size);
+
         /*! @brief Add an entry to the matrix
             @param i row index
             @param j column index
@@ -236,6 +241,14 @@ void CooMatrix<T>::SetSize(int rows, int cols)
 
     rows_ = rows;
     cols_ = cols;
+}
+
+template <typename T>
+void CooMatrix<T>::Reserve(int size)
+{
+    assert(size >= 0);
+
+    entries_.reserve(size);
 }
 
 template <typename T>
