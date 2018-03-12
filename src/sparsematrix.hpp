@@ -361,6 +361,12 @@ class SparseMatrix : public Operator
         */
         void PermuteCols(const std::vector<int>& perm);
 
+        /*! @brief Eliminate a row and column and replace diagonal
+                   value by 1
+            @param index row and column to eliminate
+        */
+        void EliminateRowCol(int index);
+
         /// Operator Requirement, calls the templated Mult
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
         /// Operator Requirement, calls the templated MultAT
@@ -1247,6 +1253,28 @@ void SparseMatrix<T>::PermuteCols(const std::vector<int>& perm)
 
         indices_[i] = perm[indices_[i]];
     }
+}
+
+template <typename T>
+void SparseMatrix<T>::EliminateRowCol(int index)
+{
+    assert(index >= 0);
+    assert(index < rows_);
+    assert(index < cols_);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            int col = indices_[j];
+
+            if (row == index || col == index)
+            {
+                data_[j] = (col == row) ? 1.0 : 0.0;
+            }
+        }
+    }
+
 }
 
 } //namespace linalgcpp

@@ -35,6 +35,14 @@ class Vector : public VectorView<T>
         */
         Vector(int size, T val);
 
+        /*! @brief Copy Constructor given data and size
+            @param data vector data
+            @param size the length of the vector
+
+            @note this is not a view, copies data
+        */
+        Vector(const T* data, int size);
+
         /*! @brief Constructor from view
             @note deep copy
          * */
@@ -105,6 +113,17 @@ template <typename T>
 Vector<T>::Vector(int size, T val)
 {
     data_.resize(size, val);
+
+    VectorView<T> set_view(data_.data(), data_.size());
+    VectorView<T>::operator=(set_view);
+}
+
+template <typename T>
+Vector<T>::Vector(const T* data, int size)
+    : data_(data, data + size)
+{
+    assert(data);
+    assert(size >= 0);
 
     VectorView<T> set_view(data_.data(), data_.size());
     VectorView<T>::operator=(set_view);

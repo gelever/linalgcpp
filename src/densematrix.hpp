@@ -711,6 +711,11 @@ void DenseMatrix::SetRow(int row, const VectorView<T>& vect)
     }
 }
 
+// Utility Functions
+DenseMatrix HStack(const std::vector<DenseMatrix>& dense);
+void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output);
+//DenseMatrix VStack(const std::vector<DenseMatrix>& dense);
+
 } //namespace linalgcpp
 
 #endif // DENSEMATRIX_HPP__

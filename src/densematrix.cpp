@@ -638,5 +638,40 @@ void DenseMatrix::GetDiag(std::vector<double>& diag) const
     }
 }
 
+DenseMatrix HStack(const std::vector<DenseMatrix>& dense)
+{
+    DenseMatrix output;
+    HStack(dense, output);
+
+    return output;
+}
+
+void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output)
+{
+    if (dense.size() == 0)
+    {
+        return;
+    }
+
+    int rows = dense[0].Rows();
+
+    for (auto& mat : dense)
+    {
+        assert(mat.Rows() == rows);
+    }
+
+    int cols = SumCols(dense);
+
+    output.Resize(rows, cols);
+
+    int counter = 0;
+
+    for (auto& mat : dense)
+    {
+        output.SetCol(counter, mat);
+        counter += mat.Cols();
+    }
+}
+
 } // namespace linalgcpp
 
