@@ -109,6 +109,26 @@ class CooMatrix : public Operator
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
 
+        /*! @brief Add a scaled dense matrix worth of entries
+            @param indices row and column indices to add
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+
+        void Add(const std::vector<int>& indices, T scale,
+                 const DenseMatrix& values);
+
+        /*! @brief Add a dense matrix worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(const std::vector<int>& rows,
+                 const std::vector<int>& cols,
+                 T scale,
+                 const DenseMatrix& values);
+
         /*! @brief Add a vector worth of entries
             @param rows set of row indices
             @param col col index
@@ -123,6 +143,24 @@ class CooMatrix : public Operator
             @param values the values to add
         */
         void Add(int row, const std::vector<int>& cols,
+                 const VectorView<T>& values);
+
+        /*! @brief Add a scaled vector worth of entries
+            @param rows set of row indices
+            @param col col index
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(const std::vector<int>& rows, int col, T scale,
+                 const VectorView<T>& values);
+
+        /*! @brief Add a transpose vector worth of entries
+            @param row row index
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(int row, const std::vector<int>& cols, T scale,
                  const VectorView<T>& values);
 
         /*! @brief Permute the rows
@@ -327,6 +365,40 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 }
 
 template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& indices, T scale,
+                       const DenseMatrix& values)
+{
+    Add(indices, indices, scale, values);
+}
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& rows,
+                       const std::vector<int>& cols,
+                       T scale,
+                       const DenseMatrix& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.Rows()));
+    assert(cols.size() == static_cast<unsigned int>(values.Cols()));
+
+    const int num_rows = values.Rows();
+    const int num_cols = values.Cols();
+
+    for (int j = 0; j < num_cols; ++j)
+    {
+        const int col = cols[j];
+
+        for (int i = 0; i < num_rows; ++i)
+        {
+            const int row = rows[i];
+            const double val = values(i, j);
+
+            Add(row, col, scale * val);
+        }
+    }
+}
+
+
+template <typename T>
 void CooMatrix<T>::Add(const std::vector<int>& rows, int col,
                        const VectorView<T>& values)
 {
@@ -351,6 +423,34 @@ void CooMatrix<T>::Add(int row, const std::vector<int>& cols,
     for (int i = 0; i < size; ++i)
     {
         Add(row, cols[i], values[i]);
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& rows, int col, T scale,
+                       const VectorView<T>& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+
+    int size = rows.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], col, scale * values[i]);
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(int row, const std::vector<int>& cols, T scale,
+                       const VectorView<T>& values)
+{
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(row, cols[i], scale * values[i]);
     }
 }
 

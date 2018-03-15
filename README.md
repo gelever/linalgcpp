@@ -18,7 +18,7 @@ A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s
 * Vectors and Vector Views
 * Block Matrix and Block Vector
 * Abstract Operator
-* Basis iterative solvers
+* Basic iterative solvers
 * Parser for various formats
 
 # Project Goal
