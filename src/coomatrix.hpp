@@ -650,13 +650,14 @@ void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
 template <typename T>
 void CooMatrix<T>::EliminateZeros(double tolerance)
 {
-    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
-                                  [&](const auto & entry)
+    auto compare = [&] (const auto& entry)
     {
-        const double val = std::get<1>(entry);
+        const double val = std::get<2>(entry);
         return std::abs(val) < tolerance;
-    }),
-    std::end(entries_));
+    };
+
+    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
+                   compare), std::end(entries_));
 }
 
 template <typename T>
