@@ -316,6 +316,11 @@ class SparseMatrix : public Operator
         */
         T Sum() const;
 
+        /*! @brief Sum of absolute value of all data
+            @retval sum Sum of absolute value of all data
+        */
+        T MaxNorm() const;
+
         /*! @brief Scale rows by diagonal matrix
             @param values scale per row
         */
@@ -366,6 +371,21 @@ class SparseMatrix : public Operator
             @param index row and column to eliminate
         */
         void EliminateRowCol(int index);
+
+        /*! @brief Eliminate a row by setting all row entries to zero
+            @param index row to eliminate
+        */
+        void EliminateRow(int index);
+
+        /*! @brief Eliminate a column by setting all column entries to zero
+            @param index column to eliminate
+        */
+        void EliminateCol(int index);
+
+        /*! @brief Remove entries less than a tolerance
+            @param tol tolerance to remove
+        */
+        void EliminateZeros(T tolerance = 0);
 
         /// Operator Requirement, calls the templated Mult
         void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
@@ -1152,6 +1172,19 @@ T SparseMatrix<T>::Sum() const
 }
 
 template <typename T>
+T SparseMatrix<T>::MaxNorm() const
+{
+    T sum = 0;
+
+    for (const auto& val : data_)
+    {
+        sum += std::abs(val);
+    }
+
+    return sum;
+}
+
+template <typename T>
 void SparseMatrix<T>::ScaleRows(const SparseMatrix<T>& values)
 {
     ScaleRows(values.GetData());
@@ -1274,7 +1307,66 @@ void SparseMatrix<T>::EliminateRowCol(int index)
             }
         }
     }
+}
 
+template <typename T>
+void SparseMatrix<T>::EliminateRow(int index)
+{
+    assert(index >= 0);
+    assert(index < rows_);
+
+    for (int j = indptr_[index]; j < indptr_[index + 1]; ++j)
+    {
+        data_[j] = 0.0;
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::EliminateCol(int index)
+{
+    assert(index >= 0);
+    assert(index < cols_ || cols_ == 0);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            if (indices_[j] == index)
+            {
+                data_[j] = 0.0;
+            }
+        }
+    }
+}
+
+template <typename T>
+void SparseMatrix<T>::EliminateZeros(T tolerance)
+{
+    std::vector<int> elim_indptr(1, 0);
+    std::vector<int> elim_indices;
+    std::vector<T> elim_data;
+
+    elim_indptr.reserve(indptr_.size());
+    elim_indices.reserve(indices_.size());
+    elim_data.reserve(data_.size());
+
+    for (int i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            if (std::fabs(data_[j]) > tolerance)
+            {
+                elim_indices.push_back(indices_[j]);
+                elim_data.push_back(data_[j]);
+            }
+        }
+
+        elim_indptr.push_back(elim_indices.size());
+    }
+
+    std::swap(elim_indptr, indptr_);
+    std::swap(elim_indices, indices_);
+    std::swap(elim_data, data_);
 }
 
 } //namespace linalgcpp

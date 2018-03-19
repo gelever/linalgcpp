@@ -78,7 +78,7 @@ void BlockOperator::SetBlock(int i, int j, const Operator& op)
     assert(j < static_cast<int>(col_offsets_.size()) - 1);
 
     assert(op.Rows() == (row_offsets_[i + 1] - row_offsets_[i]));
-    assert(op.Cols() == (col_offsets_[i + 1] - col_offsets_[i]));
+    assert(op.Cols() == (col_offsets_[j + 1] - col_offsets_[j]));
 
     A_[i][j] = &op;
 }

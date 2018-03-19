@@ -257,11 +257,13 @@ void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& 
     minres.Mult(b, x);
 }
 
-PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
+PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose,
+                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
     : Operator(A), A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
       w0_(A.Rows()), w1_(A.Rows()),
       v0_(A.Rows()), v1_(A.Rows()),
-      u1_(A.Rows()), q_(A.Rows())
+      u1_(A.Rows()), q_(A.Rows()),
+      Dot_(Dot)
 {
     assert(A_.Rows() == A_.Cols());
     assert(A_.Rows() == M_.Cols());
@@ -285,7 +287,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 
     M_.Mult(v1_, u1_);
 
-    double beta = u1_.Mult(v1_);
+    double beta = (*Dot_)(u1_, v1_);
     double eta = beta;
 
     double gamma = 1.0;
@@ -301,7 +303,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
 
         A_.Mult(u1_, q_);
 
-        const double alpha = u1_.Mult(q_);
+        const double alpha = (*Dot_)(u1_, q_);
 
         for (int i = 0; i < size; ++i)
         {
@@ -313,7 +315,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double>& x) con
         const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
 
         M_.Mult(v0_, q_);
-        beta = std::sqrt(v0_.Mult(q_));
+        beta = std::sqrt((*Dot_)(v0_, q_));
 
         const double rho1 = std::sqrt((delta * delta) + (beta * beta));
 

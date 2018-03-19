@@ -114,7 +114,8 @@ class PMINRESSolver : public Operator
             @param tol relative tolerance for stopping criteria
             @param verbose display additional iteration information
         */
-        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -136,6 +137,8 @@ class PMINRESSolver : public Operator
         mutable Vector<double> v1_;
         mutable Vector<double> u1_;
         mutable Vector<double> q_;
+
+        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
 

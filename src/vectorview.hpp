@@ -51,6 +51,9 @@ class VectorView
         /*! @brief Assignment Operator */
         VectorView& operator=(VectorView&& vect) noexcept;
 
+        /*! @brief Assignment Operator, hard copy*/
+        VectorView& operator=(const VectorView& vect) noexcept;
+
         /*! @brief Destructor */
         ~VectorView() noexcept = default;
 
@@ -141,6 +144,11 @@ class VectorView
         */
         virtual double L2Norm() const;
 
+        /*! @brief Sum all elements
+            @retval sum sum of all elements
+        */
+        T Sum() const;
+
         /*! @brief Randomize the entries in a integer vector
             @param lo lower range limit
             @param hi upper range limit
@@ -149,7 +157,7 @@ class VectorView
         virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
 
     protected:
-        //void SetData(T* data, int size);
+        void SetData(T* data, int size);
 
     private:
         T* data_;
@@ -188,6 +196,16 @@ VectorView<T>::VectorView(std::vector<T>& vect) noexcept
 }
 
 template <typename T>
+void VectorView<T>::SetData(T* data, int size)
+{
+    assert(data);
+    assert(size >= 0);
+
+    data_ = data;
+    size_ = size;
+}
+
+template <typename T>
 VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
 {
     swap(*this, vect);
@@ -196,8 +214,12 @@ VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(VectorView<T>& vect) noexcept
 {
-    data_ = vect.data_;
-    size_ = vect.size_;
+    assert(vect.size_ == size_);
+
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
+
+    //data_ = vect.data_;
+    //size_ = vect.size_;
 
     return *this;
 }
@@ -205,8 +227,21 @@ VectorView<T>& VectorView<T>::operator=(VectorView<T>& vect) noexcept
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(VectorView<T>&& vect) noexcept
 {
-    data_ = vect.data_;
-    size_ = vect.size_;
+    assert(vect.size_ == size_);
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
+
+    //data_ = vect.data_;
+    //size_ = vect.size_;
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::operator=(const VectorView<T>& vect) noexcept
+{
+    assert(vect.size_ == size_);
+
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
 
     return *this;
 }
@@ -325,6 +360,13 @@ VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
     (*this) -= rhs;
 
     return *this;
+}
+
+template <typename T>
+T VectorView<T>::Sum() const
+{
+    T start = 0;
+    return std::accumulate(std::begin(*this), std::end(*this), start);
 }
 
 /*! @brief Compute the inner product two vectors x^T y
@@ -609,8 +651,7 @@ T AbsMin(const VectorView<T>& vect)
 template <typename T>
 T Sum(const VectorView<T>& vect)
 {
-    T start = 0;
-    return std::accumulate(std::begin(vect), std::end(vect), start);
+    return vect.Sum();
 }
 
 /*! @brief Compute the mean of all vector entries
