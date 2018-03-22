@@ -67,7 +67,7 @@ void EigenSolver::Solve(const DenseMatrix& mat, double rel_tol, int max_evect,
     {
         evals.resize(n);
         evects.Resize(0);
-        printf("Zero!\n");
+        printf("Zero Size EigenProblem!\n");
         return;
     }
 

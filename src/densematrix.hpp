@@ -178,7 +178,7 @@ class DenseMatrix : public Operator
             @param output the output vector y
         */
         template <typename T, typename U>
-        void Mult(const VectorView<T>& input, VectorView<U>& output) const;
+        void Mult(const VectorView<T>& input, VectorView<U> output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -186,7 +186,7 @@ class DenseMatrix : public Operator
             @param output the output vector y
         */
         template <typename T, typename U>
-        void MultAT(const VectorView<T>& input, VectorView<U>& output) const;
+        void MultAT(const VectorView<T>& input, VectorView<U> output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -494,9 +494,9 @@ class DenseMatrix : public Operator
         void GetDiag(std::vector<double>& diag) const;
 
         /// Operator Requirement, calls the templated Mult
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         std::vector<double> data_;
@@ -576,7 +576,7 @@ Vector<double> DenseMatrix::Mult(const VectorView<T>& input) const
 }
 
 template <typename T, typename U>
-void DenseMatrix::Mult(const VectorView<T>& input, VectorView<U>& output) const
+void DenseMatrix::Mult(const VectorView<T>& input, VectorView<U> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -602,7 +602,7 @@ Vector<double> DenseMatrix::MultAT(const VectorView<T>& input) const
 }
 
 template <typename T, typename U>
-void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<U>& output) const
+void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<U> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);

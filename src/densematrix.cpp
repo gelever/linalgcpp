@@ -149,12 +149,12 @@ void DenseMatrix::Transpose(DenseMatrix& transpose) const
     }
 }
 
-void DenseMatrix::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void DenseMatrix::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     Mult<double, double>(input, output);
 }
 
-void DenseMatrix::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void DenseMatrix::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     MultAT<double, double>(input, output);
 }

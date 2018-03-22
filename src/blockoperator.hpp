@@ -78,10 +78,10 @@ class BlockOperator : public Operator
         BlockOperator Transpose() const;
 
         /// Operator Requirement
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
         /// Operator Requirement
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
         using Operator::Mult;
 

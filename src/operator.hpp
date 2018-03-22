@@ -60,7 +60,7 @@ class Operator
             @param input the input vector x
             @param output the output vector y
         */
-        virtual void Mult(const VectorView<double>& input, VectorView<double>& output) const = 0;
+        virtual void Mult(const VectorView<double>& input, VectorView<double> output) const = 0;
 
         /*! @brief Apply the action to a vector: Ax = y
             @param input the input vector x
@@ -72,7 +72,7 @@ class Operator
             @param input the input vector x
             @param output the output vector y
         */
-        virtual void MultAT(const VectorView<double>& input, VectorView<double>& output) const;
+        virtual void MultAT(const VectorView<double>& input, VectorView<double> output) const;
 
         /*! @brief Apply the transpose action to a vector: A^T x = y
             @param input the input vector x
@@ -92,7 +92,7 @@ class Operator
 };
 
 inline
-void Operator::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void Operator::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     throw std::runtime_error("The operator MultAT not defined!\n");
 }

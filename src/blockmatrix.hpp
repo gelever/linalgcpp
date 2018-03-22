@@ -98,9 +98,9 @@ class BlockMatrix : public Operator
         void PrintDense(const std::string& label = "", std::ostream& out = std::cout) const;
 
         /// Operator Requirement
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
         /// Operator Requirement
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
         using Operator::Mult;
 
@@ -315,7 +315,7 @@ void BlockMatrix<T>::PrintDense(const std::string& label, std::ostream& out) con
 }
 
 template <typename T>
-void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -368,7 +368,7 @@ void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& o
 }
 
 template <typename T>
-void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);

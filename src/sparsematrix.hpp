@@ -193,7 +193,7 @@ class SparseMatrix : public Operator
             @param output the output vector y
         */
         template <typename U = T, typename V = T>
-        void Mult(const VectorView<U>& input, VectorView<V>& output) const;
+        void Mult(const VectorView<U>& input, VectorView<V> output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -201,7 +201,7 @@ class SparseMatrix : public Operator
             @param output the output vector y
         */
         template <typename U = T, typename V = T>
-        void MultAT(const VectorView<U>& input, VectorView<V>& output) const;
+        void MultAT(const VectorView<U>& input, VectorView<V> output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -388,9 +388,9 @@ class SparseMatrix : public Operator
         void EliminateZeros(T tolerance = 0);
 
         /// Operator Requirement, calls the templated Mult
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         int nnz_;
@@ -456,7 +456,6 @@ SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other) noexcept
     : Operator(other), nnz_(other.nnz_),
       indptr_(other.indptr_), indices_(other.indices_), data_(other.data_)
 {
-
 }
 
 template <typename T>
@@ -973,7 +972,7 @@ auto SparseMatrix<T>::MultAT(const VectorView<U>& input) const
 
 template <typename T>
 template <typename U, typename V>
-void SparseMatrix<T>::Mult(const VectorView<U>& input, VectorView<V>& output) const
+void SparseMatrix<T>::Mult(const VectorView<U>& input, VectorView<V> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -993,7 +992,7 @@ void SparseMatrix<T>::Mult(const VectorView<U>& input, VectorView<V>& output) co
 
 template <typename T>
 template <typename U, typename V>
-void SparseMatrix<T>::MultAT(const VectorView<U>& input, VectorView<V>& output) const
+void SparseMatrix<T>::MultAT(const VectorView<U>& input, VectorView<V> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
@@ -1010,13 +1009,13 @@ void SparseMatrix<T>::MultAT(const VectorView<U>& input, VectorView<V>& output) 
 }
 
 template <typename T>
-void SparseMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void SparseMatrix<T>::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     Mult<double, double>(input, output);
 }
 
 template <typename T>
-void SparseMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void SparseMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     MultAT<double, double>(input, output);
 }

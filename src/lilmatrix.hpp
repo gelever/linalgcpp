@@ -148,14 +148,14 @@ class LilMatrix : public Operator
             @param input the input vector x
             @param output the output vector y
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
 
         /*! @brief Print all entries
@@ -407,7 +407,7 @@ SparseMatrix<U> LilMatrix<T>::ToSparse() const
 }
 
 template <typename T>
-void LilMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void LilMatrix<T>::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
@@ -431,7 +431,7 @@ void LilMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& out
 }
 
 template <typename T>
-void LilMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void LilMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
