@@ -1207,6 +1207,44 @@ void test_blockoperator()
 
 }
 
+void test_timer()
+{
+    Timer timer;
+
+    timer.Click(); // Start timer
+
+    volatile double counter;
+
+    for (int i = 0; i < 5000; ++i)
+    {
+        counter *= 1.0001;
+    }
+
+    timer.Click();  // 1 time step
+
+    for (int i = 0; i < 50000; ++i)
+    {
+        // Do Hard Work
+        counter *= 1.0001;
+    }
+
+    timer.Click(); // 2 time step
+
+    for (int i = 0; i < 500000; ++i)
+    {
+        // Do Hard Work
+        counter *= 1.0001;
+    }
+
+    timer.Click(); // 3 time step
+
+    std::cout << "Time 0: " << timer[0] << std::endl;
+    std::cout << "Time 1: " << timer[1] << std::endl;
+    std::cout << "Time 2: " << timer[2] << std::endl;
+    // std::cout << "Time 3: " << timer[3] << std::endl; // Correctly fails assertion
+    std::cout << "Time Total: " << timer.TotalTime() << std::endl;
+}
+
 int main(int argc, char** argv)
 {
     test_coo();
@@ -1220,6 +1258,7 @@ int main(int argc, char** argv)
     test_blockvector();
     test_blockoperator();
     test_parser();
+    test_timer();
 
     return EXIT_SUCCESS;
 }

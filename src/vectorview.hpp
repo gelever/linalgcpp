@@ -256,7 +256,7 @@ void swap(VectorView<U>& lhs, VectorView<U>& rhs) noexcept
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(T val)
 {
-    std::fill(begin(), end(), val);
+    std::fill(std::begin(*this), std::end(*this), val);
 
     return *this;
 }
@@ -393,7 +393,7 @@ T VectorView<T>::Mult(const VectorView<T>& vect) const
 
     T start = 0.0;
 
-    return std::inner_product(begin(), end(), std::begin(vect), start);
+    return std::inner_product(std::begin(*this), std::end(*this), std::begin(vect), start);
 }
 
 template <typename T>

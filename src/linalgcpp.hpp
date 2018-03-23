@@ -15,3 +15,5 @@
 #include "operator.hpp"
 #include "solvers.hpp"
 #include "eigensolver.hpp"
+#include "timer.hpp"
+#include "argparser.hpp"
