@@ -5,6 +5,7 @@
 
 #include <map>
 #include <vector>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -31,7 +32,7 @@ class ArgParser
         bool IsGood() const;
 
     private:
-        mutable std::vector<std::string> help_;
+        mutable std::map<std::string, std::string> help_;
         mutable std::vector<std::string> errors_;
         mutable std::map<std::string, std::string> values_;
         mutable std::map<std::string, std::string> seen_values_;
@@ -45,7 +46,7 @@ void ArgParser::Parse(bool& arg, const std::string& flag, const std::string& hel
 template <typename T>
 void ArgParser::Parse(T& arg, const std::string& flag, const std::string& help) const
 {
-    help_.push_back(flag + "\t" + help);
+    help_[flag] = help;
 
     if (values_.find(flag) != values_.end())
     {

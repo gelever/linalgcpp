@@ -76,7 +76,7 @@ void ArgParser::ShowHelp(std::ostream& out) const
 
     for (auto& option : help_)
     {
-        out << "  " << option << "\n";
+        out << "  " << option.first << " " << option.second << "\n";
     }
 
     out.flush();
@@ -86,9 +86,25 @@ void ArgParser::ShowOptions(std::ostream& out) const
 {
     out << "Program Options:\n";
 
+    size_t flag_width = 0;
+    size_t val_width = 0;
+
     for (auto& option : seen_values_)
     {
-        out << "  " << option.first << "\t" << option.second << "\n";
+        flag_width = std::max(flag_width, option.first.size());
+        val_width = std::max(val_width, option.second.size());
+    }
+
+    flag_width += 2;
+    val_width += 2;
+
+    for (auto& option : seen_values_)
+    {
+        out << "  " << std::left
+            << std::setw(flag_width) << option.first
+            << std::setw(val_width) << option.second
+            << help_[option.first]
+            << "\n";
     }
 
     out.flush();
@@ -97,7 +113,7 @@ void ArgParser::ShowOptions(std::ostream& out) const
 template <>
 void ArgParser::Parse(bool& arg, const std::string& flag, const std::string& help) const
 {
-    help_.push_back(flag + "\t" + help);
+    help_[flag] = help;
 
     if (values_.find(flag) != values_.end())
     {

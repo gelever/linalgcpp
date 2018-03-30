@@ -668,8 +668,11 @@ void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output)
 
     for (auto& mat : dense)
     {
-        output.SetCol(counter, mat);
-        counter += mat.Cols();
+        if (mat.Cols() > 0)
+        {
+            output.SetCol(counter, mat);
+            counter += mat.Cols();
+        }
     }
 }
 

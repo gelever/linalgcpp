@@ -176,7 +176,7 @@ VectorView<T>::VectorView(T* data, int size)
     : data_(data), size_(size)
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
@@ -184,7 +184,7 @@ VectorView<T>::VectorView(VectorView<T>& vect) noexcept
     : data_(vect.data_), size_(vect.size_)
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
@@ -192,14 +192,14 @@ VectorView<T>::VectorView(std::vector<T>& vect) noexcept
     : data_(vect.data()), size_(vect.size())
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
 void VectorView<T>::SetData(T* data, int size)
 {
-    assert(data);
     assert(size >= 0);
+    assert(size == 0 || data);
 
     data_ = data;
     size_ = size;
@@ -209,6 +209,8 @@ template <typename T>
 VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
     : data_(vect.data_), size_(vect.size_)
 {
+    assert(size_ >= 0);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>

@@ -105,9 +105,10 @@ Vector<T>::Vector(int size)
 {
     data_.resize(size);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -115,21 +116,23 @@ Vector<T>::Vector(int size, T val)
 {
     data_.resize(size, val);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
 Vector<T>::Vector(const T* data, int size)
     : data_(data, data + size)
 {
-    assert(data);
     assert(size >= 0);
+    assert(size == 0 || data);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -138,9 +141,10 @@ Vector<T>::Vector(const VectorView<T>& vect)
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -148,18 +152,20 @@ Vector<T>::Vector(std::vector<T> vect)
 {
     std::swap(vect, data_);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
 Vector<T>::Vector(const Vector<T>& vect) noexcept
     : data_(vect.data_)
 {
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -167,9 +173,10 @@ Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -178,9 +185,10 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect.data_), std::end(vect.data_), std::begin(data_));
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
@@ -191,9 +199,10 @@ Vector<T>& Vector<T>::operator=(const VectorView<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
@@ -203,9 +212,10 @@ Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
-    //VectorView<T> set_view(data_.data(), data_.size());
-    //VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
