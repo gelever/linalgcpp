@@ -9,8 +9,11 @@ matrix:
       addons:
         apt:
           packages:
+            - g++-7
             - liblapack-dev
             - libblas-dev
+      env:
+          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 script:
    # Set some variables
    - cd $TRAVIS_BUILD_DIR;
