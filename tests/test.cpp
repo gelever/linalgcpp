@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "../src/linalgcpp.hpp"
+#include "linalgcpp.hpp"
 
 using namespace linalgcpp;
 
@@ -1380,23 +1380,22 @@ void test_argparser(int argc, char** argv)
 
         arg_parser.ShowOptions();
     }
-
 }
 
 int main(int argc, char** argv)
 {
-    //test_coo();
-    //test_vector();
-    //test_sparse();
-    //test_operator();
-    //test_solvers();
-    //test_lil();
-    //test_dense();
-    //test_blockmatrix();
-    //test_blockvector();
-    //test_blockoperator();
-    //test_parser();
-    //test_timer();
+    test_coo();
+    test_vector();
+    test_sparse();
+    test_operator();
+    test_solvers();
+    test_lil();
+    test_dense();
+    test_blockmatrix();
+    test_blockvector();
+    test_blockoperator();
+    test_parser();
+    test_timer();
     test_argparser(argc, argv);
 
     return EXIT_SUCCESS;
