@@ -27,7 +27,7 @@ script:
    # Configure the library
    - mkdir build;
    - cd build;
-   - CC=gcc CXX=g++ cmake ..;
+   - cmake ..;
 
    # Build the library
    - make -j3
