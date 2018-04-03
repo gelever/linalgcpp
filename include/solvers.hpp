@@ -27,7 +27,7 @@ class CGSolver : public Operator
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         const Operator& A_;
@@ -58,7 +58,7 @@ class PCGSolver : public Operator
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         const Operator& A_;
@@ -82,13 +82,14 @@ class MINRESSolver : public Operator
             @param tol relative tolerance for stopping criteria
             @param verbose display additional iteration information
         */
-        MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         const Operator& A_;
@@ -102,6 +103,8 @@ class MINRESSolver : public Operator
         mutable Vector<double> v0_;
         mutable Vector<double> v1_;
         mutable Vector<double> q_;
+
+        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
 class PMINRESSolver : public Operator
@@ -114,13 +117,14 @@ class PMINRESSolver : public Operator
             @param tol relative tolerance for stopping criteria
             @param verbose display additional iteration information
         */
-        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
             @param[in,out] output intial guess on input and solution on output
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         const Operator& A_;
@@ -136,6 +140,8 @@ class PMINRESSolver : public Operator
         mutable Vector<double> v1_;
         mutable Vector<double> u1_;
         mutable Vector<double> q_;
+
+        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
 
@@ -160,7 +166,7 @@ Vector<double> CG(const Operator& A, const VectorView<double>& b,
     @param tol relative tolerance for stopping criteria
     @param verbose display additional iteration information
 */
-void CG(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
+void CG(const Operator& A, const VectorView<double>& b, VectorView<double> x,
         int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 /*! @brief Preconditioned Conjugate Gradient.  Solves Ax = b
@@ -188,7 +194,7 @@ Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double
     @param tol relative tolerance for stopping criteria
     @param verbose display additional iteration information
 */
-void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
+void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
          int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 /*! @brief MINRES.  Solves Ax = b for symmetric A
@@ -216,7 +222,7 @@ Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
     Modified from mfem implementation
 */
 
-void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double>& x,
+void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double> x,
             int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 /*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
@@ -245,7 +251,7 @@ Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<do
 
     Modified from mfem implementation
 */
-void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double>& x,
+void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
              int max_iter = 1000, double tol = 1e-16, bool verbose = false);
 
 } //namespace linalgcpp

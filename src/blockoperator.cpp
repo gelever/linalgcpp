@@ -13,7 +13,7 @@ BlockOperator::BlockOperator()
 
 BlockOperator::BlockOperator(std::vector<int> offsets) :
     Operator(offsets.back()),
-    row_offsets_(offsets), col_offsets_(std::move(offsets)),
+    row_offsets_(offsets), col_offsets_(offsets),
     A_(row_offsets_.size() - 1, std::vector<const Operator*>(col_offsets_.size() - 1, nullptr)),
     x_(col_offsets_), y_(row_offsets_)
 {
@@ -28,6 +28,31 @@ BlockOperator::BlockOperator(std::vector<int> row_offsets, std::vector<int> col_
 {
 
 }
+
+BlockOperator::BlockOperator(const BlockOperator& other) noexcept
+    : Operator(other), 
+      row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
+      A_(other.A_), x_(other.x_), y_(other.y_)
+{
+
+}
+
+BlockOperator::BlockOperator(BlockOperator&& other) noexcept
+{
+    swap(*this, other);
+}
+
+void swap(BlockOperator& lhs, BlockOperator& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
+    swap(lhs.row_offsets_, rhs.row_offsets_);
+    swap(lhs.col_offsets_, rhs.col_offsets_);
+    swap(lhs.A_, rhs.A_);
+    swap(lhs.x_, rhs.x_);
+    swap(lhs.y_, rhs.y_);
+}
+
 
 const std::vector<int>& BlockOperator::GetRowOffsets() const
 {
@@ -53,12 +78,12 @@ void BlockOperator::SetBlock(int i, int j, const Operator& op)
     assert(j < static_cast<int>(col_offsets_.size()) - 1);
 
     assert(op.Rows() == (row_offsets_[i + 1] - row_offsets_[i]));
-    assert(op.Cols() == (col_offsets_[i + 1] - col_offsets_[i]));
+    assert(op.Cols() == (col_offsets_[j + 1] - col_offsets_[j]));
 
     A_[i][j] = &op;
 }
 
-void BlockOperator::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void BlockOperator::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -89,7 +114,7 @@ void BlockOperator::Mult(const VectorView<double>& input, VectorView<double>& ou
     output = y_;
 }
 
-void BlockOperator::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void BlockOperator::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);

@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "../src/linalgcpp.hpp"
+#include "linalgcpp.hpp"
 
 using namespace linalgcpp;
 
@@ -1207,6 +1207,181 @@ void test_blockoperator()
 
 }
 
+void test_timer()
+{
+    Timer timer;
+
+    timer.Click(); // Start timer
+
+    volatile double counter;
+
+    for (int i = 0; i < 5000; ++i)
+    {
+        counter *= 1.0001;
+    }
+
+    timer.Click();  // 1 time step
+
+    for (int i = 0; i < 50000; ++i)
+    {
+        // Do Hard Work
+        counter *= 1.0001;
+    }
+
+    timer.Click(); // 2 time step
+
+    for (int i = 0; i < 500000; ++i)
+    {
+        // Do Hard Work
+        counter *= 1.0001;
+    }
+
+    timer.Click(); // 3 time step
+
+    std::cout << "Time 0: " << timer[0] << std::endl;
+    std::cout << "Time 1: " << timer[1] << std::endl;
+    std::cout << "Time 2: " << timer[2] << std::endl;
+    // std::cout << "Time 3: " << timer[3] << std::endl; // Correctly fails assertion
+    std::cout << "Time Total: " << timer.TotalTime() << std::endl;
+}
+
+void test_argparser(int argc, char** argv)
+{
+    if (argc > 1)
+    {
+        ArgParser arg_parser(argc, argv);
+    }
+
+    // Good Parser
+    {
+        const char* prog_name = "test";
+        const char* bool1 = "-bf";
+        const char* bool2 = "-bt";
+        const char* flag = "-dt";
+        const char* flag_val = "5";
+        const char* flag_string = "-st";
+        const char* flag_string_val = "StringTest";
+
+        int test_argc = 7;
+        const char* test_argv[test_argc] = {prog_name, bool1, bool2,
+            flag, flag_val, flag_string, flag_string_val};
+
+        ArgParser arg_parser(test_argc, test_argv);
+
+        bool test_bool = true;
+        bool test_bool_f = false;
+        bool test_bool_t = true;
+        double test_double = -1.0;
+        std::string test_string = "default_string";
+        std::string test_string_default = "default_string";
+
+        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
+        arg_parser.Parse(test_double, "-dt", "Double Test");
+        arg_parser.Parse(test_string, "-st", "String Test");
+
+        std::cout << "Good Parse!\n";
+
+        if (!arg_parser.IsGood())
+        {
+            arg_parser.ShowHelp();
+            arg_parser.ShowErrors();
+
+            assert(false);
+        }
+
+        assert(test_bool == true);
+        assert(test_bool_f == true);
+        assert(test_bool_t == false);
+        assert(test_double = 5.0);
+        assert(test_string.compare("StringTest") == 0);
+        assert(test_string_default.compare("default_string") == 0);
+
+        arg_parser.ShowOptions();
+    }
+
+    // Bad Parser
+    {
+        const char* prog_name = "test";
+
+        // These two flags are the same
+        const char* bool1 = "-bf";
+        const char* bool2 = "-bf";
+
+        const char* bool3 = "-bt";
+        const char* flag = "-dt";
+        const char* flag_val = "5";
+
+        int test_argc = 6;
+        const char* test_argv[test_argc] = {prog_name, bool1, bool2, bool3, flag, flag_val};
+        ArgParser arg_parser(test_argc, test_argv);
+
+        bool test_bool = true;
+        bool test_bool_f = false;
+        bool test_bool_t = true;
+        double test_double = -1.0;
+
+        // These two share same flag
+        arg_parser.Parse(test_bool, "-b", "First Bool No Change Test");
+        arg_parser.Parse(test_bool, "-b", "Second Bool No Change Test");
+
+        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
+        arg_parser.Parse(test_double, "-dt", "Double Test");
+
+        if (!arg_parser.IsGood())
+        {
+            std::cout << "Bad Parse:\n";
+            arg_parser.ShowHelp();
+            arg_parser.ShowErrors();
+        }
+        else
+        {
+            assert(false);
+        }
+
+        arg_parser.ShowOptions();
+    }
+
+    // Includes help
+    {
+        const char* prog_name = "test";
+        const char* bool1 = "-bf";
+        const char* bool2 = "-bt";
+        const char* flag = "-dt";
+        const char* flag_val = "5";
+        const char* help = "--help";
+
+        int test_argc = 6;
+        const char* test_argv[test_argc] = {prog_name, bool1, bool2, flag, flag_val, help};
+        ArgParser arg_parser(test_argc, test_argv);
+
+        bool test_bool = true;
+        bool test_bool_f = false;
+        bool test_bool_t = true;
+        double test_double = -1.0;
+
+        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
+        arg_parser.Parse(test_double, "-dt", "Double Test");
+
+        if (!arg_parser.IsGood())
+        {
+            std::cout << "Help Parse:\n";
+            arg_parser.ShowHelp();
+            arg_parser.ShowErrors();
+        }
+        else
+        {
+            assert(false);
+        }
+
+        arg_parser.ShowOptions();
+    }
+}
+
 int main(int argc, char** argv)
 {
     test_coo();
@@ -1220,6 +1395,8 @@ int main(int argc, char** argv)
     test_blockvector();
     test_blockoperator();
     test_parser();
+    test_timer();
+    test_argparser(argc, argv);
 
     return EXIT_SUCCESS;
 }

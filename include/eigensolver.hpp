@@ -28,6 +28,18 @@ class EigenSolver
         /*! @brief Default Constructor*/
         EigenSolver();
 
+        /*! @brief Copy Constructor */
+        EigenSolver(const EigenSolver& other) noexcept = default;
+
+        /*! @brief Move Constructor */
+        EigenSolver(EigenSolver&& other) noexcept = default;
+
+        /*! @brief Assignment Operator */
+        EigenSolver& operator=(const EigenSolver& other) noexcept = default;
+
+        /*! @brief Default Destructor*/
+        ~EigenSolver() noexcept = default;
+
         /*! @brief Compute select number of lower spectrum eigen pairs
 
             @param mat Converts sparse matrix to dense matrix

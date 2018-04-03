@@ -35,6 +35,14 @@ class Vector : public VectorView<T>
         */
         Vector(int size, T val);
 
+        /*! @brief Copy Constructor given data and size
+            @param data vector data
+            @param size the length of the vector
+
+            @note this is not a view, copies data
+        */
+        Vector(const T* data, int size);
+
         /*! @brief Constructor from view
             @note deep copy
          * */
@@ -75,8 +83,8 @@ class Vector : public VectorView<T>
             @param lhs left hand side vector
             @param rhs right hand side vector
         */
-        template <typename T2>
-        friend void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(Vector<U>& lhs, Vector<U>& rhs) noexcept;
 
         using VectorView<T>::operator=;
         virtual T Mult(const VectorView<T>& vect) const override;
@@ -97,8 +105,10 @@ Vector<T>::Vector(int size)
 {
     data_.resize(size);
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -106,8 +116,23 @@ Vector<T>::Vector(int size, T val)
 {
     data_.resize(size, val);
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
+}
+
+template <typename T>
+Vector<T>::Vector(const T* data, int size)
+    : data_(data, data + size)
+{
+    assert(size >= 0);
+    assert(size == 0 || data);
+
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -116,8 +141,10 @@ Vector<T>::Vector(const VectorView<T>& vect)
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -125,16 +152,20 @@ Vector<T>::Vector(std::vector<T> vect)
 {
     std::swap(vect, data_);
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
 Vector<T>::Vector(const Vector<T>& vect) noexcept
     : data_(vect.data_)
 {
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -142,8 +173,10 @@ Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
@@ -152,8 +185,10 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect.data_), std::end(vect.data_), std::begin(data_));
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
@@ -164,8 +199,10 @@ Vector<T>& Vector<T>::operator=(const VectorView<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
@@ -175,16 +212,18 @@ Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    VectorView<T> set_view(data_.data(), data_.size());
-    VectorView<T>::operator=(set_view);
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 
     return *this;
 }
 
-template <typename T2>
-void swap(Vector<T2>& lhs, Vector<T2>& rhs) noexcept
+template <typename U>
+void swap(Vector<U>& lhs, Vector<U>& rhs) noexcept
 {
-    swap(static_cast<VectorView<T2>&>(lhs), static_cast<VectorView<T2>&>(rhs));
+    swap(static_cast<VectorView<U>&>(lhs), static_cast<VectorView<U>&>(rhs));
     std::swap(lhs.data_, rhs.data_);
 }
 

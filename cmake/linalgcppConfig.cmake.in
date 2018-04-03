@@ -1,0 +1,15 @@
+get_filename_component(linalgcpp_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${linalgcpp_CMAKE_DIR})
+
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+
+LIST(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET linalgcpp::linalgcpp)
+    include("${linalgcpp_CMAKE_DIR}/linalgcppTargets.cmake")
+endif()
+
+set(linalgcpp_LIBRARIES linalgcpp::linalgcpp)

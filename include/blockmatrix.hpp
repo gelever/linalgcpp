@@ -38,6 +38,18 @@ class BlockMatrix : public Operator
         /*! @brief Rectangle Constructor with given offsets*/
         BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_offsets);
 
+        /*! @brief Copy deconstructor */
+        BlockMatrix(const BlockMatrix<T>& other) noexcept;
+
+        /*! @brief Move deconstructor */
+        BlockMatrix(BlockMatrix<T>&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        BlockMatrix& operator=(BlockMatrix<T> other) noexcept;
+
+        template <typename U>
+        friend void swap(BlockMatrix<U>& lhs, BlockMatrix<U>& rhs) noexcept;
+
         /*! @brief Default deconstructor */
         ~BlockMatrix() noexcept = default;
 
@@ -86,9 +98,9 @@ class BlockMatrix : public Operator
         void PrintDense(const std::string& label = "", std::ostream& out = std::cout) const;
 
         /// Operator Requirement
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
         /// Operator Requirement
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
         using Operator::Mult;
 
@@ -122,6 +134,38 @@ BlockMatrix<T>::BlockMatrix(std::vector<int> row_offsets, std::vector<int> col_o
       A_(row_offsets_.size() - 1, std::vector<SparseMatrix<T>>(col_offsets_.size() - 1))
 {
 
+}
+
+template <typename T>
+BlockMatrix<T>::BlockMatrix(const BlockMatrix<T>& other) noexcept
+    : Operator(other), row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
+      A_(other.A_)
+{
+
+}
+
+template <typename T>
+BlockMatrix<T>::BlockMatrix(BlockMatrix<T>&& other) noexcept
+{
+    swap(*this, other);
+}
+
+template <typename T>
+BlockMatrix<T>& BlockMatrix<T>::operator=(BlockMatrix<T> other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+template <typename T>
+void swap(BlockMatrix<T>& lhs, BlockMatrix<T>& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
+    std::swap(lhs.row_offsets_, rhs.row_offsets_);
+    std::swap(lhs.col_offsets_, rhs.col_offsets_);
+    swap(lhs.A_, rhs.A_);
 }
 
 template <typename T>
@@ -239,7 +283,7 @@ SparseMatrix<T> BlockMatrix<T>::Combine() const
         }
     }
 
-    return SparseMatrix<T>(indptr, indices, data, rows_, cols_);
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data), rows_, cols_);
 }
 
 template <typename T>
@@ -271,7 +315,7 @@ void BlockMatrix<T>::PrintDense(const std::string& label, std::ostream& out) con
 }
 
 template <typename T>
-void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -324,7 +368,7 @@ void BlockMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& o
 }
 
 template <typename T>
-void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void BlockMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);

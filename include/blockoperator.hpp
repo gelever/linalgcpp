@@ -22,8 +22,8 @@ namespace linalgcpp
            Offsets are to be of size (blocks + 1), where the last
            entry is the total size.
 
-           @warning This is NOT a view.  BlockMatrix copies/takes
-           possession of all given input!
+           @Note This is a view.  BlockOperator does not take
+           possession of any given input!
 */
 class BlockOperator : public Operator
 {
@@ -37,8 +37,17 @@ class BlockOperator : public Operator
         /*! @brief Rectangle Constructor with given offsets*/
         BlockOperator(std::vector<int> row_offsets, std::vector<int> col_offsets);
 
+        /*! @brief Copy deconstructor */
+        BlockOperator(const BlockOperator& other) noexcept;
+
+        /*! @brief Move deconstructor */
+        BlockOperator(BlockOperator&& other) noexcept;
+
         /*! @brief Default deconstructor */
         ~BlockOperator() noexcept = default;
+
+        /*! @brief Swap two block operators */
+        friend void swap(BlockOperator& lhs, BlockOperator& rhs) noexcept;
 
         /*! @brief Get the row offsets
             @retval the row offsets
@@ -69,10 +78,10 @@ class BlockOperator : public Operator
         BlockOperator Transpose() const;
 
         /// Operator Requirement
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
         /// Operator Requirement
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
         using Operator::Mult;
 

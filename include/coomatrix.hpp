@@ -64,14 +64,19 @@ class CooMatrix : public Operator
             @param lhs left hand side matrix
             @param rhs right hand side matrix
         */
-        template <typename T2>
-        friend void swap(CooMatrix<T2>& lhs, CooMatrix<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(CooMatrix<U>& lhs, CooMatrix<U>& rhs) noexcept;
 
         /*! @brief Set the size of the matrix
             @param rows the number of rows
             @param cols the number of columns
         */
         void SetSize(int rows, int cols);
+
+        /*! @brief Reserve space for entries
+            @param size the number of entries
+        */
+        void Reserve(int size);
 
         /*! @brief Add an entry to the matrix
             @param i row index
@@ -104,6 +109,60 @@ class CooMatrix : public Operator
                  const std::vector<int>& cols,
                  const DenseMatrix& values);
 
+        /*! @brief Add a scaled dense matrix worth of entries
+            @param indices row and column indices to add
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+
+        void Add(const std::vector<int>& indices, T scale,
+                 const DenseMatrix& values);
+
+        /*! @brief Add a dense matrix worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(const std::vector<int>& rows,
+                 const std::vector<int>& cols,
+                 T scale,
+                 const DenseMatrix& values);
+
+        /*! @brief Add a vector worth of entries
+            @param rows set of row indices
+            @param col col index
+            @param values the values to add
+        */
+        void Add(const std::vector<int>& rows, int col,
+                 const VectorView<T>& values);
+
+        /*! @brief Add a transpose vector worth of entries
+            @param row row index
+            @param cols set of column indices
+            @param values the values to add
+        */
+        void Add(int row, const std::vector<int>& cols,
+                 const VectorView<T>& values);
+
+        /*! @brief Add a scaled vector worth of entries
+            @param rows set of row indices
+            @param col col index
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(const std::vector<int>& rows, int col, T scale,
+                 const VectorView<T>& values);
+
+        /*! @brief Add a transpose vector worth of entries
+            @param row row index
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        void Add(int row, const std::vector<int>& cols, T scale,
+                 const VectorView<T>& values);
+
         /*! @brief Permute the rows
             @param perm permutation to apply
         */
@@ -126,8 +185,8 @@ class CooMatrix : public Operator
             @note Multiple entries for a single coordinate
             are summed together
         */
-        template <typename T2 = T>
-        SparseMatrix<T2> ToSparse() const;
+        template <typename U = T>
+        SparseMatrix<U> ToSparse() const;
 
         /*! @brief Generate a dense matrix from the entries
             @retval DenseMatrix containing all the entries
@@ -137,18 +196,26 @@ class CooMatrix : public Operator
         */
         DenseMatrix ToDense() const;
 
+        /*! @brief Generate a dense matrix from the entries
+            @param DenseMatrix containing all the entries
+
+            @note Multiple entries for a single coordinate
+            are summed together
+        */
+        void ToDense(DenseMatrix& dense) const;
+
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
             @param output the output vector y
         */
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
         /*! @brief Print all entries
             @param label label to print before data
@@ -231,6 +298,14 @@ void CooMatrix<T>::SetSize(int rows, int cols)
 }
 
 template <typename T>
+void CooMatrix<T>::Reserve(int size)
+{
+    assert(size >= 0);
+
+    entries_.reserve(size);
+}
+
+template <typename T>
 void CooMatrix<T>::Add(int i, int j, T val)
 {
     assert(i >= 0);
@@ -290,18 +365,114 @@ void CooMatrix<T>::Add(const std::vector<int>& rows,
 }
 
 template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& indices, T scale,
+                       const DenseMatrix& values)
+{
+    Add(indices, indices, scale, values);
+}
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& rows,
+                       const std::vector<int>& cols,
+                       T scale,
+                       const DenseMatrix& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.Rows()));
+    assert(cols.size() == static_cast<unsigned int>(values.Cols()));
+
+    const int num_rows = values.Rows();
+    const int num_cols = values.Cols();
+
+    for (int j = 0; j < num_cols; ++j)
+    {
+        const int col = cols[j];
+
+        for (int i = 0; i < num_rows; ++i)
+        {
+            const int row = rows[i];
+            const double val = values(i, j);
+
+            Add(row, col, scale * val);
+        }
+    }
+}
+
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& rows, int col,
+                       const VectorView<T>& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+
+    int size = rows.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], col, values[i]);
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(int row, const std::vector<int>& cols,
+                       const VectorView<T>& values)
+{
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(row, cols[i], values[i]);
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(const std::vector<int>& rows, int col, T scale,
+                       const VectorView<T>& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+
+    int size = rows.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], col, scale * values[i]);
+    }
+}
+
+template <typename T>
+void CooMatrix<T>::Add(int row, const std::vector<int>& cols, T scale,
+                       const VectorView<T>& values)
+{
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(row, cols[i], scale * values[i]);
+    }
+}
+
+template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
-    if (entries_.size() == 0)
-    {
-        return DenseMatrix();
-    }
+    DenseMatrix dense;
+    ToDense(dense);
+
+    return dense;
+}
+
+template <typename T>
+void CooMatrix<T>::ToDense(DenseMatrix& dense) const
+{
 
     int rows;
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    DenseMatrix dense(rows, cols);
+    dense.Resize(rows, cols);
+    dense = 0.0;
 
     for (const auto& entry : entries_)
     {
@@ -311,8 +482,6 @@ DenseMatrix CooMatrix<T>::ToDense() const
 
         dense(i, j) += val;
     }
-
-    return dense;
 }
 
 template <typename T>
@@ -363,8 +532,8 @@ void CooMatrix<T>::PermuteRowsCols(const std::vector<int>& row_perm, const std::
 }
 
 template <typename T>
-template <typename T2>
-SparseMatrix<T2> CooMatrix<T>::ToSparse() const
+template <typename U>
+SparseMatrix<U> CooMatrix<T>::ToSparse() const
 {
     int rows;
     int cols;
@@ -374,14 +543,14 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
 
     if (entries_.size() == 0)
     {
-        return SparseMatrix<T2>(rows, cols);
+        return SparseMatrix<U>(rows, cols);
     }
 
     const size_t nnz = entries_.size();
 
     std::vector<int> indptr(rows + 1, 0);
     std::vector<int> indices;
-    std::vector<T2> data;
+    std::vector<U> data;
 
     indices.reserve(nnz);
     data.reserve(nnz);
@@ -394,7 +563,7 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     {
         const int i = std::get<0>(tup);
         const int j = std::get<1>(tup);
-        const T2 val = std::get<2>(tup);
+        const U val = std::get<2>(tup);
 
         // Set Indptr if at new row
         if (i != current_row)
@@ -422,11 +591,11 @@ SparseMatrix<T2> CooMatrix<T>::ToSparse() const
     std::fill(begin(indptr) + current_row + 1,
               end(indptr), data.size());
 
-    return SparseMatrix<T2>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
+    return SparseMatrix<U>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
 
 template <typename T>
-void CooMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void CooMatrix<T>::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
@@ -444,7 +613,7 @@ void CooMatrix<T>::Mult(const VectorView<double>& input, VectorView<double>& out
 }
 
 template <typename T>
-void CooMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void CooMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     assert(Rows() == output.size());
     assert(Cols() == input.size());
@@ -481,13 +650,14 @@ void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
 template <typename T>
 void CooMatrix<T>::EliminateZeros(double tolerance)
 {
-    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
-                                  [&](const auto & entry)
+    auto compare = [&] (const auto& entry)
     {
-        const double val = std::get<1>(entry);
+        const double val = std::get<2>(entry);
         return std::abs(val) < tolerance;
-    }),
-    std::end(entries_));
+    };
+
+    entries_.erase(std::remove_if(std::begin(entries_), std::end(entries_),
+                   compare), std::end(entries_));
 }
 
 template <typename T>

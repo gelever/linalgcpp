@@ -35,6 +35,20 @@ class BlockVector : public Vector<T>
         /*! @brief Constructor with given data and offsets */
         explicit BlockVector(const VectorView<T>& data, std::vector<int> offsets);
 
+        /*! @brief Copy deconstructor */
+        BlockVector(const BlockVector<T>& other) noexcept;
+
+        /*! @brief Move deconstructor */
+        BlockVector(BlockVector<T>&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        BlockVector& operator=(BlockVector<T> other) noexcept;
+
+        /*! @brief Swap two BlockVectors */
+        template <typename U>
+        friend void swap(BlockVector<U>& lhs, BlockVector<U>& rhs) noexcept;
+
+        /*! @brief Get offsets */
         const std::vector<int>& GetOffsets() const;
 
         /*! @brief Get a view of a block */
@@ -77,6 +91,36 @@ BlockVector<T>::BlockVector(const VectorView<T>& data, std::vector<int> offsets)
 {
 
 }
+
+template <typename T>
+BlockVector<T>::BlockVector(const BlockVector<T>& other) noexcept
+    : Vector<T>(other), offsets_(other.offsets_)
+{
+
+}
+
+template <typename T>
+BlockVector<T>::BlockVector(BlockVector<T>&& other) noexcept
+{
+    swap(*this, other);
+}
+
+template <typename T>
+BlockVector<T>& BlockVector<T>::operator=(BlockVector<T> other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+template <typename T>
+void swap(BlockVector<T>& lhs, BlockVector<T>& rhs) noexcept
+{
+    swap(static_cast<Vector<T>&>(lhs), static_cast<Vector<T>&>(rhs));
+
+    swap(lhs.offsets_, rhs.offsets_);
+}
+
 template <typename T>
 const std::vector<int>& BlockVector<T>::GetOffsets() const
 {

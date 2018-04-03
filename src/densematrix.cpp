@@ -149,12 +149,12 @@ void DenseMatrix::Transpose(DenseMatrix& transpose) const
     }
 }
 
-void DenseMatrix::Mult(const VectorView<double>& input, VectorView<double>& output) const
+void DenseMatrix::Mult(const VectorView<double>& input, VectorView<double> output) const
 {
     Mult<double, double>(input, output);
 }
 
-void DenseMatrix::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void DenseMatrix::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     MultAT<double, double>(input, output);
 }
@@ -635,6 +635,44 @@ void DenseMatrix::GetDiag(std::vector<double>& diag) const
     for (int i = 0; i < rows_; ++i)
     {
         diag[i] = (*this)(i, i);
+    }
+}
+
+DenseMatrix HStack(const std::vector<DenseMatrix>& dense)
+{
+    DenseMatrix output;
+    HStack(dense, output);
+
+    return output;
+}
+
+void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output)
+{
+    if (dense.size() == 0)
+    {
+        return;
+    }
+
+    int rows = dense[0].Rows();
+
+    for (auto& mat : dense)
+    {
+        assert(mat.Rows() == rows);
+    }
+
+    int cols = SumCols(dense);
+
+    output.Resize(rows, cols);
+
+    int counter = 0;
+
+    for (auto& mat : dense)
+    {
+        if (mat.Cols() > 0)
+        {
+            output.SetCol(counter, mat);
+            counter += mat.Cols();
+        }
     }
 }
 

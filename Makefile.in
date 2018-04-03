@@ -1,10 +1,12 @@
 # Flags and directories
 CXX := g++
 AR := ar
+#CXX_FLAGS := -flto -O3 -Wall -Werror -std=c++14
 CXX_FLAGS := -g -O1 -Wall -Werror -std=c++14
 LIBS := -llapack -lblas -lm
 
 SRC_DIR := src
+INC_DIR := include
 OBJ_DIR := obj
 BUILD_DIR := build
 TEST_DIR := tests
@@ -23,7 +25,7 @@ $(PROGS): $(OBJS)
 
 $(TESTS): $(OBJS)
 	@mkdir -p $(BUILD_DIR)/tests
-	$(CXX) $(CXX_FLAGS) $^ $(TEST_DIR)/$@.cpp $(LIBS) -o $(BUILD_DIR)/tests/$@
+	$(CXX) -I $(INC_DIR) $(CXX_FLAGS) $^ $(TEST_DIR)/$@.cpp $(LIBS) -o $(BUILD_DIR)/tests/$@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)

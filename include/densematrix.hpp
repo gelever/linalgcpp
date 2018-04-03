@@ -177,16 +177,16 @@ class DenseMatrix : public Operator
             @param input the input vector x
             @param output the output vector y
         */
-        template <typename T, typename T2>
-        void Mult(const VectorView<T>& input, VectorView<T2>& output) const;
+        template <typename T, typename U>
+        void Mult(const VectorView<T>& input, VectorView<U> output) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
             @param input the input vector x
             @param output the output vector y
         */
-        template <typename T, typename T2>
-        void MultAT(const VectorView<T>& input, VectorView<T2>& output) const;
+        template <typename T, typename U>
+        void MultAT(const VectorView<T>& input, VectorView<U> output) const;
 
         /*! @brief Multiplies a dense matrix: AB = C
             @param input the input dense matrix B
@@ -494,9 +494,9 @@ class DenseMatrix : public Operator
         void GetDiag(std::vector<double>& diag) const;
 
         /// Operator Requirement, calls the templated Mult
-        void Mult(const VectorView<double>& input, VectorView<double>& output) const override;
+        void Mult(const VectorView<double>& input, VectorView<double> output) const override;
         /// Operator Requirement, calls the templated MultAT
-        void MultAT(const VectorView<double>& input, VectorView<double>& output) const override;
+        void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
         std::vector<double> data_;
@@ -575,8 +575,8 @@ Vector<double> DenseMatrix::Mult(const VectorView<T>& input) const
     return output;
 }
 
-template <typename T, typename T2>
-void DenseMatrix::Mult(const VectorView<T>& input, VectorView<T2>& output) const
+template <typename T, typename U>
+void DenseMatrix::Mult(const VectorView<T>& input, VectorView<U> output) const
 {
     assert(input.size() == cols_);
     assert(output.size() == rows_);
@@ -601,15 +601,15 @@ Vector<double> DenseMatrix::MultAT(const VectorView<T>& input) const
     return output;
 }
 
-template <typename T, typename T2>
-void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<T2>& output) const
+template <typename T, typename U>
+void DenseMatrix::MultAT(const VectorView<T>& input, VectorView<U> output) const
 {
     assert(input.size() == rows_);
     assert(output.size() == cols_);
 
     for (int j = 0; j < cols_; ++j)
     {
-        T2 val = 0;
+        U val = 0;
 
         for (int i = 0; i < rows_; ++i)
         {
@@ -710,6 +710,11 @@ void DenseMatrix::SetRow(int row, const VectorView<T>& vect)
         (*this)(row, i) = vect[i];
     }
 }
+
+// Utility Functions
+DenseMatrix HStack(const std::vector<DenseMatrix>& dense);
+void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output);
+//DenseMatrix VStack(const std::vector<DenseMatrix>& dense);
 
 } //namespace linalgcpp
 

@@ -51,6 +51,9 @@ class VectorView
         /*! @brief Assignment Operator */
         VectorView& operator=(VectorView&& vect) noexcept;
 
+        /*! @brief Assignment Operator, hard copy*/
+        VectorView& operator=(const VectorView& vect) noexcept;
+
         /*! @brief Destructor */
         ~VectorView() noexcept = default;
 
@@ -58,8 +61,8 @@ class VectorView
             @param lhs left hand side vector
             @param rhs right hand side vector
         */
-        template <typename T2>
-        friend void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept;
+        template <typename U>
+        friend void swap(VectorView<U>& lhs, VectorView<U>& rhs) noexcept;
 
         /*! @brief STL like begin. Points to start of data
             @retval pointer to the start of data
@@ -141,6 +144,11 @@ class VectorView
         */
         virtual double L2Norm() const;
 
+        /*! @brief Sum all elements
+            @retval sum sum of all elements
+        */
+        T Sum() const;
+
         /*! @brief Randomize the entries in a integer vector
             @param lo lower range limit
             @param hi upper range limit
@@ -149,7 +157,7 @@ class VectorView
         virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
 
     protected:
-        //void SetData(T* data, int size);
+        void SetData(T* data, int size);
 
     private:
         T* data_;
@@ -168,7 +176,7 @@ VectorView<T>::VectorView(T* data, int size)
     : data_(data), size_(size)
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
@@ -176,7 +184,7 @@ VectorView<T>::VectorView(VectorView<T>& vect) noexcept
     : data_(vect.data_), size_(vect.size_)
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
@@ -184,20 +192,36 @@ VectorView<T>::VectorView(std::vector<T>& vect) noexcept
     : data_(vect.data()), size_(vect.size())
 {
     assert(size_ >= 0);
-    assert(data_);
+    assert(size_ == 0 || data_);
+}
+
+template <typename T>
+void VectorView<T>::SetData(T* data, int size)
+{
+    assert(size >= 0);
+    assert(size == 0 || data);
+
+    data_ = data;
+    size_ = size;
 }
 
 template <typename T>
 VectorView<T>::VectorView(VectorView<T>&& vect) noexcept
+    : data_(vect.data_), size_(vect.size_)
 {
-    swap(*this, vect);
+    assert(size_ >= 0);
+    assert(size_ == 0 || data_);
 }
 
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(VectorView<T>& vect) noexcept
 {
-    data_ = vect.data_;
-    size_ = vect.size_;
+    assert(vect.size_ == size_);
+
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
+
+    //data_ = vect.data_;
+    //size_ = vect.size_;
 
     return *this;
 }
@@ -205,14 +229,27 @@ VectorView<T>& VectorView<T>::operator=(VectorView<T>& vect) noexcept
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(VectorView<T>&& vect) noexcept
 {
-    data_ = vect.data_;
-    size_ = vect.size_;
+    assert(vect.size_ == size_);
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
+
+    //data_ = vect.data_;
+    //size_ = vect.size_;
 
     return *this;
 }
 
-template <typename T2>
-void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept
+template <typename T>
+VectorView<T>& VectorView<T>::operator=(const VectorView<T>& vect) noexcept
+{
+    assert(vect.size_ == size_);
+
+    std::copy(std::begin(vect), std::end(vect), std::begin(*this));
+
+    return *this;
+}
+
+template <typename U>
+void swap(VectorView<U>& lhs, VectorView<U>& rhs) noexcept
 {
     std::swap(lhs.data_, rhs.data_);
     std::swap(lhs.size_, rhs.size_);
@@ -221,7 +258,7 @@ void swap(VectorView<T2>& lhs, VectorView<T2>& rhs) noexcept
 template <typename T>
 VectorView<T>& VectorView<T>::operator=(T val)
 {
-    std::fill(begin(), end(), val);
+    std::fill(std::begin(*this), std::end(*this), val);
 
     return *this;
 }
@@ -327,13 +364,20 @@ VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
     return *this;
 }
 
+template <typename T>
+T VectorView<T>::Sum() const
+{
+    T start = 0;
+    return std::accumulate(std::begin(*this), std::end(*this), start);
+}
+
 /*! @brief Compute the inner product two vectors x^T y
     @param lhs left hand side vector x
     @param rhs right hand side vector y
     @retval the inner product
 */
-template <typename T, typename T2>
-double InnerProduct(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+double InnerProduct(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     return lhs.Mult(rhs);
 }
@@ -351,7 +395,7 @@ T VectorView<T>::Mult(const VectorView<T>& vect) const
 
     T start = 0.0;
 
-    return std::inner_product(begin(), end(), std::begin(vect), start);
+    return std::inner_product(std::begin(*this), std::end(*this), std::begin(vect), start);
 }
 
 template <typename T>
@@ -379,8 +423,8 @@ double L2Norm(const VectorView<T>& vect)
     @param rhs right hand side vector y
     @retval the inner product
 */
-template <typename T, typename T2>
-double operator*(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+double operator*(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     return InnerProduct(lhs, rhs);
 }
@@ -390,7 +434,7 @@ double operator*(const VectorView<T>& lhs, const VectorView<T2>& rhs)
     @param rhs right hand side vector y
 */
 template <typename T>
-VectorView<T>& operator*=(VectorView<T>& lhs, const VectorView<T>& rhs)
+VectorView<T> operator*=(VectorView<T> lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
@@ -409,7 +453,7 @@ VectorView<T>& operator*=(VectorView<T>& lhs, const VectorView<T>& rhs)
     @param rhs right hand side vector y
 */
 template <typename T>
-VectorView<T>& operator/=(VectorView<T>& lhs, const VectorView<T>& rhs)
+VectorView<T> operator/=(VectorView<T> lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
@@ -429,8 +473,8 @@ VectorView<T>& operator/=(VectorView<T>& lhs, const VectorView<T>& rhs)
     @param lhs left hand side vector x
     @param rhs right hand side vector y
 */
-template <typename T, typename T2>
-VectorView<T>& operator+=(VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+VectorView<T> operator+=(VectorView<T> lhs, const VectorView<U>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
@@ -449,7 +493,7 @@ VectorView<T>& operator+=(VectorView<T>& lhs, const VectorView<T2>& rhs)
     @param rhs right hand side vector y
 */
 template <typename T>
-VectorView<T>& operator-=(VectorView<T>& lhs, const VectorView<T>& rhs)
+VectorView<T> operator-=(VectorView<T> lhs, const VectorView<T>& rhs)
 {
     assert(lhs.size() == rhs.size());
 
@@ -468,7 +512,7 @@ VectorView<T>& operator-=(VectorView<T>& lhs, const VectorView<T>& rhs)
     @param val value to scale by
 */
 template <typename T>
-VectorView<T>& operator*=(VectorView<T>& vect, T val)
+VectorView<T> operator*=(VectorView<T> vect, T val)
 {
     for (T& i : vect)
     {
@@ -483,7 +527,7 @@ VectorView<T>& operator*=(VectorView<T>& vect, T val)
     @param val value to scale by
 */
 template <typename T>
-VectorView<T>& operator/=(VectorView<T>& vect, T val)
+VectorView<T> operator/=(VectorView<T> vect, T val)
 {
     assert(val != 0);
 
@@ -500,7 +544,7 @@ VectorView<T>& operator/=(VectorView<T>& vect, T val)
     @param val the value to add
 */
 template <typename T>
-VectorView<T>& operator+=(VectorView<T>& lhs, T val)
+VectorView<T> operator+=(VectorView<T> lhs, T val)
 {
     for (T& i : lhs)
     {
@@ -515,7 +559,7 @@ VectorView<T>& operator+=(VectorView<T>& lhs, T val)
     @param val the value to subtract
 */
 template <typename T>
-VectorView<T>& operator-=(VectorView<T>& lhs, T val)
+VectorView<T> operator-=(VectorView<T> lhs, T val)
 {
     for (T& i : lhs)
     {
@@ -530,8 +574,8 @@ VectorView<T>& operator-=(VectorView<T>& lhs, T val)
     @param rhs right hand side vector
     @retval true if vectors are close enough to equal
 */
-template <typename T, typename T2>
-bool operator==(const VectorView<T>& lhs, const VectorView<T2>& rhs)
+template <typename T, typename U>
+bool operator==(const VectorView<T>& lhs, const VectorView<U>& rhs)
 {
     if (lhs.size() != rhs.size())
     {
@@ -574,6 +618,8 @@ T AbsMax(const VectorView<T>& vect)
 template <typename T>
 T Max(const VectorView<T>& vect)
 {
+    assert(vect.size() > 0);
+
     return *std::max_element(std::begin(vect), std::end(vect));
 }
 
@@ -584,6 +630,8 @@ T Max(const VectorView<T>& vect)
 template <typename T>
 T Min(const VectorView<T>& vect)
 {
+    assert(vect.size() > 0);
+
     return *std::min_element(std::begin(vect), std::end(vect));
 }
 
@@ -594,6 +642,7 @@ T Min(const VectorView<T>& vect)
 template <typename T>
 T AbsMin(const VectorView<T>& vect)
 {
+    assert(vect.size() > 0);
     const auto compare = [](auto lhs, auto rhs)
     {
         return std::fabs(lhs) < std::fabs(rhs);
@@ -609,8 +658,7 @@ T AbsMin(const VectorView<T>& vect)
 template <typename T>
 T Sum(const VectorView<T>& vect)
 {
-    T start = 0;
-    return std::accumulate(std::begin(vect), std::end(vect), start);
+    return vect.Sum();
 }
 
 /*! @brief Compute the mean of all vector entries

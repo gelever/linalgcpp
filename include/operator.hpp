@@ -28,8 +28,13 @@ class Operator
         /*! @brief Rectangle Constructor */
         Operator(int rows, int cols);
 
+        /*! @brief Copy Constructor */
         Operator(const Operator&) noexcept;
+
+        /*! @brief Move Constructor */
         Operator(Operator&&) noexcept;
+
+        /*! @brief Assignement Operator */
         Operator& operator=(Operator&&) noexcept;
 
         /*! @brief Destructor */
@@ -55,7 +60,7 @@ class Operator
             @param input the input vector x
             @param output the output vector y
         */
-        virtual void Mult(const VectorView<double>& input, VectorView<double>& output) const = 0;
+        virtual void Mult(const VectorView<double>& input, VectorView<double> output) const = 0;
 
         /*! @brief Apply the action to a vector: Ax = y
             @param input the input vector x
@@ -67,7 +72,7 @@ class Operator
             @param input the input vector x
             @param output the output vector y
         */
-        virtual void MultAT(const VectorView<double>& input, VectorView<double>& output) const;
+        virtual void MultAT(const VectorView<double>& input, VectorView<double> output) const;
 
         /*! @brief Apply the transpose action to a vector: A^T x = y
             @param input the input vector x
@@ -87,9 +92,37 @@ class Operator
 };
 
 inline
-void Operator::MultAT(const VectorView<double>& input, VectorView<double>& output) const
+void Operator::MultAT(const VectorView<double>& input, VectorView<double> output) const
 {
     throw std::runtime_error("The operator MultAT not defined!\n");
+}
+
+template <typename T>
+inline
+int SumCols(const std::vector<T>& ops)
+{
+    int total = 0;
+
+    for (const auto& op : ops)
+    {
+        total += op.Cols();
+    }
+
+    return total;
+}
+
+template <typename T>
+inline
+int SumRows(const std::vector<T>& ops)
+{
+    int total = 0;
+
+    for (const auto& op : ops)
+    {
+        total += op.Rows();
+    }
+
+    return total;
 }
 
 }
