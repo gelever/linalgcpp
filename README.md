@@ -1,4 +1,4 @@
-# linalgcpp
+# linalgcpp [![Build Status](https://travis-ci.org/gelever/linalgcpp.svg?branch=master)](https://travis-ci.org/gelever/linalgcpp)
 A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s linear algebra.
 
 # Requirements
