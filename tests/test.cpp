@@ -970,11 +970,14 @@ void test_solvers()
     // Normalize(b);
 
     int max_iter = size;
-    double tol = 1e-16;
+    double rel_tol = 1e-12;
+    double abs_tol = 1e-16;
     bool verbose = true;
 
-    Vector<double> x = CG(A, b, max_iter, tol, verbose);
-    Vector<double> x_coo = CG(coo, b, max_iter, tol, verbose);
+    double tol = 1e-12; // remove
+
+    Vector<double> x = CG(A, b, max_iter, rel_tol, abs_tol, verbose);
+    Vector<double> x_coo = CG(coo, b, max_iter, rel_tol, abs_tol, verbose);
 
     Vector<double> Ax = A.Mult(x);
     Vector<double> res = b - Ax;
@@ -994,21 +997,21 @@ void test_solvers()
     std::vector<double> diag(size, 0.5);
     SparseMatrix<double> M(diag);
 
-    Vector<double> px = PCG(A, M, b, max_iter, tol, verbose);
+    Vector<double> px = PCG(A, M, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> pAx = A.Mult(px);
     Vector<double> pres = b - pAx;
     double perror = L2Norm(pres);
 
     printf("PCG error: %.2e\n", perror);
 
-    Vector<double> mx = MINRES(A, b, max_iter, tol, verbose);
+    Vector<double> mx = MINRES(A, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> mAx = A.Mult(mx);
     Vector<double> mres = b - mAx;
     double merror = L2Norm(mres);
 
     printf("MINRES error: %.2e\n", merror);
 
-    Vector<double> pmx = PMINRES(A, M, b, max_iter, tol, verbose);
+    Vector<double> pmx = PMINRES(A, M, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> pmAx = A.Mult(pmx);
     Vector<double> pmres = b - pmAx;
     double pmerror = L2Norm(pmres);

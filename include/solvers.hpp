@@ -9,19 +9,108 @@
 namespace linalgcpp
 {
 
-/*! @class Conjugate Gradient.  Solves Ax = b for positive definite A */
-class CGSolver : public Operator
+/*! @class Tracks basic iterative solver information */
+class Solver : public Operator
 {
     public:
+        /*! @brief Get number of iterations for last solve
+            @retval number of iterations for last solve
+        */
+        virtual int GetNumIterations() const;
+
+        /*! @brief Set verbose output
+            @param verbose verbose output
+        */
+        virtual void SetVerbose(bool verbose);
+
+        /*! @brief Set maximum iterations
+            @param max_iter maximum iterations
+        */
+        virtual void SetMaxIter(int max_iter);
+
+        /*! @brief Set relative tolerance
+            @param reltol relative tolerance
+        */
+        virtual void SetRelTol(double rel_tol);
+
+        /*! @brief Set absolute tolerance
+            @param reltol absolute tolerance
+        */
+        virtual void SetAbsTol(double abs_tol);
+
+    protected:
+        /*! @brief Default Constructor */
+        Solver();
+
         /*! @brief Constructor
             @param A operator to apply the action of A
             @param max_iter maxiumum number of iterations to perform
-            @param tol relative tolerance for stopping criteria
+            @param rel_tol relative tolerance for stopping criteria
+            @param abs_tol absolute tolerance for stopping criteria
             @param verbose display additional iteration information
+            @param Dot Dot product function
         */
-        //CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
-        CGSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+        Solver(const Operator& A, int max_iter, double rel_tol,
+               double abs_tol, bool verbose,
+               double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+
+        /*! @brief Copy Constructor */
+        Solver(const Solver& other) noexcept = default;
+
+        /*! @brief Move Constructor */
+        Solver(Solver&& other) noexcept = default;
+
+        /*! @brief Destructor */
+        ~Solver() noexcept = default;
+
+        /*! @brief Swap tow solver */
+        friend void swap(Solver& lhs, Solver& rhs) noexcept;
+
+        const Operator* A_;
+
+        int max_iter_;
+        bool verbose_;
+        double rel_tol_;
+        double abs_tol_;
+
+        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
+
+        mutable int num_iter_;
+};
+
+/*! @class Conjugate Gradient.  Solves Ax = b for positive definite A */
+class CGSolver : public Solver
+{
+    public:
+        /*! @brief Default Constructor */
+        CGSolver() = default;
+
+        /*! @brief Constructor
+            @param A operator to apply the action of A
+            @param max_iter maxiumum number of iterations to perform
+            @param rel_tol relative tolerance for stopping criteria
+            @param abs_tol absolute tolerance for stopping criteria
+            @param verbose display additional iteration information
+            @param Dot Dot product function
+        */
+        CGSolver(const Operator& A, int max_iter = 1000,
+                 double rel_tol = 1e-16, double abs_tol = 1e-16, bool verbose = false,
                  double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+
+        /*! @brief Copy Constructor */
+        CGSolver(const CGSolver& other) noexcept;
+
+        /*! @brief Move Constructor */
+        CGSolver(CGSolver&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        CGSolver& operator=(CGSolver other) noexcept;
+
+        /*! @brief Swap two solvers */
+        friend void swap(CGSolver& lhs, CGSolver& rhs) noexcept;
+
+        /*! @brief Default Destructor */
+        ~CGSolver() noexcept = default;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -30,29 +119,44 @@ class CGSolver : public Operator
         void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
-        const Operator& A_;
-        int max_iter_;
-        double tol_;
-        bool verbose_;
-
         mutable Vector<double> Ap_;
         mutable Vector<double> r_;
         mutable Vector<double> p_;
-
-        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
-class PCGSolver : public Operator
+class PCGSolver : public Solver
 {
     public:
+        /*! @brief Default Constructor */
+        PCGSolver() = default;
+
         /*! @brief Constructor
             @param A operator to apply the action of A
             @param M operator to apply the preconditioner
             @param max_iter maxiumum number of iterations to perform
-            @param tol relative tolerance for stopping criteria
+            @param rel_tol relative tolerance for stopping criteria
+            @param abs_tol absolute tolerance for stopping criteria
             @param verbose display additional iteration information
+            @param Dot Dot product function
         */
-        PCGSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        PCGSolver(const Operator& A, const Operator& M, int max_iter = 1000,
+                 double rel_tol = 1e-16, double abs_tol = 1e-16, bool verbose = false,
+                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+
+        /*! @brief Copy Constructor */
+        PCGSolver(const PCGSolver& other) noexcept;
+
+        /*! @brief Move Constructor */
+        PCGSolver(PCGSolver&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        PCGSolver& operator=(PCGSolver other) noexcept;
+
+        /*! @brief Swap two solvers */
+        friend void swap(PCGSolver& lhs, PCGSolver& rhs) noexcept;
+
+        /*! @brief Default Destructor */
+        ~PCGSolver() noexcept = default;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -61,11 +165,7 @@ class PCGSolver : public Operator
         void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
-        const Operator& A_;
-        const Operator& M_;
-        int max_iter_;
-        double tol_;
-        bool verbose_;
+        const Operator* M_;
 
         mutable Vector<double> Ap_;
         mutable Vector<double> r_;
@@ -73,17 +173,38 @@ class PCGSolver : public Operator
         mutable Vector<double> z_;
 };
 
-class MINRESSolver : public Operator
+class MINRESSolver : public Solver
 {
     public:
+        /*! @brief Default Constructor */
+        MINRESSolver() = default;
+
         /*! @brief Constructor
             @param A operator to apply the action of A
             @param max_iter maxiumum number of iterations to perform
-            @param tol relative tolerance for stopping criteria
+            @param rel_tol relative tolerance for stopping criteria
+            @param abs_tol absolute tolerance for stopping criteria
             @param verbose display additional iteration information
+            @param Dot Dot product function
         */
-        MINRESSolver(const Operator& A, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
-                 double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+        MINRESSolver(const Operator& A, int max_iter = 1000,
+                     double rel_tol = 1e-16, double abs_tol = 1e-16, bool verbose = false,
+                     double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+
+        /*! @brief Copy Constructor */
+        MINRESSolver(const MINRESSolver& other) noexcept;
+
+        /*! @brief Move Constructor */
+        MINRESSolver(MINRESSolver&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        MINRESSolver& operator=(MINRESSolver other) noexcept;
+
+        /*! @brief Swap two solvers */
+        friend void swap(MINRESSolver& lhs, MINRESSolver& rhs) noexcept;
+
+        /*! @brief Default Destructor */
+        ~MINRESSolver() noexcept = default;
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -92,33 +213,47 @@ class MINRESSolver : public Operator
         void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
-        const Operator& A_;
-
-        int max_iter_;
-        double tol_;
-        bool verbose_;
-
         mutable Vector<double> w0_;
         mutable Vector<double> w1_;
         mutable Vector<double> v0_;
         mutable Vector<double> v1_;
         mutable Vector<double> q_;
-
-        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
-class PMINRESSolver : public Operator
+class PMINRESSolver : public Solver
 {
     public:
+        /*! @brief Default Constructor */
+        PMINRESSolver() = default;
+
         /*! @brief Constructor
             @param A operator to apply the action of A
             @param M operator to apply the preconditioner
             @param max_iter maxiumum number of iterations to perform
-            @param tol relative tolerance for stopping criteria
+            @param rel_tol relative tolerance for stopping criteria
+            @param abs_tol absolute tolerance for stopping criteria
             @param verbose display additional iteration information
+            @param Dot Dot product function
         */
-        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000, double tol = 1e-16, bool verbose = false,
+        PMINRESSolver(const Operator& A, const Operator& M, int max_iter = 1000,
+                 double rel_tol = 1e-16, double abs_tol = 1e-16, bool verbose = false,
                  double (*Dot)(const VectorView<double>&, const VectorView<double>&) = linalgcpp::InnerProduct);
+
+        /*! @brief Copy Constructor */
+        PMINRESSolver(const PMINRESSolver& other) noexcept;
+
+        /*! @brief Move Constructor */
+        PMINRESSolver(PMINRESSolver&& other) noexcept;
+
+        /*! @brief Assignment operator */
+        PMINRESSolver& operator=(PMINRESSolver other) noexcept;
+
+        /*! @brief Swap two solvers */
+        friend void swap(PMINRESSolver& lhs, PMINRESSolver& rhs) noexcept;
+
+        /*! @brief Default Destructor */
+        ~PMINRESSolver() noexcept = default;
+
 
         /*! @brief Solve
             @param[in] input right hand side to solve for
@@ -127,12 +262,7 @@ class PMINRESSolver : public Operator
         void Mult(const VectorView<double>& input, VectorView<double> output) const override;
 
     private:
-        const Operator& A_;
-        const Operator& M_;
-
-        int max_iter_;
-        double tol_;
-        bool verbose_;
+        const Operator* M_;
 
         mutable Vector<double> w0_;
         mutable Vector<double> w1_;
@@ -140,8 +270,6 @@ class PMINRESSolver : public Operator
         mutable Vector<double> v1_;
         mutable Vector<double> u1_;
         mutable Vector<double> q_;
-
-        double (*Dot_)(const VectorView<double>&, const VectorView<double>&);
 };
 
 
@@ -149,25 +277,29 @@ class PMINRESSolver : public Operator
     @param A operator to apply the action of A
     @param b right hand side vector
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
     @retval Vector x the computed solution
 
     @note Uses random initial guess for x
 */
 Vector<double> CG(const Operator& A, const VectorView<double>& b,
-                  int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+                  int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+                  bool verbose = false);
 
 /*! @brief Conjugate Gradient.  Solves Ax = b for positive definite A
     @param A operator to apply the action of A
     @param b right hand side vector
     @param[in,out] x intial guess on input and solution on output
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
 */
 void CG(const Operator& A, const VectorView<double>& b, VectorView<double> x,
-        int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+        int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+        bool verbose = false);
 
 /*! @brief Preconditioned Conjugate Gradient.  Solves Ax = b
            where M is preconditioner for A
@@ -175,14 +307,16 @@ void CG(const Operator& A, const VectorView<double>& b, VectorView<double> x,
     @param M operator to apply the preconditioner
     @param b right hand side vector
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
     @retval Vector x the computed solution
 
     @note Uses random initial guess for x
 */
 Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double>& b,
-                   int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+                   int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+                   bool verbose = false);
 
 /*! @brief Preconditioned Conjugate Gradient.  Solves Ax = b
            where M is preconditioner for A
@@ -191,17 +325,20 @@ Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double
     @param b right hand side vector
     @param[in,out] x intial guess on input and solution on output
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
 */
 void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
-         int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+         int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+         bool verbose = false);
 
 /*! @brief MINRES.  Solves Ax = b for symmetric A
     @param A operator to apply the action of A
     @param b right hand side vector
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
     @retval Vector x the computed solution
 
@@ -209,28 +346,32 @@ void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, Vect
     @note Uses random initial guess for x
 */
 Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
-                      int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+                      int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+                      bool verbose = false);
 
 /*! @brief MINRES.  Solves Ax = b for symmetric A
     @param A operator to apply the action of A
     @param b right hand side vector
     @param[in,out] x intial guess on input and solution on output
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
 
     Modified from mfem implementation
 */
 
 void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double> x,
-            int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+            int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+            bool verbose = false);
 
 /*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
     @param A operator to apply the action of A
     @param M operator to apply of the preconditioner
     @param b right hand side vector
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
     @retval Vector x the computed solution
 
@@ -238,7 +379,8 @@ void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double> x
     @note Uses random initial guess for x
 */
 Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b,
-                       int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+                       int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+                       bool verbose = false);
 
 /*! @brief Preconditioned MINRES.  Solves Ax = b for symmetric A
     @param A operator to apply the action of A
@@ -246,13 +388,15 @@ Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<do
     @param b right hand side vector
     @param[in,out] x intial guess on input and solution on output
     @param max_iter maxiumum number of iterations to perform
-    @param tol relative tolerance for stopping criteria
+    @param rel_tol relative tolerance for stopping criteria
+    @param abs_tol absolute tolerance for stopping criteria
     @param verbose display additional iteration information
 
     Modified from mfem implementation
 */
 void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
-             int max_iter = 1000, double tol = 1e-16, bool verbose = false);
+             int max_iter = 1000, double rel_tol = 1e-16, double abs_tol = 1e-16,
+             bool verbose = false);
 
 } //namespace linalgcpp
 
