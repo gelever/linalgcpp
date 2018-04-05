@@ -47,11 +47,16 @@ add_library(linalgcpp
     src/vectorview.cpp
 )
 
-set_target_properties(linalgcpp PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        CXX_EXTENSIONS NO
-)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS NO)
+
+
+#set_target_properties(linalgcpp PROPERTIES
+#        CXX_STANDARD 11
+#        CXX_STANDARD_REQUIRED YES
+#        CXX_EXTENSIONS NO
+#)
 
 target_include_directories(linalgcpp
     PUBLIC
