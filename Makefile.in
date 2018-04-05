@@ -2,7 +2,7 @@
 CXX := g++
 AR := ar
 #CXX_FLAGS := -flto -O3 -Wall -Werror -std=c++14
-CXX_FLAGS := -g -O1 -Wall -Werror -std=c++14
+CXX_FLAGS := -g -O1 -Wall -Werror -std=c++11
 LIBS := -llapack -lblas -lm
 
 SRC_DIR := src
@@ -29,7 +29,7 @@ $(TESTS): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXX_FLAGS) -c $< -o $@
+	$(CXX) -I $(INC_DIR) $(CXX_FLAGS) -c $< -o $@
 
 # Create a static library
 LIBNAME := liblinalgcpp

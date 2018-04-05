@@ -134,7 +134,7 @@ class SparseMatrix : public Operator
             @param row the row to get
             @retval indices the indices from one row
         */
-        const auto GetIndicesView(int row) const;
+        const VectorView<int> GetIndicesView(int row) const;
 
         /*! @brief Get the entries from one row
             @param row the row to get
@@ -178,7 +178,7 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename U = T>
-        auto Mult(const VectorView<U>& input) const;
+        Vector<T> Mult(const VectorView<U>& input) const;
 
         /*! @brief Multiplies a vector by the transpose
             of this matrix: A^T x = y
@@ -186,7 +186,7 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename U = T>
-        auto MultAT(const VectorView<U>& input) const;
+        Vector<T> MultAT(const VectorView<U>& input) const;
 
         /*! @brief Multiplies a vector: Ax = y
             @param input the input vector x
@@ -246,7 +246,7 @@ class SparseMatrix : public Operator
             @retval the output sparse matrix C
         */
         template <typename U = T, typename V = typename std::common_type<T, U>::type>
-        auto Mult(const SparseMatrix<U>& rhs) const;
+        SparseMatrix<V> Mult(const SparseMatrix<U>& rhs) const;
 
         /*! @brief Genereates the transpose of this matrix*/
         template <typename U = T>
@@ -309,7 +309,7 @@ class SparseMatrix : public Operator
             @retval output the output vector y
         */
         template <typename U = T>
-        auto operator*(const VectorView<U>& input) const;
+        Vector<U> operator*(const VectorView<U>& input) const;
 
         /*! @brief Sum of all data
             @retval sum Sum of all data
@@ -925,7 +925,7 @@ VectorView<int> SparseMatrix<T>::GetIndicesView(int row)
 
 template <typename T>
 inline
-const auto SparseMatrix<T>::GetIndicesView(int row) const
+const VectorView<int> SparseMatrix<T>::GetIndicesView(int row) const
 {
     assert(row >= 0 && row < rows_);
 
@@ -952,9 +952,9 @@ std::vector<T> SparseMatrix<T>::GetData(int row) const
 
 template <typename T>
 template <typename U>
-auto SparseMatrix<T>::Mult(const VectorView<U>& input) const
+Vector<T> SparseMatrix<T>::Mult(const VectorView<U>& input) const
 {
-    Vector<typename std::common_type<T, U>::type> output(rows_);
+    Vector<T> output(rows_);
     Mult(input, output);
 
     return output;
@@ -962,9 +962,9 @@ auto SparseMatrix<T>::Mult(const VectorView<U>& input) const
 
 template <typename T>
 template <typename U>
-auto SparseMatrix<T>::MultAT(const VectorView<U>& input) const
+Vector<T> SparseMatrix<T>::MultAT(const VectorView<U>& input) const
 {
-    Vector<typename std::common_type<T, U>::type> output(cols_);
+    Vector<T> output(cols_);
     MultAT(input, output);
 
     return output;
@@ -1022,14 +1022,14 @@ void SparseMatrix<T>::MultAT(const VectorView<double>& input, VectorView<double>
 
 template <typename T>
 template <typename U>
-auto SparseMatrix<T>::operator*(const VectorView<U>& input) const
+Vector<U> SparseMatrix<T>::operator*(const VectorView<U>& input) const
 {
     return Mult<U>(input);
 }
 
 template <typename T>
 template <typename U, typename V>
-auto SparseMatrix<T>::Mult(const SparseMatrix<U>& rhs) const
+SparseMatrix<V> SparseMatrix<T>::Mult(const SparseMatrix<U>& rhs) const
 {
     std::vector<int> marker(rhs.Cols(), -1);
 

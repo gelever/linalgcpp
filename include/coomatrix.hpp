@@ -234,7 +234,6 @@ class CooMatrix : public Operator
         bool size_set_;
 
         mutable std::vector<std::tuple<int, int, T>> entries_;
-        //mutable std::list<std::tuple<int, int, T>> entries_;
 };
 
 template <typename T>
@@ -650,7 +649,7 @@ void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
 template <typename T>
 void CooMatrix<T>::EliminateZeros(double tolerance)
 {
-    auto compare = [&] (const auto& entry)
+    auto compare = [&] (const std::tuple<int, int, T>& entry)
     {
         const double val = std::get<2>(entry);
         return std::abs(val) < tolerance;

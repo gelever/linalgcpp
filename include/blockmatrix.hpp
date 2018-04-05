@@ -7,6 +7,7 @@
 #include <memory>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <type_traits>
 #include <assert.h>

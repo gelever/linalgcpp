@@ -3,6 +3,7 @@
 #ifndef LILMATRIX_HPP__
 #define LILMATRIX_HPP__
 
+#include <sstream>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -483,7 +484,7 @@ void LilMatrix<T>::EliminateZeros(double tolerance)
     for (auto& row : entries_)
     {
         row.erase(std::remove_if(std::begin(row), std::end(row),
-                                 [&](const auto & entry)
+                                 [&](const std::pair<int, double>& entry)
         {
             return std::abs(entry.second) < tolerance;
         }),

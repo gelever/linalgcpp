@@ -57,7 +57,7 @@ class BlockVector : public Vector<T>
         /*! @brief Get a const view of a block
             @note returns const rvalue reference (const VectorView<T>&&)
         */
-        const auto GetBlock(int block) const;
+        const VectorView<T> GetBlock(int block) const;
 
         using Vector<T>::operator=;
     private:
@@ -139,7 +139,7 @@ VectorView<T> BlockVector<T>::GetBlock(int block)
 }
 
 template <typename T>
-const auto BlockVector<T>::GetBlock(int block) const
+const VectorView<T> BlockVector<T>::GetBlock(int block) const
 {
     assert(block < static_cast<int>(offsets_.size()) - 1);
 

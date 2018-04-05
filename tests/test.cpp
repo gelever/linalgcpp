@@ -974,8 +974,6 @@ void test_solvers()
     double abs_tol = 1e-16;
     bool verbose = true;
 
-    double tol = 1e-12; // remove
-
     Vector<double> x = CG(A, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> x_coo = CG(coo, b, max_iter, rel_tol, abs_tol, verbose);
 

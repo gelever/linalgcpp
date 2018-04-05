@@ -48,7 +48,7 @@ add_library(linalgcpp
 )
 
 set_target_properties(linalgcpp PROPERTIES
-        CXX_STANDARD 14
+        CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )

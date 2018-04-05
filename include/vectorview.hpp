@@ -603,7 +603,9 @@ bool operator==(const VectorView<T>& lhs, const VectorView<U>& rhs)
 template <typename T>
 T AbsMax(const VectorView<T>& vect)
 {
-    const auto compare = [](auto lhs, auto rhs)
+    assert(vect.size() > 0);
+
+    const auto compare = [](const T& lhs, const T& rhs)
     {
         return std::fabs(lhs) < std::fabs(rhs);
     };
@@ -643,7 +645,8 @@ template <typename T>
 T AbsMin(const VectorView<T>& vect)
 {
     assert(vect.size() > 0);
-    const auto compare = [](auto lhs, auto rhs)
+
+    const auto compare = [](const T& lhs, const T& rhs)
     {
         return std::fabs(lhs) < std::fabs(rhs);
     };
