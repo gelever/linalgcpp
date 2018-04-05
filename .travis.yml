@@ -15,7 +15,6 @@ matrix:
 script:
    # Set some variables
    - cd $TRAVIS_BUILD_DIR;
-   - cmake --version;
 
    # Configure the library
    - mkdir build;
