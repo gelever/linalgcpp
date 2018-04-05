@@ -12,9 +12,6 @@ matrix:
             - liblapack-dev
             - libblas-dev
 
-before_install:
-    - eval "${MATRIX_EVAL}"
-
 script:
    # Set some variables
    - cd $TRAVIS_BUILD_DIR;
