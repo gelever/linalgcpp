@@ -103,7 +103,7 @@ void EigenSolver::Solve(const DenseMatrix& mat, double rel_tol, int max_evect,
 
     int m = 1;
 
-    while (m < max_evect && evals[m] < tol)
+    while (m < max_evect && evals[m] <= tol)
     {
         ++m;
     }

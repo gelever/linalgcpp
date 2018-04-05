@@ -1246,6 +1246,51 @@ void test_timer()
     std::cout << "Time Total: " << timer.TotalTime() << std::endl;
 }
 
+void test_eigensolve()
+{
+    DenseMatrix A(3, 3);
+
+    A(0, 0) = 1.0;
+    A(1, 1) = 2.0;
+    A(2, 2) = 3.0;
+
+    A.Print("Eigen Input:");
+
+    EigenSolver eigen;
+    EigenSolver eigen2;
+    eigen2 = eigen;
+
+    auto eigen_pair = eigen.Solve(A, 1.0, 3);
+
+    EigenSolver eigen3(eigen);
+
+    std::cout << "EigenValues:" << eigen_pair.first << "\n";
+    eigen_pair.second.Print("Eigenvectors:");
+
+    DenseMatrix A2(3, 3);
+
+    A2(0, 0) = 1.0;
+    A2(0, 1) = -1.0;
+    A2(1, 0) = -1.0;
+    A2(1, 1) = 2.0;
+    A2(1, 2) = -1.0;
+    A2(2, 1) = -1.0;
+    A2(2, 2) = 1.0;
+
+    A2.Print("Eigen Input:");
+
+    auto eigen_pair2 = eigen3.Solve(A2, 0.5, 3);
+
+    std::cout << "EigenValues:" << eigen_pair2.first << "\n";
+    eigen_pair2.second.Print("Eigenvectors:");
+
+    assert(eigen_pair2.second.Cols() == 2);
+
+    assert(std::fabs(eigen_pair2.first[0]) < 1e-15);
+    assert(std::fabs(eigen_pair2.first[1] - 1.0) < 1e-15);
+    assert(std::fabs(eigen_pair2.first[2] - 3.0) < 1e-15);
+}
+
 void test_argparser(int argc, char** argv)
 {
     if (argc > 1)
@@ -1397,6 +1442,7 @@ int main(int argc, char** argv)
     test_blockoperator();
     test_parser();
     test_timer();
+    test_eigensolve();
     test_argparser(argc, argv);
 
     return EXIT_SUCCESS;

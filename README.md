@@ -4,7 +4,7 @@ A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s
 # Requirements
 * BLAS - for dense matrix operation
 * LAPACK - for solving systems of equations, SVD, eigenproblems, etc.
-* Tested with gcc-7.1.1, c++14
+* Tested with gcc-7.1.1, c++11
 
 # Build
 * Ensure requirements listed above are available on your system. 
