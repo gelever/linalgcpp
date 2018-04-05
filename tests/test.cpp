@@ -1300,17 +1300,16 @@ void test_argparser(int argc, char** argv)
 
     // Good Parser
     {
-        const char* prog_name = "test";
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-        const char* flag_string = "-st";
-        const char* flag_string_val = "StringTest";
+        const int test_argc = 7;
+        const char* test_argv[test_argc];
 
-        int test_argc = 7;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2,
-            flag, flag_val, flag_string, flag_string_val};
+        test_argv[0] = "test";
+        test_argv[1] = "-bf";
+        test_argv[2] = "-bt";
+        test_argv[3] = "-dt";
+        test_argv[4] = "5";
+        test_argv[5] = "-st";
+        test_argv[6] = "StringTest";
 
         ArgParser arg_parser(test_argc, test_argv);
 
@@ -1349,18 +1348,16 @@ void test_argparser(int argc, char** argv)
 
     // Bad Parser
     {
-        const char* prog_name = "test";
+        const int test_argc = 6;
+        const char* test_argv[test_argc];
 
-        // These two flags are the same
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bf";
+        test_argv[0] = "test";
+        test_argv[1] = "-bf"; // These two flags are the same,
+        test_argv[2] = "-bf"; // a bad input
+        test_argv[3] = "-bt";
+        test_argv[4] = "-dt";
+        test_argv[5] = "5";
 
-        const char* bool3 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-
-        int test_argc = 6;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2, bool3, flag, flag_val};
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
@@ -1392,15 +1389,16 @@ void test_argparser(int argc, char** argv)
 
     // Includes help
     {
-        const char* prog_name = "test";
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-        const char* help = "--help";
+        const int test_argc = 6;
+        const char* test_argv[test_argc];
 
-        int test_argc = 6;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2, flag, flag_val, help};
+        test_argv[0] = "test";
+        test_argv[1] = "-bf";
+        test_argv[2] = "-bt";
+        test_argv[3] = "-dt";
+        test_argv[4] = "5";
+        test_argv[5] = "--help";
+
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
