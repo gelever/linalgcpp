@@ -65,6 +65,8 @@ target_link_libraries(linalgcpp
     PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
 )
 
+target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
+
 add_subdirectory(tests)
 
 include(GNUInstallDirs)
