@@ -14,21 +14,48 @@
 namespace linalgcpp
 {
 
-/*! @brief Super simple command line argument parser */
-
+/*! @class Super simple command line argument parser
+    
+    Accepts flags in the form "-flag"
+*/
 class ArgParser
 {
     public:
+        /*! @brief Default Constructor */
         ArgParser() = default;
+
+        /*! @brief Constructor from command line arguments
+            @param argc number of arguments, including progam name
+            @param argv command line arguments
+        */
         ArgParser(int argc, const char* const* argv);
 
+        /*! @brief Set argument if flag specified
+            @param arg input argument
+            @param flag flag to check
+            @param help description of flag
+        */
         template <typename T>
         void Parse(T& arg, const std::string& flag, const std::string& help = "") const;
 
+        /*! @brief Show any errors that occured during parsing
+            @param out output stream
+        */
         void ShowErrors(std::ostream& out = std::cout) const;
+
+        /*! @brief Show program help information
+            @param out output stream
+        */
         void ShowHelp(std::ostream& out = std::cout) const;
+
+        /*! @brief Show current program parameters
+            @param out output stream
+        */
         void ShowOptions(std::ostream& out = std::cout) const;
 
+        /*! @brief Check if errors occured or help is requested
+            @retval true if no errors or help occured
+        */
         bool IsGood() const;
 
     private:
