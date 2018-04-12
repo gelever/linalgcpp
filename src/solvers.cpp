@@ -226,7 +226,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
     {
         A_->Mult(p_, Ap_);
 
-        double alpha = (r_ * z_) / (p_ * Ap_);
+        double alpha = (*Dot_)(r_ , z_) / (*Dot_)(p_, Ap_);
 
         x.Add(alpha, p_);
 
