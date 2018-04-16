@@ -63,6 +63,19 @@ class Vector : public VectorView<T>
         */
         ~Vector() noexcept = default;
 
+        /*! @brief Set size of vector
+            @param size size to set
+
+            @note entries not intialized
+        */
+        void SetSize(int size);
+
+        /*! @brief Set size of vector and initialization value
+            @param size size to set
+            @param val value of any new entries
+        */
+        void SetSize(int size, T val);
+
         /*! @brief Sets this vector equal to another
             @param vect the vector to copy
         */
@@ -172,6 +185,32 @@ template <typename T>
 Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
+
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
+}
+
+template <typename T>
+void Vector<T>::SetSize(int size)
+{
+    assert(size >= 0);
+
+    data_.resize(size);
+
+    if (data_.size() > 0)
+    {
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
+}
+
+template <typename T>
+void Vector<T>::SetSize(int size, T val)
+{
+    assert(size >= 0);
+
+    data_.resize(size, val);
 
     if (data_.size() > 0)
     {

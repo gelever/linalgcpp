@@ -335,7 +335,7 @@ void LilMatrix<T>::ToDense(DenseMatrix& dense) const
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    dense.Resize(rows, cols);
+    dense.SetSize(rows, cols);
     dense = 0.0;
 
     const int size = entries_.size();

@@ -66,7 +66,7 @@ void EigenSolver::Solve(const DenseMatrix& mat, double rel_tol, int max_evect,
     if (n < 1)
     {
         evals.resize(n);
-        evects.Resize(0);
+        evects.SetSize(0);
         printf("Zero Size EigenProblem!\n");
         return;
     }
@@ -111,7 +111,7 @@ void EigenSolver::Solve(const DenseMatrix& mat, double rel_tol, int max_evect,
     ifail_.resize(m);
     isplit_[0] = n;
 
-    evects.Resize(n, m);
+    evects.SetSize(n, m);
     //std::vector<double> evect_data(n * m);
 
     // Calculate Eigenvectors of T

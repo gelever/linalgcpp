@@ -523,7 +523,7 @@ DenseMatrix SparseMatrix<T>::ToDense() const
 template <typename T>
 void SparseMatrix<T>::ToDense(DenseMatrix& dense) const
 {
-    dense.Resize(rows_, cols_);
+    dense.SetSize(rows_, cols_);
     dense = 0.0;
 
     for (int i = 0; i < rows_; ++i)

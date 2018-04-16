@@ -84,28 +84,28 @@ class DenseMatrix : public Operator
 
             @warning new entries not initialized!
         */
-        void Resize(int size);
+        void SetSize(int size);
 
         /*! @brief Square Resizes Matrix and sets new values if 
                    new size is larger than previous
             @param size square size to set
             @param val values of new entries
         */
-        void Resize(int size, double val);
+        void SetSize(int size, double val);
 
         /*! @brief Rectangle Resizes Matrix
             @param size square size to set
 
             @warning new entries not initialized!
         */
-        void Resize(int rows, int cols);
+        void SetSize(int rows, int cols);
 
         /*! @brief Rectangle Resizes Matrix and sets new values if 
                    new size is larger than previous
             @param size square size to set
             @param val values of new entries
         */
-        void Resize(int rows, int cols, double val);
+        void SetSize(int rows, int cols, double val);
 
 
         /*! @brief Computes the sum of all entries
@@ -473,15 +473,39 @@ class DenseMatrix : public Operator
         */
         void QR(DenseMatrix& Q) const;
 
+        /*! @brief Compute the inverse using LU factorization
+            @warning this replaces this matrix with its inverse!
+        */
+        void Invert();
+
+        /*! @brief Compute the inverse using LU factorization
+            @param inv Stores inv instead of overwriting
+        */
+        void Invert(DenseMatrix& inv) const;
+
         /*! @brief Scale rows by given values
             @param values scale per row
         */
-        void ScaleRows(const std::vector<double>& values);
+        template <typename T>
+        void ScaleRows(const T& values);
 
         /*! @brief Scale cols by given values
             @param values scale per cols
         */
-        void ScaleCols(const std::vector<double>& values);
+        template <typename T>
+        void ScaleCols(const T& values);
+
+        /*! @brief Scale rows by inverse of given values
+            @param values scale per row
+        */
+        template <typename T>
+        void InverseScaleRows(const T& values);
+
+        /*! @brief Scale cols by inverse of given values
+            @param values scale per cols
+        */
+        template <typename T>
+        void InverseScaleCols(const T& values);
 
         /*! @brief Get Diagonal entries
             @returns diag diagonal entries
@@ -710,6 +734,62 @@ void DenseMatrix::SetRow(int row, const VectorView<T>& vect)
         (*this)(row, i) = vect[i];
     }
 }
+
+template <typename T>
+void DenseMatrix::ScaleRows(const T& values)
+{
+    for (int j = 0; j < cols_; ++j)
+    {
+        for (int i = 0; i < rows_; ++i)
+        {
+            (*this)(i, j) *= values[i];
+        }
+    }
+}
+
+template <typename T>
+void DenseMatrix::ScaleCols(const T& values)
+{
+    for (int j = 0; j < cols_; ++j)
+    {
+        const double scale = values[j];
+
+        for (int i = 0; i < rows_; ++i)
+        {
+            (*this)(i, j) *= scale;
+        }
+    }
+}
+
+template <typename T>
+void DenseMatrix::InverseScaleRows(const T& values)
+{
+    for (int j = 0; j < cols_; ++j)
+    {
+        for (int i = 0; i < rows_; ++i)
+        {
+            assert(values[i] != 0.0);
+
+            (*this)(i, j) /= values[i];
+        }
+    }
+}
+
+template <typename T>
+void DenseMatrix::InverseScaleCols(const T& values)
+{
+    for (int j = 0; j < cols_; ++j)
+    {
+        const double scale = values[j];
+        assert(scale != 0.0);
+
+        for (int i = 0; i < rows_; ++i)
+        {
+            (*this)(i, j) /= scale;
+        }
+    }
+}
+
 
 // Utility Functions
 DenseMatrix HStack(const std::vector<DenseMatrix>& dense);

@@ -15,6 +15,9 @@
 namespace linalgcpp
 {
 
+template <typename T>
+class Vector;
+
 /*! @brief Vector view of data and size
 
     @note Views are only modifiable if you own the view
@@ -105,6 +108,18 @@ class VectorView
             @param val the value to set all entries to
         */
         VectorView& operator=(T val);
+
+        /*! @brief Get subvector
+            @param indices indices of values to get
+            @param vect Vector to hold subvector
+        */
+        void GetSubVector(const std::vector<int>& indices, Vector<T>& vect) const;
+
+        /*! @brief Get subvector
+            @param indices indices of values to get
+            @returns vect Vector to hold subvector
+        */
+        Vector<T> GetSubVector(const std::vector<int>& indices) const;
 
         /*! @brief Print the vector entries
             @param label the label to print before the list of entries
@@ -307,6 +322,32 @@ template <typename T>
 int VectorView<T>::size() const
 {
     return size_;
+}
+
+template <typename T>
+Vector<T> VectorView<T>::GetSubVector(const std::vector<int>& indices) const
+{
+    Vector<T> vect(indices.size());
+
+    GetSubVector(indices, vect);
+
+    return vect;
+}
+
+template <typename T>
+void VectorView<T>::GetSubVector(const std::vector<int>& indices, Vector<T>& vect) const
+{
+    int size = indices.size();
+
+    vect.SetSize(size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        assert(indices[i] >= 0);
+        assert(indices[i] < size_);
+
+        vect[i] = (*this)[indices[i]];
+    }
 }
 
 template <typename T>

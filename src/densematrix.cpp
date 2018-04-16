@@ -18,6 +18,12 @@ extern "C"
     void dorgqr_(const int* m, const int* n, const int* k, double* A,
                  const int* lda, double* tau, double* work, const int* lwork,
                  int* info);
+
+    void dgetrf_(const int* m, const int* n, double* A, const int* lda,
+                 int* ipiv, int* info);
+
+    void dgetri_(const int* n, double* A, const int* lda, int* ipiv,
+                 double* work, const int* lwork, int* info);
 }
 
 namespace linalgcpp
@@ -76,12 +82,12 @@ void DenseMatrix::CopyData(std::vector<double>& data) const
     std::copy(std::begin(data_), std::end(data_), std::begin(data));
 }
 
-void DenseMatrix::Resize(int size)
+void DenseMatrix::SetSize(int size)
 {
-    Resize(size, size);
+    SetSize(size, size);
 }
 
-void DenseMatrix::Resize(int rows, int cols)
+void DenseMatrix::SetSize(int rows, int cols)
 {
     assert(rows >= 0);
     assert(cols >= 0);
@@ -91,12 +97,12 @@ void DenseMatrix::Resize(int rows, int cols)
     data_.resize(rows * cols);
 }
 
-void DenseMatrix::Resize(int size, double val)
+void DenseMatrix::SetSize(int size, double val)
 {
-    Resize(size, size, val);
+    SetSize(size, size, val);
 }
 
-void DenseMatrix::Resize(int rows, int cols, double val)
+void DenseMatrix::SetSize(int rows, int cols, double val)
 {
     assert(rows >= 0);
     assert(cols >= 0);
@@ -535,29 +541,6 @@ std::vector<double> DenseMatrix::SVD()
     return singular_values;
 }
 
-void DenseMatrix::ScaleRows(const std::vector<double>& values)
-{
-    for (int j = 0; j < cols_; ++j)
-    {
-        for (int i = 0; i < rows_; ++i)
-        {
-            (*this)(i, j) *= values[i];
-        }
-    }
-}
-
-void DenseMatrix::ScaleCols(const std::vector<double>& values)
-{
-    for (int j = 0; j < cols_; ++j)
-    {
-        const double scale = values[j];
-
-        for (int i = 0; i < rows_; ++i)
-        {
-            (*this)(i, j) *= scale;
-        }
-    }
-}
 /*
     void dgeqp3_(const int* m, const int* n, double* A, const int* lda,
                  int* jpvt, double* tau, double* work, const int* lwork, int* info);
@@ -616,6 +599,50 @@ void DenseMatrix::QR()
     assert(info == 0);
 }
 
+void DenseMatrix::Invert(DenseMatrix& inv) const
+{
+    inv = *this;
+    inv.Invert();
+}
+
+void DenseMatrix::Invert()
+{
+    const int rows = Rows();
+    const int cols = Cols();
+    assert(rows == cols);
+
+    if (rows == 0 || cols == 0)
+    {
+        return;
+    }
+
+    const int mn_min = std::min(rows, cols);
+
+    const int* m = &rows;
+    const int* n = &cols;
+    double* A = data_.data();
+    const int* lda = &rows;
+    int info;
+
+    std::vector<int> ipiv(mn_min, 0);
+
+    // Factor
+    dgetrf_(m, n, A, lda, ipiv.data(), &info);
+
+    // Invert
+    int lwork = -1;
+    double qwork;
+
+    dgetri_(n, A, lda, ipiv.data(), &qwork, &lwork, &info);
+
+    lwork = static_cast<int>(qwork);
+    std::vector<double> work(lwork);
+
+    dgetri_(n, A, lda, ipiv.data(), work.data(), &lwork, &info);
+
+    assert(info == 0);
+}
+
 std::vector<double> DenseMatrix::GetDiag() const
 {
     assert(rows_ == cols_);
@@ -662,7 +689,7 @@ void HStack(const std::vector<DenseMatrix>& dense, DenseMatrix& output)
 
     int cols = SumCols(dense);
 
-    output.Resize(rows, cols);
+    output.SetSize(rows, cols);
 
     int counter = 0;
 
