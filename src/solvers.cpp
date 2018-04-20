@@ -61,86 +61,6 @@ void Solver::SetAbsTol(double abs_tol)
     abs_tol_ = abs_tol;
 }
 
-CGSolver::CGSolver(const Operator& A, int max_iter, double rel_tol, double abs_tol, bool verbose,
-                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
-    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot),
-      Ap_(A_->Rows()), r_(A_->Rows()), p_(A_->Rows())
-{
-    assert(A_->Rows() == A_->Cols());
-}
-
-CGSolver::CGSolver(const CGSolver& other) noexcept
-    : Solver(other), Ap_(other.Ap_), r_(other.r_), p_(other.p_)
-{
-}
-
-CGSolver::CGSolver(CGSolver&& other) noexcept
-{
-    swap(*this, other);
-}
-
-CGSolver& CGSolver::operator=(CGSolver other) noexcept
-{
-    swap(*this, other);
-
-    return *this;
-}
-
-void swap(CGSolver& lhs, CGSolver& rhs) noexcept
-{
-    swap(static_cast<Solver&>(lhs), static_cast<Solver&>(rhs));
-
-    std::swap(lhs.Ap_, rhs.Ap_);
-    std::swap(lhs.r_, rhs.r_);
-    std::swap(lhs.p_, rhs.p_);
-}
-
-
-void CGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
-{
-    assert(A_);
-    assert(x.size() == A_->Rows());
-    assert(b.size() == A_->Rows());
-
-    A_->Mult(x, Ap_);
-    r_ = b;
-    r_ -= Ap_;
-    p_ = r_;
-
-    const double r0 = (*Dot_)(r_, r_);
-    const double tol_tol = std::max(r0 * rel_tol_, abs_tol_);
-
-    for (num_iter_ = 0; num_iter_ < max_iter_; ++num_iter_)
-    {
-        A_->Mult(p_, Ap_);
-
-        double alpha = (*Dot_)(r_, r_) / (*Dot_)(p_, Ap_);
-
-        x.Add(alpha, p_);
-
-        double denom = (*Dot_)(r_, r_);
-
-        r_.Sub(alpha, Ap_);
-
-        double numer = (*Dot_)(r_, r_);
-
-        if (verbose_)
-        {
-            printf("CG %d: %.2e %.2e / %.2e\n", num_iter_, numer, numer / r0, tol_tol);
-        }
-
-        if (numer < tol_tol)
-        {
-            break;
-        }
-
-        double beta = numer / denom;
-
-        p_ *= beta;
-        p_ += r_;
-    }
-}
-
 Vector<double> CG(const Operator& A, const VectorView<double>& b,
                   int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
@@ -155,9 +75,20 @@ Vector<double> CG(const Operator& A, const VectorView<double>& b,
 void CG(const Operator& A, const VectorView<double>& b, VectorView<double> x,
         int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
-    CGSolver cg(A, max_iter, rel_tol, abs_tol, verbose);
+    PCGSolver cg(A, max_iter, rel_tol, abs_tol, verbose);
 
     cg.Mult(b, x);
+}
+
+PCGSolver::PCGSolver(const Operator& A, int max_iter,
+                     double rel_tol, double abs_tol, bool verbose,
+                     double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot), M_(nullptr),
+      Ap_(A_->Rows()), r_(A_->Rows()), p_(A_->Rows()), z_(A_->Rows())
+{
+    assert(A_);
+
+    assert(A_->Rows() == A_->Cols());
 }
 
 PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter,
@@ -206,7 +137,6 @@ void swap(PCGSolver& lhs, PCGSolver& rhs) noexcept
 void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 {
     assert(A_);
-    assert(M_);
 
     assert(x.size() == A_->Rows());
     assert(b.size() == A_->Rows());
@@ -215,10 +145,18 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
     r_ = b;
     r_ -= Ap_;
 
-    M_->Mult(r_, z_);
+    if (M_)
+    {
+        M_->Mult(r_, z_);
+    }
+    else
+    {
+        z_ = r_;
+    }
+
     p_ = z_;
 
-    const double r0 = z_.Mult(r_);
+    const double r0 = (*Dot_)(z_, r_);
 
     const double tol_tol = std::max(r0 * rel_tol_, abs_tol_);
 
@@ -230,12 +168,20 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
         x.Add(alpha, p_);
 
-        double denom = z_.Mult(r_);
+        double denom = (*Dot_)(z_, r_);
 
         r_.Sub(alpha, Ap_);
-        M_->Mult(r_, z_);
 
-        double numer = z_.Mult(r_);
+        if (M_)
+        {
+            M_->Mult(r_, z_);
+        }
+        else
+        {
+            z_ = r_;
+        }
+
+        double numer = (*Dot_)(z_, r_);
 
         if (verbose_)
         {
