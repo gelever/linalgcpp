@@ -440,6 +440,15 @@ class DenseMatrix : public Operator
         void GetSubMatrix(int start_i, int start_j, int end_i, int end_j, DenseMatrix& dense) const;
 
         /*! @brief Set a contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j),
+                 where end is determined by the input dense matrix
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetSubMatrix(int start_i, int start_j, const DenseMatrix& dense);
+
+        /*! @brief Set a contiguous submatrix for the range:
                  (start_i, start_j) to (end_i, end_j);
             @param start_i start of row range, inclusive
             @param start_j start of col range, inclusive
@@ -448,6 +457,32 @@ class DenseMatrix : public Operator
             @param dense dense matrix that holds the range
         */
         void SetSubMatrix(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense);
+
+        /*! @brief Set a transposed contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j),
+                 where end is determined by the input dense matrix
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetSubMatrixTranspose(int start_i, int start_j, const DenseMatrix& dense);
+
+        /*! @brief Set a transposed contiguous submatrix for the range:
+                 (start_i, start_j) to (end_i, end_j);
+            @param start_i start of row range, inclusive
+            @param start_j start of col range, inclusive
+            @param end_i end of row range, exclusive
+            @param end_j end of col range, exclusive
+            @param dense dense matrix that holds the range
+        */
+        void SetSubMatrixTranspose(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense);
+
+        /*! @brief Add a non-contigious submatrix, given the rows and cols
+            @param rows rows to add to
+            @param cols cols to add to
+            @param dense dense matrix that holds the submatrix
+        */
+        void AddSubMatrix(const std::vector<int>& rows, std::vector<int>& cols, const DenseMatrix& dense);
 
         /*! @brief Compute singular values and vectors A = U * S * VT
                    Where S is returned and A is replaced with VT

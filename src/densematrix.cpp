@@ -143,8 +143,7 @@ DenseMatrix DenseMatrix::Transpose() const
 
 void DenseMatrix::Transpose(DenseMatrix& transpose) const
 {
-    assert(transpose.Rows() == cols_);
-    assert(transpose.Cols() == rows_);
+    transpose.SetSize(cols_, rows_);
 
     for (int i = 0; i < rows_; ++i)
     {
@@ -200,8 +199,6 @@ DenseMatrix DenseMatrix::MultABT(const DenseMatrix& input) const
 void DenseMatrix::Mult(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(cols_ == input.Rows());
-    assert(rows_ == output.Rows());
-    assert(input.Cols() == output.Cols());
 
     bool AT = false;
     bool BT = false;
@@ -211,8 +208,6 @@ void DenseMatrix::Mult(const DenseMatrix& input, DenseMatrix& output) const
 void DenseMatrix::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(rows_ == input.Rows());
-    assert(cols_ == output.Rows());
-    assert(input.Cols() == output.Cols());
 
     bool AT = true;
     bool BT = false;
@@ -222,8 +217,6 @@ void DenseMatrix::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 void DenseMatrix::MultBT(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(cols_ == input.Cols());
-    assert(rows_ == output.Rows());
-    assert(input.Rows() == output.Cols());
 
     bool AT = false;
     bool BT = true;
@@ -233,8 +226,6 @@ void DenseMatrix::MultBT(const DenseMatrix& input, DenseMatrix& output) const
 void DenseMatrix::MultABT(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(rows_ == input.Cols());
-    assert(cols_ == output.Rows());
-    assert(input.Rows() == output.Cols());
 
     bool AT = true;
     bool BT = true;
@@ -255,8 +246,11 @@ void DenseMatrix::dgemm(const DenseMatrix& input, DenseMatrix& output, bool AT, 
     const double* B = input.data_.data();
     int ldb = input.Rows();
     double beta = 0.0;
+
+    output.SetSize(m, n);
     double* c = output.data_.data();
     int ldc = output.Rows();
+
 
     dgemm_(&transA, &transB, &m, &n, &k,
            &alpha, A, &lda, B, &ldb,
@@ -462,6 +456,8 @@ void DenseMatrix::GetSubMatrix(int start_i, int start_j, int end_i, int end_j, D
     const int num_rows = end_i - start_i;
     const int num_cols = end_j - start_j;
 
+    dense.SetSize(num_rows, num_cols);
+
     for (int j = 0; j < num_cols; ++j)
     {
         for (int i = 0; i < num_rows; ++i)
@@ -469,6 +465,11 @@ void DenseMatrix::GetSubMatrix(int start_i, int start_j, int end_i, int end_j, D
             dense(i, j) = (*this)(i + start_i, j + start_j);
         }
     }
+}
+
+void DenseMatrix::SetSubMatrix(int start_i, int start_j, const DenseMatrix& dense)
+{
+    SetSubMatrix(start_i, start_j, start_i + dense.Rows(), start_j + dense.Cols(), dense);
 }
 
 void DenseMatrix::SetSubMatrix(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense)
@@ -487,6 +488,48 @@ void DenseMatrix::SetSubMatrix(int start_i, int start_j, int end_i, int end_j, c
         for (int i = 0; i < num_rows; ++i)
         {
             (*this)(i + start_i, j + start_j) = dense(i, j);
+        }
+    }
+}
+
+void DenseMatrix::SetSubMatrixTranspose(int start_i, int start_j, const DenseMatrix& dense)
+{
+    SetSubMatrixTranspose(start_i, start_j, start_i + dense.Cols(), start_j + dense.Rows(), dense);
+}
+
+void DenseMatrix::SetSubMatrixTranspose(int start_i, int start_j, int end_i, int end_j, const DenseMatrix& dense)
+{
+    assert(start_i >= 0 && start_i < rows_);
+    assert(start_j >= 0 && start_j < cols_);
+    assert(end_i >= 0 && end_i <= rows_);
+    assert(end_j >= 0 && end_j <= cols_);
+    assert(end_i >= start_i && end_j >= start_j);
+
+    const int num_rows = end_i - start_i;
+    const int num_cols = end_j - start_j;
+
+    for (int j = 0; j < num_cols; ++j)
+    {
+        for (int i = 0; i < num_rows; ++i)
+        {
+            (*this)(i + start_i, j + start_j) = dense(j, i);
+        }
+    }
+}
+
+void DenseMatrix::AddSubMatrix(const std::vector<int>& rows, std::vector<int>& cols, const DenseMatrix& dense)
+{
+    assert(static_cast<int>(rows.size()) == dense.Rows());
+    assert(static_cast<int>(cols.size()) == dense.Cols());
+
+    int num_rows = dense.Rows();
+    int num_cols = dense.Cols();
+
+    for (int j = 0; j < num_cols; ++j)
+    {
+        for (int i = 0; i < num_rows; ++i)
+        {
+            (*this)(rows[i], cols[j]) += dense(i, j);
         }
     }
 }
