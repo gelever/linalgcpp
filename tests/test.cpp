@@ -194,19 +194,31 @@ void test_sparse()
     y_auto_int.Print("y_auto_int");
     y_auto_dub.Print("y_auto_dub");
 
-    DenseMatrix rhs(size);
+    DenseMatrix rhs(size, 2);
 
     rhs(0, 0) = 1.0;
-    rhs(1, 1) = 2.0;
-    rhs(2, 2) = 3.0;
+    rhs(0, 1) = 2.0;
+    rhs(1, 0) = 3.0;
+    rhs(1, 1) = 4.0;
+    rhs(2, 0) = 5.0;
+    rhs(2, 1) = 6.0;
 
     rhs.Print("rhs");
+
+    auto AT = A.Transpose();
+    AT.PrintDense("AT:");
 
     auto ab = A.Mult(rhs);
     ab.Print("ab:");
 
+    auto ab_T = A.MultCT(rhs);
+    ab_T.Print("ab_T:");
+
     auto ba = A.MultAT(rhs);
+    auto ba_at = AT.Mult(rhs);
+
     ba.Print("ba:");
+    ba_at.Print("ba from AT:");
 
     SparseMatrix<double> B;
     B = A;
@@ -219,8 +231,6 @@ void test_sparse()
     auto C2 = A.ToDense().Mult(B.ToDense());
     C2.Print("C dense:");
 
-    auto AT = A.Transpose();
-    AT.PrintDense("AT:");
 
     std::vector<int> rows({0, 2});
     std::vector<int> cols({0, 2});
