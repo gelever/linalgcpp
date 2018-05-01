@@ -1314,11 +1314,11 @@ void test_argparser(int argc, char** argv)
         const char* test_argv[test_argc];
 
         test_argv[0] = "test";
-        test_argv[1] = "-bf";
-        test_argv[2] = "-bt";
-        test_argv[3] = "-dt";
-        test_argv[4] = "5";
-        test_argv[5] = "-st";
+        test_argv[1] = "--bf";
+        test_argv[2] = "--bt";
+        test_argv[3] = "--dt";
+        test_argv[4] = "-6.0";
+        test_argv[5] = "--st";
         test_argv[6] = "StringTest";
 
         ArgParser arg_parser(test_argc, test_argv);
@@ -1330,11 +1330,11 @@ void test_argparser(int argc, char** argv)
         std::string test_string = "default_string";
         std::string test_string_default = "default_string";
 
-        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
-        arg_parser.Parse(test_string, "-st", "String Test");
+        arg_parser.Parse(test_bool, "--b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_double, "--dt", "Double Test");
+        arg_parser.Parse(test_string, "--st", "String Test");
 
         std::cout << "Good Parse!\n";
 
@@ -1362,10 +1362,10 @@ void test_argparser(int argc, char** argv)
         const char* test_argv[test_argc];
 
         test_argv[0] = "test";
-        test_argv[1] = "-bf"; // These two flags are the same,
-        test_argv[2] = "-bf"; // a bad input
-        test_argv[3] = "-bt";
-        test_argv[4] = "-dt";
+        test_argv[1] = "--bf"; // These two flags are the same,
+        test_argv[2] = "--bf"; // a bad input
+        test_argv[3] = "--bt";
+        test_argv[4] = "--dt";
         test_argv[5] = "5";
 
         ArgParser arg_parser(test_argc, test_argv);
@@ -1403,9 +1403,9 @@ void test_argparser(int argc, char** argv)
         const char* test_argv[test_argc];
 
         test_argv[0] = "test";
-        test_argv[1] = "-bf";
-        test_argv[2] = "-bt";
-        test_argv[3] = "-dt";
+        test_argv[1] = "--bf";
+        test_argv[2] = "--bt";
+        test_argv[3] = "--dt";
         test_argv[4] = "5";
         test_argv[5] = "--help";
 
@@ -1416,10 +1416,10 @@ void test_argparser(int argc, char** argv)
         bool test_bool_t = true;
         double test_double = -1.0;
 
-        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
+        arg_parser.Parse(test_bool, "--b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_double, "--dt", "Double Test");
 
         if (!arg_parser.IsGood())
         {
