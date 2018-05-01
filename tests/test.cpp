@@ -1388,12 +1388,12 @@ void test_argparser(int argc, char** argv)
         double test_double = -1.0;
 
         // These two share same flag
-        arg_parser.Parse(test_bool, "-b", "First Bool No Change Test");
-        arg_parser.Parse(test_bool, "-b", "Second Bool No Change Test");
+        arg_parser.Parse(test_bool, "--b", "First Bool No Change Test");
+        arg_parser.Parse(test_bool, "--b", "Second Bool No Change Test");
 
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_double, "--dt", "Double Test");
 
         if (!arg_parser.IsGood())
         {
