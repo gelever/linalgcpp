@@ -160,7 +160,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
     const double tol_tol = std::max(r0 * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
 
-    for (num_iter_ = 0; num_iter_ < max_iter_; ++num_iter_)
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
         A_->Mult(p_, Ap_);
 
@@ -285,7 +285,7 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
     double tol = std::max(beta * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
 
-    for (num_iter_ = 0; num_iter_ < max_iter_; ++num_iter_)
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
         v1_ /= beta;
         A_->Mult(v1_, q_);
@@ -435,7 +435,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) cons
 
     double tol = std::max(beta * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
 
-    for (num_iter_ = 0; num_iter_ < max_iter_; ++num_iter_)
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
         v1_ /= beta;
         u1_ /= beta;

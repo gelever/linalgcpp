@@ -248,9 +248,29 @@ class SparseMatrix : public Operator
         template <typename U = T, typename V = typename std::common_type<T, U>::type>
         SparseMatrix<V> Mult(const SparseMatrix<U>& rhs) const;
 
+        /*! @brief Multiplies a sparse matrix: AB = C
+            @param rhs the input sparse matrix B
+            @param marker reusable temp work space
+            @retval the output sparse matrix C
+        */
+        template <typename U = T, typename V = typename std::common_type<T, U>::type>
+        SparseMatrix<V> Mult(const SparseMatrix<U>& rhs, std::vector<int>& marker) const;
+
         /*! @brief Genereates the transpose of this matrix*/
         template <typename U = T>
         SparseMatrix<U> Transpose() const;
+
+        /*! @brief Genereates the transpose of this matrix into
+                   dense matrix
+            @returns output Dense transpose
+        */
+        DenseMatrix TransposeDense() const;
+
+        /*! @brief Genereates the transpose of this matrix into
+                   dense matrix
+            @param output Dense transpose
+        */
+        void TransposeDense(DenseMatrix& output) const;
 
         /*! @brief Get the diagonal entries
             @retval the diagonal entries
@@ -715,6 +735,31 @@ SparseMatrix<U> SparseMatrix<T>::Transpose() const
 }
 
 template <typename T>
+DenseMatrix SparseMatrix<T>::TransposeDense() const
+{
+    DenseMatrix output(cols_, rows_);
+
+    TransposeDense(output);
+
+    return output;
+}
+
+template <typename T>
+void SparseMatrix<T>::TransposeDense(DenseMatrix& output) const
+{
+    output.SetSize(cols_, rows_);
+    output = 0.0;
+
+    for (int i = 0; i < rows_; ++i)
+    {
+        for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
+        {
+            output(indices_[j], i) = data_[j];
+        }
+    }
+}
+
+template <typename T>
 std::vector<double> SparseMatrix<T>::GetDiag() const
 {
     assert(rows_ == cols_);
@@ -1031,7 +1076,19 @@ template <typename T>
 template <typename U, typename V>
 SparseMatrix<V> SparseMatrix<T>::Mult(const SparseMatrix<U>& rhs) const
 {
-    std::vector<int> marker(rhs.Cols(), -1);
+    std::vector<int> marker(rhs.Cols());
+
+    return Mult<U, V>(rhs, marker);
+}
+
+template <typename T>
+template <typename U, typename V>
+SparseMatrix<V> SparseMatrix<T>::Mult(const SparseMatrix<U>& rhs, std::vector<int>& marker) const
+{
+    assert(rhs.Rows() == cols_);
+
+    marker.resize(rhs.Cols());
+    std::fill(begin(marker), end(marker), -1);
 
     std::vector<int> out_indptr(rows_ + 1);
     out_indptr[0] = 0;

@@ -208,6 +208,13 @@ void test_sparse()
     auto AT = A.Transpose();
     AT.PrintDense("AT:");
 
+    auto AT_dense = A.TransposeDense();
+    AT_dense.Print("AT dense:");
+
+    DenseMatrix AT_dense_given;
+    A.TransposeDense(AT_dense_given);
+    AT_dense_given.Print("AT dense given:");
+
     auto ab = A.Mult(rhs);
     ab.Print("ab:");
 
@@ -1310,30 +1317,34 @@ void test_argparser(int argc, char** argv)
 
     // Good Parser
     {
-        const int test_argc = 7;
+        const int test_argc = 9;
         const char* test_argv[test_argc];
 
         test_argv[0] = "test";
         test_argv[1] = "--bf";
         test_argv[2] = "--bt";
-        test_argv[3] = "--dt";
+        test_argv[3] = "--neg-dt";
         test_argv[4] = "-6.0";
-        test_argv[5] = "--st";
-        test_argv[6] = "StringTest";
+        test_argv[5] = "--pos-dt";
+        test_argv[6] = "8.0";
+        test_argv[7] = "--st";
+        test_argv[8] = "StringTest";
 
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
         bool test_bool_f = false;
         bool test_bool_t = true;
-        double test_double = -1.0;
+        double test_neg_double = 1000.0;
+        double test_pos_double = -1000.0;
         std::string test_string = "default_string";
         std::string test_string_default = "default_string";
 
         arg_parser.Parse(test_bool, "--b", "Bool No Change Test");
         arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
         arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
-        arg_parser.Parse(test_double, "--dt", "Double Test");
+        arg_parser.Parse(test_neg_double, "--neg-dt", "Negative Double Test");
+        arg_parser.Parse(test_pos_double, "--pos-dt", "Posative Double Test");
         arg_parser.Parse(test_string, "--st", "String Test");
 
         std::cout << "Good Parse!\n";
@@ -1349,7 +1360,8 @@ void test_argparser(int argc, char** argv)
         assert(test_bool == true);
         assert(test_bool_f == true);
         assert(test_bool_t == false);
-        assert(test_double = 5.0);
+        assert(test_neg_double == -6.0);
+        assert(test_pos_double == 8.0);
         assert(test_string.compare("StringTest") == 0);
         assert(test_string_default.compare("default_string") == 0);
 
