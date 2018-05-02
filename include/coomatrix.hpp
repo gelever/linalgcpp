@@ -163,6 +163,25 @@ class CooMatrix : public Operator
         void Add(int row, const std::vector<int>& cols, T scale,
                  const VectorView<T>& values);
 
+        /*! @brief Add an indexable object worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param values the values to add
+        */
+        template <typename U>
+        void Add(const std::vector<int>& rows, const std::vector<int>& cols,
+                 const U& values);
+
+        /*! @brief Add an indexable object worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        template <typename U>
+        void Add(const std::vector<int>& rows, const std::vector<int>& cols, T scale,
+                 const U& values);
+
         /*! @brief Permute the rows
             @param perm permutation to apply
         */
@@ -450,6 +469,38 @@ void CooMatrix<T>::Add(int row, const std::vector<int>& cols, T scale,
     for (int i = 0; i < size; ++i)
     {
         Add(row, cols[i], scale * values[i]);
+    }
+}
+
+template <typename T>
+template <typename U>
+void CooMatrix<T>::Add(const std::vector<int>& rows, const std::vector<int>& cols,
+                       const U& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], cols[i], values[i]);
+    }
+}
+
+template <typename T>
+template <typename U>
+void CooMatrix<T>::Add(const std::vector<int>& rows, const std::vector<int>& cols, T scale,
+                       const U& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], cols[i], scale * values[i]);
     }
 }
 

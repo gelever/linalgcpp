@@ -558,6 +558,28 @@ void test_coo()
         coo.Print("Coo no really small:");
     }
 
+    // With both std::vector and VectorView
+    {
+        const int size = 10;
+
+        CooMatrix<double> coo(size);
+        std::vector<int> index = {1, 8};
+        std::vector<int> index2 = {3, 5};
+
+        std::vector<double> vals(2, -1.0);
+        Vector<double> vals2(2, 1.0);
+
+        coo.Add(index, index2, vals);
+        coo.Add(index2, index, vals2);
+
+        coo.ToDense().Print("Coo Vects:");
+
+        coo.Add(index, index2, 2.0, vals);
+        coo.Add(index2, index, 5.0, vals2);
+
+        coo.ToDense().Print("Coo Vects:");
+    }
+
 }
 
 void test_dense()
