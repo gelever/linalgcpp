@@ -18,6 +18,20 @@ matrix:
           packages:
             - liblapack-dev
             - libblas-dev
+    - os: osx
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - liblapack-dev
+            - libblas-dev
+    - os: osx
+      compiler: clang
+      addons:
+        apt:
+          packages:
+            - liblapack-dev
+            - libblas-dev
 
 script:
    # Set some variables
