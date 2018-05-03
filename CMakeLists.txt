@@ -66,6 +66,7 @@ target_link_libraries(linalgcpp
 )
 
 target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
+target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall>)
 
 add_subdirectory(tests)
 
