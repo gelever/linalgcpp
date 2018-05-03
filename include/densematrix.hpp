@@ -557,6 +557,9 @@ class DenseMatrix : public Operator
         /// Operator Requirement, calls the templated MultAT
         void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
+        using Operator::Mult;
+        using Operator::MultAT;
+
     private:
         std::vector<double> data_;
 

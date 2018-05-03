@@ -412,6 +412,9 @@ class SparseMatrix : public Operator
         /// Operator Requirement, calls the templated MultAT
         void MultAT(const VectorView<double>& input, VectorView<double> output) const override;
 
+        using Operator::Mult;
+        using Operator::MultAT;
+
     private:
         int nnz_;
 

@@ -542,18 +542,18 @@ void test_coo()
 
     // Eliminate zeros
     {
-        CooMatrix<int> coo(3, 3);
+        CooMatrix<int> coo(4, 4);
         coo.AddSym(0, 0, 1);
         coo.AddSym(0, 1, 0);
-        coo.AddSym(0, 1, 1e-10);
-        coo.AddSym(0, 2, 3);
+        coo.AddSym(0, 2, 2);
+        coo.AddSym(0, 3, 3);
 
         coo.Print("Coo with zero:");
 
-        coo.EliminateZeros();
+        coo.EliminateZeros(1e-15);
         coo.Print("Coo no zero:");
 
-        const double tolerance = 1e-8;
+        const double tolerance = 2.5;
         coo.EliminateZeros(tolerance);
         coo.Print("Coo no really small:");
     }
