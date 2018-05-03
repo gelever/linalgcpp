@@ -67,7 +67,7 @@ Vector<double> Operator::Mult(const VectorView<double>& input) const
 
 Vector<double> Operator::MultAT(const VectorView<double>& input) const
 {
-    Vector<double> output(Rows());
+    Vector<double> output(Cols());
     MultAT(input, output);
 
     return output;
