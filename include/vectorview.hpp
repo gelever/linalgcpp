@@ -171,6 +171,9 @@ class VectorView
         */
         virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
 
+        /*! @brief Normalize a vector */
+        virtual void Normalize();
+
     protected:
         void SetData(T* data, int size);
 
@@ -740,7 +743,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& vect)
     @param hi upper range limit
     @param seed seed to rng, if positive
 */
-void Randomize(VectorView<double>& vect, double lo = 0.0, double hi = 1.0, int seed = -1);
+void Randomize(VectorView<double> vect, double lo = 0.0, double hi = 1.0, int seed = -1);
 
 /*! @brief Randomize the entries in a integer vector
     @param vect vector to randomize
@@ -748,7 +751,7 @@ void Randomize(VectorView<double>& vect, double lo = 0.0, double hi = 1.0, int s
     @param hi upper range limit
     @param seed seed to rng, if positive
 */
-void Randomize(VectorView<int>& vect, int lo = 0, int hi = 1, int seed = -1);
+void Randomize(VectorView<int> vect, int lo = 0, int hi = 1, int seed = -1);
 
 template <typename T>
 void VectorView<T>::Randomize(int lo, int hi, int seed)
@@ -759,13 +762,19 @@ void VectorView<T>::Randomize(int lo, int hi, int seed)
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize
 */
-void Normalize(VectorView<double>& vect);
+void Normalize(VectorView<double> vect);
+
+template <typename T>
+void VectorView<T>::Normalize()
+{
+    throw std::runtime_error("Cannot normalize unless double!");
+}
 
 /*! @brief Subtract a constant vector set to the average
     from this vector: x_i = x_i - mean(x)
     @param vect vector to subtract average from
 */
-void SubAvg(VectorView<double>& vect);
+void SubAvg(VectorView<double> vect);
 
 } // namespace linalgcpp
 

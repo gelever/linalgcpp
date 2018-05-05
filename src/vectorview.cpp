@@ -2,7 +2,7 @@
 
 namespace linalgcpp
 {
-void Randomize(VectorView<double>& vect, double lo, double hi, int seed)
+void Randomize(VectorView<double> vect, double lo, double hi, int seed)
 {
     std::random_device r;
     std::default_random_engine dev(r());
@@ -19,7 +19,7 @@ void Randomize(VectorView<double>& vect, double lo, double hi, int seed)
     }
 }
 
-void Randomize(VectorView<int>& vect, int lo, int hi, int seed)
+void Randomize(VectorView<int> vect, int lo, int hi, int seed)
 {
     std::random_device r;
     std::default_random_engine dev(r());
@@ -36,14 +36,20 @@ void Randomize(VectorView<int>& vect, int lo, int hi, int seed)
     }
 }
 
-void Normalize(VectorView<double>& vect)
+void Normalize(VectorView<double> vect)
 {
     vect /= L2Norm(vect);
 }
 
-void SubAvg(VectorView<double>& vect)
+void SubAvg(VectorView<double> vect)
 {
     vect -= Mean(vect);
+}
+
+template <>
+void VectorView<double>::Normalize()
+{
+    linalgcpp::Normalize(*this);
 }
 
 } // namespace linalgcpp
