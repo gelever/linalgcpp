@@ -746,6 +746,19 @@ void test_vector()
 
     std::cout << "v3 normalized:" << v3;
 
+    v3.SetSize(0);
+    std::cout << "v3 zero size:" << v3;
+
+    v3.SetSize(8, 8.0);
+    std::cout << "v3 8 size and fill:" << v3;
+
+    v3.SetSize(2);
+    std::cout << "v3 2 size:" << v3;
+
+    v3.SetSize(size);
+    v3 = 3.0;
+    std::cout << "v3 5 size and op equal 3:" << v3;
+
     std::cout << "v3_copy:" << v3_copy;
     std::cout << "v3_equal:" << v3_equal;
 
