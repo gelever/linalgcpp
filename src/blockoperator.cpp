@@ -97,7 +97,7 @@ void BlockOperator::Mult(const VectorView<double>& input, VectorView<double> out
     for (int i = 0; i < row_blocks; ++i)
     {
         VectorView<double> row_y {y_.GetBlock(i)};
-        Vector<double> tmp_y(row_y.size());;
+        tmp_.SetSize(row_y.size());
 
         for (int j = 0; j < col_blocks; ++j)
         {
@@ -105,8 +105,8 @@ void BlockOperator::Mult(const VectorView<double>& input, VectorView<double> out
 
             if (op)
             {
-                op->Mult(x_.GetBlock(j), tmp_y);
-                row_y += tmp_y;
+                op->Mult(x_.GetBlock(j), tmp_);
+                row_y += tmp_;
             }
         }
     }
@@ -129,7 +129,7 @@ void BlockOperator::MultAT(const VectorView<double>& input, VectorView<double> o
     for (int j = 0; j < col_blocks; ++j)
     {
         VectorView<double> row_x {x_.GetBlock(j)};
-        Vector<double> tmp_x(row_x.size());;
+        tmp_.SetSize(row_x.size());
 
         for (int i = 0; i < row_blocks; ++i)
         {
@@ -139,9 +139,9 @@ void BlockOperator::MultAT(const VectorView<double>& input, VectorView<double> o
             {
                 VectorView<double> row_block = y_.GetBlock(i);
 
-                op->MultAT(row_block, tmp_x);
+                op->MultAT(row_block, tmp_);
 
-                row_x += tmp_x;
+                row_x += tmp_;
             }
         }
     }

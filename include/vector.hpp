@@ -118,10 +118,7 @@ Vector<T>::Vector(int size)
 {
     data_.resize(size);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -129,10 +126,7 @@ Vector<T>::Vector(int size, T val)
 {
     data_.resize(size, val);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -142,10 +136,7 @@ Vector<T>::Vector(const T* data, int size)
     assert(size >= 0);
     assert(size == 0 || data);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -154,10 +145,7 @@ Vector<T>::Vector(const VectorView<T>& vect)
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -165,20 +153,14 @@ Vector<T>::Vector(std::vector<T> vect)
 {
     std::swap(vect, data_);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
 Vector<T>::Vector(const Vector<T>& vect) noexcept
     : data_(vect.data_)
 {
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -186,10 +168,7 @@ Vector<T>::Vector(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -199,10 +178,7 @@ void Vector<T>::SetSize(int size)
 
     data_.resize(size);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -212,10 +188,7 @@ void Vector<T>::SetSize(int size, T val)
 
     data_.resize(size, val);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 }
 
 template <typename T>
@@ -224,10 +197,7 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect.data_), std::end(vect.data_), std::begin(data_));
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 
     return *this;
 }
@@ -238,10 +208,7 @@ Vector<T>& Vector<T>::operator=(const VectorView<T>& vect) noexcept
     data_.resize(vect.size());
     std::copy(std::begin(vect), std::end(vect), std::begin(data_));
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 
     return *this;
 }
@@ -251,10 +218,7 @@ Vector<T>& Vector<T>::operator=(Vector<T>&& vect) noexcept
 {
     swap(*this, vect);
 
-    if (data_.size() > 0)
-    {
-        VectorView<T>::SetData(data_.data(), data_.size());
-    }
+    VectorView<T>::SetData(data_.data(), data_.size());
 
     return *this;
 }
