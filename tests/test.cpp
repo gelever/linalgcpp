@@ -360,6 +360,30 @@ void test_sparse()
         A_scalar = -1.0;
         A_scalar.PrintDense("A = -1");
     }
+
+    // Test sparse elim
+    {
+        A.PrintDense("A orig");
+
+        {
+            SparseMatrix<> A_elim(A);
+            std::vector<int> marker(A_elim.Cols(), 0);
+            marker[1] = 1;
+
+            A_elim.EliminateCol(marker);
+            A_elim.PrintDense("A elim col 1");
+        }
+        {
+            SparseMatrix<> A_elim(A);
+            A_elim.EliminateRow(2);
+            A_elim.PrintDense("A elim row 2");
+        }
+        {
+            SparseMatrix<> A_elim(A);
+            A_elim.EliminateRowCol(0);
+            A_elim.PrintDense("A elim row/col 0");
+        }
+    }
 }
 
 void test_coo()

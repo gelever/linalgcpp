@@ -402,6 +402,12 @@ class SparseMatrix : public Operator
         */
         void EliminateCol(int index);
 
+        /*! @brief Eliminate all marked columns
+            @param marker indexable type where marker[i] is elimnated if true
+        */
+        template <typename U>
+        void EliminateCol(const U& marker);
+
         /*! @brief Remove entries less than a tolerance
             @param tol tolerance to remove
         */
@@ -1391,6 +1397,24 @@ void SparseMatrix<T>::EliminateCol(int index)
         for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
         {
             if (indices_[j] == index)
+            {
+                data_[j] = 0.0;
+            }
+        }
+    }
+}
+
+template <typename T>
+template <typename U>
+void SparseMatrix<T>::EliminateCol(const U& marker)
+{
+    assert(marker.size() >= cols_);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            if (marker[indices_[j]])
             {
                 data_[j] = 0.0;
             }
