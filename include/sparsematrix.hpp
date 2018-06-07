@@ -658,7 +658,7 @@ void SparseMatrix<T>::Mult(const DenseMatrix& input, DenseMatrix& output) const
 template <typename T>
 void SparseMatrix<T>::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 {
-    assert(input.Rows() == cols_);
+    assert(input.Rows() == rows_);
     assert(output.Rows() == cols_);
     assert(output.Cols() == input.Cols());
 
