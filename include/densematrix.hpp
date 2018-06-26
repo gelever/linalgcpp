@@ -439,6 +439,20 @@ class DenseMatrix : public Operator
         */
         void GetSubMatrix(int start_i, int start_j, int end_i, int end_j, DenseMatrix& dense) const;
 
+        /*! @brief Get a submatrix with given indices
+            @param rows row indices
+            @param cols column indices
+            @returns dense dense matrix that will hold the submatrix
+        */
+        DenseMatrix GetSubMatrix(const std::vector<int>& rows, const std::vector<int>& cols) const;
+
+        /*! @brief Get a submatrix with given indices
+            @param rows row indices
+            @param cols column indices
+            @param dense dense matrix that will hold the submatrix
+        */
+        void GetSubMatrix(const std::vector<int>& rows, const std::vector<int>& cols, DenseMatrix& dense) const;
+
         /*! @brief Set a contiguous submatrix for the range:
                  (start_i, start_j) to (end_i, end_j),
                  where end is determined by the input dense matrix
