@@ -3,6 +3,13 @@
 namespace linalgcpp
 {
 
+bool IsFlag(const std::string& arg)
+{
+    std::string flag_start = "--";
+
+    return (arg.compare(0, flag_start.size(), flag_start) == 0);
+}
+
 ArgParser::ArgParser(int argc, const char* const* argv)
 {
     const std::string help_string = "--help";
@@ -26,7 +33,8 @@ ArgParser::ArgParser(int argc, const char* const* argv)
         assert(iter->size() > 0);
         assert((*iter)[0] == '-');
 
-        if ((iter + 1) != entries.end() && (*(iter + 1))[0] != '-')
+        // Regular flagged value
+        if ((iter + 1) != entries.end() && !IsFlag(*(iter + 1)))
         {
             if (values_.find(*iter) == values_.end())
             {
@@ -39,6 +47,7 @@ ArgParser::ArgParser(int argc, const char* const* argv)
 
             iter += 2;;
         }
+        // Boolean flagged value
         else
         {
             if (values_.find(*iter) == values_.end())

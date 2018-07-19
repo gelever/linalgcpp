@@ -163,6 +163,25 @@ class CooMatrix : public Operator
         void Add(int row, const std::vector<int>& cols, T scale,
                  const VectorView<T>& values);
 
+        /*! @brief Add an indexable object worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param values the values to add
+        */
+        template <typename U>
+        void Add(const std::vector<int>& rows, const std::vector<int>& cols,
+                 const U& values);
+
+        /*! @brief Add an indexable object worth of entries
+            @param rows set of row indices
+            @param cols set of column indices
+            @param scale scale to apply to added values
+            @param values the values to add
+        */
+        template <typename U>
+        void Add(const std::vector<int>& rows, const std::vector<int>& cols, T scale,
+                 const U& values);
+
         /*! @brief Permute the rows
             @param perm permutation to apply
         */
@@ -234,7 +253,6 @@ class CooMatrix : public Operator
         bool size_set_;
 
         mutable std::vector<std::tuple<int, int, T>> entries_;
-        //mutable std::list<std::tuple<int, int, T>> entries_;
 };
 
 template <typename T>
@@ -455,6 +473,38 @@ void CooMatrix<T>::Add(int row, const std::vector<int>& cols, T scale,
 }
 
 template <typename T>
+template <typename U>
+void CooMatrix<T>::Add(const std::vector<int>& rows, const std::vector<int>& cols,
+                       const U& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], cols[i], values[i]);
+    }
+}
+
+template <typename T>
+template <typename U>
+void CooMatrix<T>::Add(const std::vector<int>& rows, const std::vector<int>& cols, T scale,
+                       const U& values)
+{
+    assert(rows.size() == static_cast<unsigned int>(values.size()));
+    assert(cols.size() == static_cast<unsigned int>(values.size()));
+
+    int size = cols.size();
+
+    for (int i = 0; i < size; ++i)
+    {
+        Add(rows[i], cols[i], scale * values[i]);
+    }
+}
+
+template <typename T>
 DenseMatrix CooMatrix<T>::ToDense() const
 {
     DenseMatrix dense;
@@ -471,7 +521,7 @@ void CooMatrix<T>::ToDense(DenseMatrix& dense) const
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    dense.Resize(rows, cols);
+    dense.SetSize(rows, cols);
     dense = 0.0;
 
     for (const auto& entry : entries_)
@@ -650,7 +700,7 @@ void CooMatrix<T>::Print(const std::string& label, std::ostream& out) const
 template <typename T>
 void CooMatrix<T>::EliminateZeros(double tolerance)
 {
-    auto compare = [&] (const auto& entry)
+    auto compare = [&] (const std::tuple<int, int, T>& entry)
     {
         const double val = std::get<2>(entry);
         return std::abs(val) < tolerance;

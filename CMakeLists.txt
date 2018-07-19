@@ -48,7 +48,7 @@ add_library(linalgcpp
 )
 
 set_target_properties(linalgcpp PROPERTIES
-        CXX_STANDARD 14
+        CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )
@@ -64,6 +64,9 @@ target_include_directories(linalgcpp
 target_link_libraries(linalgcpp
     PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
 )
+
+target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
+target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall>)
 
 add_subdirectory(tests)
 

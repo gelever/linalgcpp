@@ -194,19 +194,38 @@ void test_sparse()
     y_auto_int.Print("y_auto_int");
     y_auto_dub.Print("y_auto_dub");
 
-    DenseMatrix rhs(size);
+    DenseMatrix rhs(size, 2);
 
     rhs(0, 0) = 1.0;
-    rhs(1, 1) = 2.0;
-    rhs(2, 2) = 3.0;
+    rhs(0, 1) = 2.0;
+    rhs(1, 0) = 3.0;
+    rhs(1, 1) = 4.0;
+    rhs(2, 0) = 5.0;
+    rhs(2, 1) = 6.0;
 
     rhs.Print("rhs");
+
+    auto AT = A.Transpose();
+    AT.PrintDense("AT:");
+
+    auto AT_dense = A.TransposeDense();
+    AT_dense.Print("AT dense:");
+
+    DenseMatrix AT_dense_given;
+    A.TransposeDense(AT_dense_given);
+    AT_dense_given.Print("AT dense given:");
 
     auto ab = A.Mult(rhs);
     ab.Print("ab:");
 
+    auto ab_T = A.MultCT(rhs);
+    ab_T.Print("ab_T:");
+
     auto ba = A.MultAT(rhs);
+    auto ba_at = AT.Mult(rhs);
+
     ba.Print("ba:");
+    ba_at.Print("ba from AT:");
 
     SparseMatrix<double> B;
     B = A;
@@ -219,8 +238,6 @@ void test_sparse()
     auto C2 = A.ToDense().Mult(B.ToDense());
     C2.Print("C dense:");
 
-    auto AT = A.Transpose();
-    AT.PrintDense("AT:");
 
     std::vector<int> rows({0, 2});
     std::vector<int> cols({0, 2});
@@ -342,6 +359,30 @@ void test_sparse()
 
         A_scalar = -1.0;
         A_scalar.PrintDense("A = -1");
+    }
+
+    // Test sparse elim
+    {
+        A.PrintDense("A orig");
+
+        {
+            SparseMatrix<> A_elim(A);
+            std::vector<int> marker(A_elim.Cols(), 0);
+            marker[1] = 1;
+
+            A_elim.EliminateCol(marker);
+            A_elim.PrintDense("A elim col 1");
+        }
+        {
+            SparseMatrix<> A_elim(A);
+            A_elim.EliminateRow(2);
+            A_elim.PrintDense("A elim row 2");
+        }
+        {
+            SparseMatrix<> A_elim(A);
+            A_elim.EliminateRowCol(0);
+            A_elim.PrintDense("A elim row/col 0");
+        }
     }
 }
 
@@ -525,20 +566,42 @@ void test_coo()
 
     // Eliminate zeros
     {
-        CooMatrix<int> coo(3, 3);
+        CooMatrix<int> coo(4, 4);
         coo.AddSym(0, 0, 1);
         coo.AddSym(0, 1, 0);
-        coo.AddSym(0, 1, 1e-10);
-        coo.AddSym(0, 2, 3);
+        coo.AddSym(0, 2, 2);
+        coo.AddSym(0, 3, 3);
 
         coo.Print("Coo with zero:");
 
-        coo.EliminateZeros();
+        coo.EliminateZeros(1e-15);
         coo.Print("Coo no zero:");
 
-        const double tolerance = 1e-8;
+        const double tolerance = 2.5;
         coo.EliminateZeros(tolerance);
         coo.Print("Coo no really small:");
+    }
+
+    // With both std::vector and VectorView
+    {
+        const int size = 10;
+
+        CooMatrix<double> coo(size);
+        std::vector<int> index = {1, 8};
+        std::vector<int> index2 = {3, 5};
+
+        std::vector<double> vals(2, -1.0);
+        Vector<double> vals2(2, 1.0);
+
+        coo.Add(index, index2, vals);
+        coo.Add(index2, index, vals2);
+
+        coo.ToDense().Print("Coo Vects:");
+
+        coo.Add(index, index2, 2.0, vals);
+        coo.Add(index2, index, 5.0, vals2);
+
+        coo.ToDense().Print("Coo Vects:");
     }
 
 }
@@ -706,6 +769,19 @@ void test_vector()
     assert(std::fabs(L2Norm(v3) - 1.0) < 1e-10);
 
     std::cout << "v3 normalized:" << v3;
+
+    v3.SetSize(0);
+    std::cout << "v3 zero size:" << v3;
+
+    v3.SetSize(8, 8.0);
+    std::cout << "v3 8 size and fill:" << v3;
+
+    v3.SetSize(2);
+    std::cout << "v3 2 size:" << v3;
+
+    v3.SetSize(size);
+    v3 = 3.0;
+    std::cout << "v3 5 size and op equal 3:" << v3;
 
     std::cout << "v3_copy:" << v3_copy;
     std::cout << "v3_equal:" << v3_equal;
@@ -970,11 +1046,12 @@ void test_solvers()
     // Normalize(b);
 
     int max_iter = size;
-    double tol = 1e-16;
+    double rel_tol = 1e-12;
+    double abs_tol = 1e-16;
     bool verbose = true;
 
-    Vector<double> x = CG(A, b, max_iter, tol, verbose);
-    Vector<double> x_coo = CG(coo, b, max_iter, tol, verbose);
+    Vector<double> x = CG(A, b, max_iter, rel_tol, abs_tol, verbose);
+    Vector<double> x_coo = CG(coo, b, max_iter, rel_tol, abs_tol, verbose);
 
     Vector<double> Ax = A.Mult(x);
     Vector<double> res = b - Ax;
@@ -994,21 +1071,21 @@ void test_solvers()
     std::vector<double> diag(size, 0.5);
     SparseMatrix<double> M(diag);
 
-    Vector<double> px = PCG(A, M, b, max_iter, tol, verbose);
+    Vector<double> px = PCG(A, M, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> pAx = A.Mult(px);
     Vector<double> pres = b - pAx;
     double perror = L2Norm(pres);
 
     printf("PCG error: %.2e\n", perror);
 
-    Vector<double> mx = MINRES(A, b, max_iter, tol, verbose);
+    Vector<double> mx = MINRES(A, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> mAx = A.Mult(mx);
     Vector<double> mres = b - mAx;
     double merror = L2Norm(mres);
 
     printf("MINRES error: %.2e\n", merror);
 
-    Vector<double> pmx = PMINRES(A, M, b, max_iter, tol, verbose);
+    Vector<double> pmx = PMINRES(A, M, b, max_iter, rel_tol, abs_tol, verbose);
     Vector<double> pmAx = A.Mult(pmx);
     Vector<double> pmres = b - pmAx;
     double pmerror = L2Norm(pmres);
@@ -1245,6 +1322,51 @@ void test_timer()
     std::cout << "Time Total: " << timer.TotalTime() << std::endl;
 }
 
+void test_eigensolve()
+{
+    DenseMatrix A(3, 3);
+
+    A(0, 0) = 1.0;
+    A(1, 1) = 2.0;
+    A(2, 2) = 3.0;
+
+    A.Print("Eigen Input:");
+
+    EigenSolver eigen;
+    EigenSolver eigen2;
+    eigen2 = eigen;
+
+    auto eigen_pair = eigen.Solve(A, 1.0, 3);
+
+    EigenSolver eigen3(eigen);
+
+    std::cout << "EigenValues:" << eigen_pair.first << "\n";
+    eigen_pair.second.Print("Eigenvectors:");
+
+    DenseMatrix A2(3, 3);
+
+    A2(0, 0) = 1.0;
+    A2(0, 1) = -1.0;
+    A2(1, 0) = -1.0;
+    A2(1, 1) = 2.0;
+    A2(1, 2) = -1.0;
+    A2(2, 1) = -1.0;
+    A2(2, 2) = 1.0;
+
+    A2.Print("Eigen Input:");
+
+    auto eigen_pair2 = eigen3.Solve(A2, 0.5, 3);
+
+    std::cout << "EigenValues:" << eigen_pair2.first << "\n";
+    eigen_pair2.second.Print("Eigenvectors:");
+
+    assert(eigen_pair2.second.Cols() == 2);
+
+    assert(std::fabs(eigen_pair2.first[0]) < 1e-15);
+    assert(std::fabs(eigen_pair2.first[1] - 1.0) < 1e-15);
+    assert(std::fabs(eigen_pair2.first[2] - 3.0) < 1e-15);
+}
+
 void test_argparser(int argc, char** argv)
 {
     if (argc > 1)
@@ -1254,32 +1376,35 @@ void test_argparser(int argc, char** argv)
 
     // Good Parser
     {
-        const char* prog_name = "test";
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-        const char* flag_string = "-st";
-        const char* flag_string_val = "StringTest";
+        const int test_argc = 9;
+        const char* test_argv[test_argc];
 
-        int test_argc = 7;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2,
-            flag, flag_val, flag_string, flag_string_val};
+        test_argv[0] = "test";
+        test_argv[1] = "--bf";
+        test_argv[2] = "--bt";
+        test_argv[3] = "--neg-dt";
+        test_argv[4] = "-6.0";
+        test_argv[5] = "--pos-dt";
+        test_argv[6] = "8.0";
+        test_argv[7] = "--st";
+        test_argv[8] = "StringTest";
 
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
         bool test_bool_f = false;
         bool test_bool_t = true;
-        double test_double = -1.0;
+        double test_neg_double = 1000.0;
+        double test_pos_double = -1000.0;
         std::string test_string = "default_string";
         std::string test_string_default = "default_string";
 
-        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
-        arg_parser.Parse(test_string, "-st", "String Test");
+        arg_parser.Parse(test_bool, "--b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_neg_double, "--neg-dt", "Negative Double Test");
+        arg_parser.Parse(test_pos_double, "--pos-dt", "Posative Double Test");
+        arg_parser.Parse(test_string, "--st", "String Test");
 
         std::cout << "Good Parse!\n";
 
@@ -1294,7 +1419,8 @@ void test_argparser(int argc, char** argv)
         assert(test_bool == true);
         assert(test_bool_f == true);
         assert(test_bool_t == false);
-        assert(test_double = 5.0);
+        assert(test_neg_double == -6.0);
+        assert(test_pos_double == 8.0);
         assert(test_string.compare("StringTest") == 0);
         assert(test_string_default.compare("default_string") == 0);
 
@@ -1303,18 +1429,16 @@ void test_argparser(int argc, char** argv)
 
     // Bad Parser
     {
-        const char* prog_name = "test";
+        const int test_argc = 6;
+        const char* test_argv[test_argc];
 
-        // These two flags are the same
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bf";
+        test_argv[0] = "test";
+        test_argv[1] = "--bf"; // These two flags are the same,
+        test_argv[2] = "--bf"; // a bad input
+        test_argv[3] = "--bt";
+        test_argv[4] = "--dt";
+        test_argv[5] = "5";
 
-        const char* bool3 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-
-        int test_argc = 6;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2, bool3, flag, flag_val};
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
@@ -1323,12 +1447,12 @@ void test_argparser(int argc, char** argv)
         double test_double = -1.0;
 
         // These two share same flag
-        arg_parser.Parse(test_bool, "-b", "First Bool No Change Test");
-        arg_parser.Parse(test_bool, "-b", "Second Bool No Change Test");
+        arg_parser.Parse(test_bool, "--b", "First Bool No Change Test");
+        arg_parser.Parse(test_bool, "--b", "Second Bool No Change Test");
 
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_double, "--dt", "Double Test");
 
         if (!arg_parser.IsGood())
         {
@@ -1346,15 +1470,16 @@ void test_argparser(int argc, char** argv)
 
     // Includes help
     {
-        const char* prog_name = "test";
-        const char* bool1 = "-bf";
-        const char* bool2 = "-bt";
-        const char* flag = "-dt";
-        const char* flag_val = "5";
-        const char* help = "--help";
+        const int test_argc = 6;
+        const char* test_argv[test_argc];
 
-        int test_argc = 6;
-        const char* test_argv[test_argc] = {prog_name, bool1, bool2, flag, flag_val, help};
+        test_argv[0] = "test";
+        test_argv[1] = "--bf";
+        test_argv[2] = "--bt";
+        test_argv[3] = "--dt";
+        test_argv[4] = "5";
+        test_argv[5] = "--help";
+
         ArgParser arg_parser(test_argc, test_argv);
 
         bool test_bool = true;
@@ -1362,10 +1487,10 @@ void test_argparser(int argc, char** argv)
         bool test_bool_t = true;
         double test_double = -1.0;
 
-        arg_parser.Parse(test_bool, "-b", "Bool No Change Test");
-        arg_parser.Parse(test_bool_f, "-bf", "Bool False Test");
-        arg_parser.Parse(test_bool_t, "-bt", "Bool True Test");
-        arg_parser.Parse(test_double, "-dt", "Double Test");
+        arg_parser.Parse(test_bool, "--b", "Bool No Change Test");
+        arg_parser.Parse(test_bool_f, "--bf", "Bool False Test");
+        arg_parser.Parse(test_bool_t, "--bt", "Bool True Test");
+        arg_parser.Parse(test_double, "--dt", "Double Test");
 
         if (!arg_parser.IsGood())
         {
@@ -1396,6 +1521,7 @@ int main(int argc, char** argv)
     test_blockoperator();
     test_parser();
     test_timer();
+    test_eigensolve();
     test_argparser(argc, argv);
 
     return EXIT_SUCCESS;

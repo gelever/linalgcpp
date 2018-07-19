@@ -29,16 +29,16 @@ class EigenSolver
         EigenSolver();
 
         /*! @brief Copy Constructor */
-        EigenSolver(const EigenSolver& other) noexcept = default;
+        EigenSolver(const EigenSolver& other) = default;
 
         /*! @brief Move Constructor */
-        EigenSolver(EigenSolver&& other) noexcept = default;
+        EigenSolver(EigenSolver&& other) = default;
 
         /*! @brief Assignment Operator */
-        EigenSolver& operator=(const EigenSolver& other) noexcept = default;
+        EigenSolver& operator=(const EigenSolver& other) = default;
 
         /*! @brief Default Destructor*/
-        ~EigenSolver() noexcept = default;
+        ~EigenSolver() = default;
 
         /*! @brief Compute select number of lower spectrum eigen pairs
 

@@ -3,6 +3,7 @@
 #ifndef LILMATRIX_HPP__
 #define LILMATRIX_HPP__
 
+#include <sstream>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -334,7 +335,7 @@ void LilMatrix<T>::ToDense(DenseMatrix& dense) const
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    dense.Resize(rows, cols);
+    dense.SetSize(rows, cols);
     dense = 0.0;
 
     const int size = entries_.size();
@@ -483,7 +484,7 @@ void LilMatrix<T>::EliminateZeros(double tolerance)
     for (auto& row : entries_)
     {
         row.erase(std::remove_if(std::begin(row), std::end(row),
-                                 [&](const auto & entry)
+                                 [&](const std::pair<int, double>& entry)
         {
             return std::abs(entry.second) < tolerance;
         }),

@@ -3,122 +3,189 @@
 namespace linalgcpp
 {
 
-CGSolver::CGSolver(const Operator& A, int max_iter, double tol, bool verbose,
-                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
-    : Operator(A), A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
-      Dot_(Dot)
+Solver::Solver()
+    : A_(nullptr), max_iter_(0), verbose_(false),
+      rel_tol_(0.0), abs_tol_(0.0), Dot_(nullptr),
+      num_iter_(0)
 {
-    assert(A_.Rows() == A_.Cols());
 }
 
-void CGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
+Solver::Solver(const Operator& A, int max_iter, double rel_tol,
+               double abs_tol, bool verbose,
+               double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Operator(A), A_(&A), max_iter_(max_iter), verbose_(verbose),
+      rel_tol_(rel_tol), abs_tol_(abs_tol), Dot_(Dot),
+      num_iter_(0)
 {
-    assert(x.size() == A_.Rows());
-    assert(b.size() == A_.Rows());
+    assert(A_);
+    assert(Dot_);
+    assert(max_iter_ >= 0);
+    assert(A_->Rows() == A_->Cols());
+}
 
-    A_.Mult(x, Ap_);
-    r_ = b;
-    r_ -= Ap_;
-    p_ = r_;
+void swap(Solver& lhs, Solver& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
 
-    const double r0 = (*Dot_)(r_, r_);
-    const double tol_tol = r0 * tol_ * tol_;
+    std::swap(lhs.A_, rhs.A_);
+    std::swap(lhs.max_iter_, rhs.max_iter_);
+    std::swap(lhs.num_iter_, rhs.num_iter_);
+    std::swap(lhs.verbose_, rhs.verbose_);
+    std::swap(lhs.rel_tol_, rhs.rel_tol_);
+    std::swap(lhs.abs_tol_, rhs.abs_tol_);
+    std::swap(lhs.Dot_, rhs.Dot_);
+}
 
-    for (int k = 0; k < max_iter_; ++k)
-    {
-        A_.Mult(p_, Ap_);
+int Solver::GetNumIterations() const
+{
+    return num_iter_;
+}
 
-        double alpha = (*Dot_)(r_, r_) / (*Dot_)(p_, Ap_);
+void Solver::SetVerbose(bool verbose)
+{
+    verbose_ = verbose;
+}
 
-        x.Add(alpha, p_);
+void Solver::SetMaxIter(int max_iter)
+{
+    max_iter_ = max_iter;
+}
 
-        double denom = (*Dot_)(r_, r_);
+void Solver::SetRelTol(double rel_tol)
+{
+    rel_tol_ = rel_tol;
+}
 
-        r_.Sub(alpha, Ap_);
-
-        double numer = (*Dot_)(r_, r_);
-
-        if (verbose_)
-        {
-            printf("CG %d: %.2e %.2e / %.2e\n", k, numer, numer / r0, tol_tol);
-        }
-
-        if (numer < tol_tol)
-        {
-            break;
-        }
-
-        double beta = numer / denom;
-
-        p_ *= beta;
-        p_ += r_;
-    }
+void Solver::SetAbsTol(double abs_tol)
+{
+    abs_tol_ = abs_tol;
 }
 
 Vector<double> CG(const Operator& A, const VectorView<double>& b,
-                  int max_iter, double tol, bool verbose)
+                  int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
 
-    CG(A, b, x, max_iter, tol, verbose);
+    CG(A, b, x, max_iter, rel_tol, abs_tol, verbose);
 
     return x;
 }
 
 void CG(const Operator& A, const VectorView<double>& b, VectorView<double> x,
-        int max_iter, double tol, bool verbose)
+        int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
-    CGSolver cg(A, max_iter, tol, verbose);
+    PCGSolver cg(A, max_iter, rel_tol, abs_tol, verbose);
 
     cg.Mult(b, x);
 }
 
-PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose)
-    : Operator(A), A_(A), M_(M), max_iter_(max_iter), tol_(tol),
-      verbose_(verbose), Ap_(A.Rows()), r_(A.Rows()), p_(A.Rows()),
-      z_(A.Rows())
+PCGSolver::PCGSolver(const Operator& A, int max_iter,
+                     double rel_tol, double abs_tol, bool verbose,
+                     double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot), M_(nullptr),
+      Ap_(A_->Rows()), r_(A_->Rows()), p_(A_->Rows()), z_(A_->Rows())
 {
-    assert(A_.Rows() == A_.Cols());
-    assert(A_.Rows() == M_.Cols());
-    assert(M_.Rows() == M_.Cols());
+    assert(A_);
+
+    assert(A_->Rows() == A_->Cols());
+}
+
+PCGSolver::PCGSolver(const Operator& A, const Operator& M, int max_iter,
+                     double rel_tol, double abs_tol, bool verbose,
+                     double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot), M_(&M),
+      Ap_(A_->Rows()), r_(A_->Rows()), p_(A_->Rows()), z_(A_->Rows())
+{
+    assert(A_);
+    assert(M_);
+
+    assert(A_->Rows() == A_->Cols());
+    assert(A_->Rows() == M_->Cols());
+    assert(M_->Rows() == M_->Cols());
+}
+
+PCGSolver::PCGSolver(const PCGSolver& other) noexcept
+    : Solver(other), M_(other.M_), Ap_(other.Ap_), r_(other.r_), p_(other.p_),
+      z_(other.z_)
+{
+}
+
+PCGSolver::PCGSolver(PCGSolver&& other) noexcept
+{
+    swap(*this, other);
+}
+
+PCGSolver& PCGSolver::operator=(PCGSolver other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+void swap(PCGSolver& lhs, PCGSolver& rhs) noexcept
+{
+    swap(static_cast<Solver&>(lhs), static_cast<Solver&>(rhs));
+
+    std::swap(lhs.M_, rhs.M_);
+    std::swap(lhs.Ap_, rhs.Ap_);
+    std::swap(lhs.r_, rhs.r_);
+    std::swap(lhs.p_, rhs.p_);
+    std::swap(lhs.z_, rhs.z_);
 }
 
 void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 {
-    assert(x.size() == A_.Rows());
-    assert(b.size() == A_.Rows());
+    assert(A_);
 
-    A_.Mult(x, Ap_);
+    assert(x.size() == A_->Rows());
+    assert(b.size() == A_->Rows());
+
+    A_->Mult(x, Ap_);
     r_ = b;
     r_ -= Ap_;
 
-    M_.Mult(r_, z_);
+    if (M_)
+    {
+        M_->Mult(r_, z_);
+    }
+    else
+    {
+        z_ = r_;
+    }
+
     p_ = z_;
 
-    const double r0 = z_.Mult(r_);
+    const double r0 = (*Dot_)(z_, r_);
 
-    const double abs_tol = 1e-24;
-    const double tol_tol = std::max(r0 * tol_ * tol_, abs_tol);
+    const double tol_tol = std::max(r0 * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
 
-    for (int k = 0; k < max_iter_; ++k)
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
-        A_.Mult(p_, Ap_);
+        A_->Mult(p_, Ap_);
 
-        double alpha = (r_ * z_) / (p_ * Ap_);
+        double alpha = (*Dot_)(r_ , z_) / (*Dot_)(p_, Ap_);
 
         x.Add(alpha, p_);
 
-        double denom = z_.Mult(r_);
+        double denom = (*Dot_)(z_, r_);
 
         r_.Sub(alpha, Ap_);
-        M_.Mult(r_, z_);
 
-        double numer = z_.Mult(r_);
+        if (M_)
+        {
+            M_->Mult(r_, z_);
+        }
+        else
+        {
+            z_ = r_;
+        }
+
+        double numer = (*Dot_)(z_, r_);
 
         if (verbose_)
         {
-            printf("PCG %d: %.2e\n", k, numer / r0);
+            printf("PCG %d: %.2e\n", num_iter_, numer / r0);
         }
 
         if (numer < tol_tol)
@@ -134,46 +201,76 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 }
 
 Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double>& b,
-                   int max_iter, double tol, bool verbose)
+                   int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
 
-    PCG(A, M, b, x, max_iter, tol, verbose);
+    PCG(A, M, b, x, max_iter, rel_tol, abs_tol, verbose);
 
     return x;
 }
 
 void PCG(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
-         int max_iter, double tol, bool verbose)
+         int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
-    PCGSolver pcg(A, M, max_iter, tol, verbose);
+    PCGSolver pcg(A, M, max_iter, rel_tol, abs_tol, verbose);
 
     pcg.Mult(b, x);
 }
 
-MINRESSolver::MINRESSolver(const Operator& A, int max_iter, double tol, bool verbose,
-                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
-    : Operator(A), A_(A), max_iter_(max_iter), tol_(tol), verbose_(verbose),
-      w0_(A.Rows()), w1_(A.Rows()),
-      v0_(A.Rows()), v1_(A.Rows()),
-      q_(A.Rows()), Dot_(Dot)
+MINRESSolver::MINRESSolver(const Operator& A, int max_iter, double rel_tol, double abs_tol, bool verbose,
+                           double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot),
+      w0_(A_->Rows()), w1_(A_->Rows()),
+      v0_(A_->Rows()), v1_(A_->Rows()),
+      q_(A_->Rows())
 {
-    assert(A_.Rows() == A_.Cols());
+    assert(A_->Rows() == A_->Cols());
+}
+
+MINRESSolver::MINRESSolver(const MINRESSolver& other) noexcept
+    : Solver(other), w0_(other.w0_), w1_(other.w1_), v0_(other.v0_),
+      v1_(other.v1_), q_(other.q_)
+{
+}
+
+MINRESSolver::MINRESSolver(MINRESSolver&& other) noexcept
+{
+    swap(*this, other);
+}
+
+MINRESSolver& MINRESSolver::operator=(MINRESSolver other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+void swap(MINRESSolver& lhs, MINRESSolver& rhs) noexcept
+{
+    swap(static_cast<Solver&>(lhs), static_cast<Solver&>(rhs));
+
+    std::swap(lhs.w0_, rhs.w0_);
+    std::swap(lhs.w1_, rhs.w1_);
+    std::swap(lhs.v0_, rhs.v0_);
+    std::swap(lhs.v1_, rhs.v1_);
+    std::swap(lhs.q_, rhs.q_);
 }
 
 void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 {
-    assert(x.size() == A_.Rows());
-    assert(b.size() == A_.Rows());
+    assert(A_);
+    assert(x.size() == A_->Rows());
+    assert(b.size() == A_->Rows());
 
-    const int size = A_.Cols();
+    const int size = A_->Cols();
 
     w0_ = 0.0;
     w1_ = 0.0;
     v0_ = 0.0;
 
-    A_.Mult(x, q_);
+    A_->Mult(x, q_);
     v1_ = b;
     v1_ -= q_;
 
@@ -186,10 +283,12 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
     double sigma = 0;
     double sigma2 = 0;
 
-    for (int k = 0; k < max_iter_; ++k)
+    double tol = std::max(beta * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
+
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
         v1_ /= beta;
-        A_.Mult(v1_, q_);
+        A_->Mult(v1_, q_);
 
         const double alpha = (*Dot_)(v1_, q_);
 
@@ -226,10 +325,10 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
         if (verbose_)
         {
-            printf("MINRES %d: %.2e\n", k, eta);
+            printf("MINRES %d: %.2e\n", num_iter_, eta);
         }
 
-        if (std::fabs(eta) < tol_)
+        if (std::fabs(eta) < tol)
         {
             break;
         }
@@ -240,53 +339,90 @@ void MINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 }
 
 Vector<double> MINRES(const Operator& A, const VectorView<double>& b,
-                      int max_iter, double tol, bool verbose)
+                      int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
 
-    MINRES(A, b, x, max_iter, tol, verbose);
+    MINRES(A, b, x, max_iter, rel_tol, abs_tol, verbose);
 
     return x;
 }
 
 void MINRES(const Operator& A, const VectorView<double>& b, VectorView<double> x,
-            int max_iter, double tol, bool verbose)
+            int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
-    MINRESSolver minres(A, max_iter, tol, verbose);
+    MINRESSolver minres(A, max_iter, rel_tol, abs_tol, verbose);
 
     minres.Mult(b, x);
 }
 
-PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter, double tol, bool verbose,
-                   double (*Dot)(const VectorView<double>&, const VectorView<double>&))
-    : Operator(A), A_(A), M_(M), max_iter_(max_iter), tol_(tol), verbose_(verbose),
-      w0_(A.Rows()), w1_(A.Rows()),
-      v0_(A.Rows()), v1_(A.Rows()),
-      u1_(A.Rows()), q_(A.Rows()),
-      Dot_(Dot)
+PMINRESSolver::PMINRESSolver(const Operator& A, const Operator& M, int max_iter,
+                             double rel_tol, double abs_tol, bool verbose,
+                             double (*Dot)(const VectorView<double>&, const VectorView<double>&))
+    : Solver(A, max_iter, rel_tol, abs_tol, verbose, Dot), M_(&M),
+      w0_(A_->Rows()), w1_(A_->Rows()),
+      v0_(A_->Rows()), v1_(A_->Rows()),
+      u1_(A_->Rows()), q_(A_->Rows())
 {
-    assert(A_.Rows() == A_.Cols());
-    assert(A_.Rows() == M_.Cols());
-    assert(M_.Rows() == M_.Cols());
+    assert(A_);
+    assert(M_);
+
+    assert(A_->Rows() == A_->Cols());
+    assert(A_->Rows() == M_->Cols());
+    assert(M_->Rows() == M_->Cols());
+}
+
+PMINRESSolver::PMINRESSolver(const PMINRESSolver& other) noexcept
+    : Solver(other), M_(other.M_), w0_(other.w0_), w1_(other.w1_),
+      v0_(other.v0_), v1_(other.v1_), u1_(other.u1_), q_(other.q_)
+{
+}
+
+PMINRESSolver::PMINRESSolver(PMINRESSolver&& other) noexcept
+{
+    swap(*this, other);
+}
+
+PMINRESSolver& PMINRESSolver::operator=(PMINRESSolver other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+void swap(PMINRESSolver& lhs, PMINRESSolver& rhs) noexcept
+{
+    swap(static_cast<Solver&>(lhs), static_cast<Solver&>(rhs));
+
+    std::swap(lhs.M_, rhs.M_);
+    std::swap(lhs.w0_, rhs.w0_);
+    std::swap(lhs.w1_, rhs.w1_);
+    std::swap(lhs.v0_, rhs.v0_);
+    std::swap(lhs.v1_, rhs.v1_);
+    std::swap(lhs.u1_, rhs.u1_);
+    std::swap(lhs.q_, rhs.q_);
 }
 
 void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 {
-    assert(b.size() == A_.Rows());
-    assert(x.size() == A_.Cols());
+    assert(A_);
+    assert(M_);
 
-    const int size = A_.Cols();
+    assert(b.size() == A_->Rows());
+    assert(x.size() == A_->Cols());
+
+    const int size = A_->Cols();
 
     w0_ = 0.0;
     w1_ = 0.0;
     v0_ = 0.0;
 
-    A_.Mult(x, q_);
+    A_->Mult(x, q_);
     v1_ = b;
     v1_ -= q_;
 
-    M_.Mult(v1_, u1_);
+    M_->Mult(v1_, u1_);
 
     double beta = std::sqrt((*Dot_)(u1_, v1_));
     double eta = beta;
@@ -297,12 +433,14 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) cons
     double sigma = 0;
     double sigma2 = 0;
 
-    for (int k = 0; k < max_iter_; ++k)
+    double tol = std::max(beta * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
+
+    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
     {
         v1_ /= beta;
         u1_ /= beta;
 
-        A_.Mult(u1_, q_);
+        A_->Mult(u1_, q_);
 
         const double alpha = (*Dot_)(u1_, q_);
 
@@ -315,7 +453,7 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) cons
         const double rho3 = sigma * beta;
         const double rho2 = sigma2 * alpha + gamma * gamma2 * beta;
 
-        M_.Mult(v0_, q_);
+        M_->Mult(v0_, q_);
         beta = std::sqrt((*Dot_)(v0_, q_));
 
         const double rho1 = std::sqrt((delta * delta) + (beta * beta));
@@ -340,10 +478,10 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) cons
 
         if (verbose_)
         {
-            printf("PMINRES %d: %.2e\n", k, eta);
+            printf("PMINRES %d: %.2e\n", num_iter_, eta);
         }
 
-        if (std::fabs(eta) < tol_)
+        if (std::fabs(eta) < tol)
         {
             break;
         }
@@ -352,24 +490,23 @@ void PMINRESSolver::Mult(const VectorView<double>& b, VectorView<double> x) cons
         swap(v0_, v1_);
         swap(w0_, w1_);
     }
-
 }
 
 Vector<double> PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b,
-                       int max_iter, double tol, bool verbose)
+                       int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
     Vector<double> x(A.Rows());
     Randomize(x);
 
-    PMINRES(A, M, b, x, max_iter, tol, verbose);
+    PMINRES(A, M, b, x, max_iter, rel_tol, abs_tol, verbose);
 
     return x;
 }
 
 void PMINRES(const Operator& A, const Operator& M, const VectorView<double>& b, VectorView<double> x,
-             int max_iter, double tol, bool verbose)
+             int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
-    PMINRESSolver pminres(A, M, max_iter, tol, verbose);
+    PMINRESSolver pminres(A, M, max_iter, rel_tol, abs_tol, verbose);
 
     pminres.Mult(b, x);
 }

@@ -93,6 +93,8 @@ class BlockOperator : public Operator
 
         mutable BlockVector<double> x_;
         mutable BlockVector<double> y_;
+
+        mutable Vector<double> tmp_;
 };
 
 } //namespace linalgcpp

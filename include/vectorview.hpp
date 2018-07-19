@@ -15,6 +15,9 @@
 namespace linalgcpp
 {
 
+template <typename T>
+class Vector;
+
 /*! @brief Vector view of data and size
 
     @note Views are only modifiable if you own the view
@@ -106,6 +109,18 @@ class VectorView
         */
         VectorView& operator=(T val);
 
+        /*! @brief Get subvector
+            @param indices indices of values to get
+            @param vect Vector to hold subvector
+        */
+        void GetSubVector(const std::vector<int>& indices, Vector<T>& vect) const;
+
+        /*! @brief Get subvector
+            @param indices indices of values to get
+            @returns vect Vector to hold subvector
+        */
+        Vector<T> GetSubVector(const std::vector<int>& indices) const;
+
         /*! @brief Print the vector entries
             @param label the label to print before the list of entries
             @param out stream to print to
@@ -155,6 +170,9 @@ class VectorView
             @param seed seed to rng, if positive
         */
         virtual void Randomize(int lo = 0, int hi = 1, int seed = -1);
+
+        /*! @brief Normalize a vector */
+        virtual void Normalize();
 
     protected:
         void SetData(T* data, int size);
@@ -307,6 +325,32 @@ template <typename T>
 int VectorView<T>::size() const
 {
     return size_;
+}
+
+template <typename T>
+Vector<T> VectorView<T>::GetSubVector(const std::vector<int>& indices) const
+{
+    Vector<T> vect(indices.size());
+
+    GetSubVector(indices, vect);
+
+    return vect;
+}
+
+template <typename T>
+void VectorView<T>::GetSubVector(const std::vector<int>& indices, Vector<T>& vect) const
+{
+    int size = indices.size();
+
+    vect.SetSize(size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        assert(indices[i] >= 0);
+        assert(indices[i] < size_);
+
+        vect[i] = (*this)[indices[i]];
+    }
 }
 
 template <typename T>
@@ -603,7 +647,9 @@ bool operator==(const VectorView<T>& lhs, const VectorView<U>& rhs)
 template <typename T>
 T AbsMax(const VectorView<T>& vect)
 {
-    const auto compare = [](auto lhs, auto rhs)
+    assert(vect.size() > 0);
+
+    const auto compare = [](const T& lhs, const T& rhs)
     {
         return std::fabs(lhs) < std::fabs(rhs);
     };
@@ -643,7 +689,8 @@ template <typename T>
 T AbsMin(const VectorView<T>& vect)
 {
     assert(vect.size() > 0);
-    const auto compare = [](auto lhs, auto rhs)
+
+    const auto compare = [](const T& lhs, const T& rhs)
     {
         return std::fabs(lhs) < std::fabs(rhs);
     };
@@ -696,7 +743,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<T>& vect)
     @param hi upper range limit
     @param seed seed to rng, if positive
 */
-void Randomize(VectorView<double>& vect, double lo = 0.0, double hi = 1.0, int seed = -1);
+void Randomize(VectorView<double> vect, double lo = 0.0, double hi = 1.0, int seed = -1);
 
 /*! @brief Randomize the entries in a integer vector
     @param vect vector to randomize
@@ -704,7 +751,7 @@ void Randomize(VectorView<double>& vect, double lo = 0.0, double hi = 1.0, int s
     @param hi upper range limit
     @param seed seed to rng, if positive
 */
-void Randomize(VectorView<int>& vect, int lo = 0, int hi = 1, int seed = -1);
+void Randomize(VectorView<int> vect, int lo = 0, int hi = 1, int seed = -1);
 
 template <typename T>
 void VectorView<T>::Randomize(int lo, int hi, int seed)
@@ -715,13 +762,19 @@ void VectorView<T>::Randomize(int lo, int hi, int seed)
 /*! @brief Normalize a vector such that its L2 norm is 1.0
     @param vect vector to normalize
 */
-void Normalize(VectorView<double>& vect);
+void Normalize(VectorView<double> vect);
+
+template <typename T>
+void VectorView<T>::Normalize()
+{
+    throw std::runtime_error("Cannot normalize unless double!");
+}
 
 /*! @brief Subtract a constant vector set to the average
     from this vector: x_i = x_i - mean(x)
     @param vect vector to subtract average from
 */
-void SubAvg(VectorView<double>& vect);
+void SubAvg(VectorView<double> vect);
 
 } // namespace linalgcpp
 
