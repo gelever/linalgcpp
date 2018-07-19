@@ -422,8 +422,6 @@ class SparseMatrix : public Operator
         using Operator::MultAT;
 
     private:
-        int nnz_;
-
         std::vector<int> indptr_;
         std::vector<int> indices_;
         std::vector<T> data_;
@@ -431,8 +429,7 @@ class SparseMatrix : public Operator
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix()
-    : nnz_(0),
-      indptr_{0}, indices_(0), data_(0)
+    : indptr_{0}, indices_(0), data_(0)
 {
 
 }
@@ -446,7 +443,7 @@ SparseMatrix<T>::SparseMatrix(int size)
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix(int rows, int cols)
-    : Operator(rows, cols), nnz_(0),
+    : Operator(rows, cols),
       indptr_(std::vector<int>(rows + 1, 0)), indices_(0), data_(0)
 {
 
@@ -457,7 +454,7 @@ SparseMatrix<T>::SparseMatrix(std::vector<int> indptr,
                               std::vector<int> indices,
                               std::vector<T> data,
                               int rows, int cols)
-    : Operator(rows, cols), nnz_(data.size()),
+    : Operator(rows, cols),
       indptr_(std::move(indptr)), indices_(std::move(indices)), data_(std::move(data))
 {
     assert(indptr_.size() == rows_ + 1u);
@@ -473,7 +470,7 @@ SparseMatrix<T>::SparseMatrix(std::vector<int> indptr,
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix(std::vector<T> diag)
-    : Operator(diag.size()), nnz_(diag.size()),
+    : Operator(diag.size()),
       indptr_(diag.size() + 1), indices_(diag.size()), data_(std::move(diag))
 {
     std::iota(begin(indptr_), end(indptr_), 0);
@@ -482,7 +479,7 @@ SparseMatrix<T>::SparseMatrix(std::vector<T> diag)
 
 template <typename T>
 SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& other) noexcept
-    : Operator(other), nnz_(other.nnz_),
+    : Operator(other),
       indptr_(other.indptr_), indices_(other.indices_), data_(other.data_)
 {
 }
@@ -506,7 +503,6 @@ void swap(SparseMatrix<T>& lhs, SparseMatrix<T>& rhs) noexcept
 {
     swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
 
-    std::swap(lhs.nnz_, rhs.nnz_);
     std::swap(lhs.indptr_, rhs.indptr_);
     std::swap(lhs.indices_, rhs.indices_);
     std::swap(lhs.data_, rhs.data_);
@@ -706,8 +702,8 @@ template <typename U>
 SparseMatrix<U> SparseMatrix<T>::Transpose() const
 {
     std::vector<int> out_indptr(cols_ + 1, 0);
-    std::vector<int> out_indices(nnz_);
-    std::vector<U> out_data(nnz_);
+    std::vector<int> out_indices(nnz());
+    std::vector<U> out_data(nnz());
 
     for (const int& col : indices_)
     {
@@ -905,7 +901,7 @@ template <typename T>
 inline
 int SparseMatrix<T>::nnz() const
 {
-    return nnz_;
+    return data_.size();
 }
 
 template <typename T>
