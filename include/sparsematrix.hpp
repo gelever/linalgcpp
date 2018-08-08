@@ -392,6 +392,14 @@ class SparseMatrix : public Operator
         */
         void EliminateRowCol(int index);
 
+        /*! @brief Eliminate all marked rows and columns from square matrix.
+            @param marker indexable type where marker[i] is elimnated if true
+
+            @note If diagonal entry exists, it is set to 1.0
+        */
+        template <typename U>
+        void EliminateRowCol(const U& marker);
+
         /*! @brief Eliminate a row by setting all row entries to zero
             @param index row to eliminate
         */
@@ -1365,6 +1373,27 @@ void SparseMatrix<T>::EliminateRowCol(int index)
             if (row == index || col == index)
             {
                 data_[j] = (col == row) ? 1.0 : 0.0;
+            }
+        }
+    }
+}
+
+template <typename T>
+template <typename U>
+void SparseMatrix<T>::EliminateRowCol(const U& marker)
+{
+    assert(rows_ == cols_);
+    assert(marker.size() >= cols_);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            int col = indices_[j];
+
+            if (marker[row] || marker[col])
+            {
+                data_[j] = (row == col) ? 1.0 : 0.0;
             }
         }
     }

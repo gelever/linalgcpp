@@ -854,11 +854,11 @@ void test_parser()
 {
     // Write Vector
     std::vector<double> vect_out({1.0, 2.0, 3.0});
-    WriteText<double>(vect_out, "vect.vect");
+    WriteText(vect_out, "vect.vect");
 
     // Write Integer Vector
     std::vector<int> vect_out_int({1, 2, 3});
-    WriteText<int>(vect_out_int, "vect_int.vect");
+    WriteText(vect_out_int, "vect_int.vect");
 
     CooMatrix<double> coo_out(3, 3);
     coo_out.Add(0, 0, 1.0);

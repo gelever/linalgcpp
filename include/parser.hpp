@@ -44,8 +44,8 @@ std::vector<T> ReadText(const std::string& file_name)
     @param vect vector to write
     @param file_name file to write to
 */
-template <typename T = double>
-void WriteText(const std::vector<T>& vect, const std::string& file_name)
+template <typename T>
+void WriteText(const T& vect, const std::string& file_name)
 {
     std::ofstream file(file_name.c_str());
 
@@ -56,7 +56,7 @@ void WriteText(const std::vector<T>& vect, const std::string& file_name)
 
     file.precision(16);
 
-    for (const T& val : vect)
+    for (const auto& val : vect)
     {
         file << val << "\n";
     }
