@@ -63,6 +63,9 @@ class Vector : public VectorView<T>
         */
         ~Vector() noexcept = default;
 
+        /*! @brief Access data vector */
+        const std::vector<T>& data() const { return data_; }
+
         /*! @brief Set size of vector
             @param size size to set
 

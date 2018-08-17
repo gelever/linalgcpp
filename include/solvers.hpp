@@ -53,6 +53,11 @@ class Solver : public Operator
         */
         virtual void SetAbsTol(double abs_tol);
 
+        /*! @brief Get Operator A being applied
+            @retval Operator A
+        */
+        virtual const Operator* GetOperator() const { return A_; };
+
     protected:
         /*! @brief Constructor
             @param A operator to apply the action of A
