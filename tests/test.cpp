@@ -875,6 +875,9 @@ void test_parser()
     // Write Coordinate List
     WriteCooList(sp_out, "coo.coo");
 
+    // Write Matrix Market
+    WriteMTX(sp_out, "mtx.mtx");
+
     // Read Vector
     std::vector<double> vect = ReadText("vect.vect");
     Vector<double> v(vect);
@@ -888,9 +891,11 @@ void test_parser()
     // Read List formats
     SparseMatrix<double> adj = ReadAdjList("adj.adj");
     SparseMatrix<double> coo = ReadCooList("coo.coo");
+    SparseMatrix<double> mtx = ReadMTX("mtx.mtx");
 
     adj.PrintDense("Adj:");
     coo.PrintDense("Coo:");
+    mtx.PrintDense("MTX:");
 
     // Symmetric file type
     bool symmetric = true;
