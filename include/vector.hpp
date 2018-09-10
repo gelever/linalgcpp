@@ -177,21 +177,27 @@ Vector<T>::Vector(Vector<T>&& vect) noexcept
 template <typename T>
 void Vector<T>::SetSize(int size)
 {
-    assert(size >= 0);
+    if (size != VectorView<T>::size())
+    {
+        assert(size >= 0);
 
-    data_.resize(size);
+        data_.resize(size);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>
 void Vector<T>::SetSize(int size, T val)
 {
-    assert(size >= 0);
+    if (size != VectorView<T>::size())
+    {
+        assert(size >= 0);
 
-    data_.resize(size, val);
+        data_.resize(size, val);
 
-    VectorView<T>::SetData(data_.data(), data_.size());
+        VectorView<T>::SetData(data_.data(), data_.size());
+    }
 }
 
 template <typename T>

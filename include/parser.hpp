@@ -622,6 +622,64 @@ SparseMatrix<T> ReadMTX(const std::string& file_name)
     return coo.ToSparse();
 }
 
+/*! @brief Read matrix market coordinate format from disk.
+    @warning input file is 1 based
+    Data is expected to be formatted as:
+       rows cols nnz
+       i j
+       i j
+       i j
+       ...
+    @param file_name file to read
+*/
+template <typename T = double>
+SparseMatrix<T> ReadMTXList(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    bool symmetric = false;
+    std::string line;
+
+    while (getline(file, line) && line.size() && line[0] == '%')
+    {
+        symmetric |= (line.find("symmetric") != std::string::npos);
+    }
+
+    int rows;
+    int cols;
+    int nnz;
+
+    // First line after comments contains size info
+    std::istringstream(line) >> rows >> cols >> nnz;
+
+    CooMatrix<T> coo(rows, cols);
+    coo.Reserve(nnz);
+
+    int base = 1;
+    int i;
+    int j;
+    T val = 1.0;
+
+    while (file >> i >> j)
+    {
+        coo.Add(i - base, j - base, val);
+
+        if (symmetric && i != j)
+        {
+            coo.Add(j - base, i - base, val);
+        }
+    }
+
+    file.close();
+
+    return coo.ToSparse();
+}
+
 /*! @brief Write matrix market coordinate format to disk.
     @warning output file is 1 based
     Data is expected to be formatted as:

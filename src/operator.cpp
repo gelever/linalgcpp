@@ -57,12 +57,26 @@ void swap(Operator& lhs, Operator& rhs) noexcept
     std::swap(lhs.cols_, rhs.cols_);
 }
 
+void Operator::Mult(const VectorView<double>& input, Vector<double>& output) const
+{
+    output.SetSize(Rows());
+
+    Mult(input, static_cast<VectorView<double>&>(output));
+}
+
 Vector<double> Operator::Mult(const VectorView<double>& input) const
 {
     Vector<double> output(Rows());
     Mult(input, output);
 
     return output;
+}
+
+void Operator::MultAT(const VectorView<double>& input, Vector<double>& output) const
+{
+    output.SetSize(Cols());
+
+    MultAT(input, static_cast<VectorView<double>&>(output));
 }
 
 Vector<double> Operator::MultAT(const VectorView<double>& input) const
