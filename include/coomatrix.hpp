@@ -7,11 +7,10 @@
 #include <memory>
 #include <algorithm>
 #include <functional>
-#include <queue>
 #include <tuple>
 #include <assert.h>
 
-#include <list>
+#include <unordered_map>
 
 #include "sparsematrix.hpp"
 #include "densematrix.hpp"
@@ -589,25 +588,35 @@ SparseMatrix<U> CooMatrix<T>::ToSparse() const
     int cols;
     std::tie(rows, cols) = FindSize();
 
-    std::sort(std::begin(entries_), std::end(entries_));
-
-    if (entries_.size() == 0)
+    if (entries_.empty())
     {
         return SparseMatrix<U>(rows, cols);
     }
 
-    const size_t nnz = entries_.size();
-
     std::vector<int> indptr(rows + 1, 0);
-    std::vector<int> indices;
-    std::vector<U> data;
 
-    indices.reserve(nnz);
-    data.reserve(nnz);
+    std::vector<std::unordered_map<int, int>> index_map(rows);
 
-    indptr[0] = 0;
+    for (const auto& entry : entries_)
+    {
+        int row = std::get<0>(entry);
+        int col = std::get<1>(entry);
 
-    int current_row = 0;
+        auto search = index_map[row].find(col);
+
+        if (search == index_map[row].end())
+        {
+            indptr[row + 1]++;
+            index_map[row][col] = index_map[row].size();
+        }
+    }
+
+    std::partial_sum(std::begin(indptr), std::end(indptr), std::begin(indptr));
+
+    const size_t nnz = indptr.back();
+
+    std::vector<int> indices(nnz);
+    std::vector<U> data(nnz, (T)0);
 
     for (const auto& tup : entries_)
     {
@@ -615,31 +624,10 @@ SparseMatrix<U> CooMatrix<T>::ToSparse() const
         const int j = std::get<1>(tup);
         const U val = std::get<2>(tup);
 
-        // Set Indptr if at new row
-        if (i != current_row)
-        {
-            for (int ii = current_row; ii < i; ++ii)
-            {
-                indptr[ii + 1] = data.size();
-            }
-        }
-
-        // Add data and indices
-        if (indices.size() && j == indices.back() && i == current_row)
-        {
-            data.back() += val;
-        }
-        else
-        {
-            indices.push_back(j);
-            data.push_back(val);
-        }
-
-        current_row = i;
+        int index = indptr[i] + index_map[i].at(j);
+        indices[index] = j;
+        data[index] += val;
     }
-
-    std::fill(begin(indptr) + current_row + 1,
-              end(indptr), data.size());
 
     return SparseMatrix<U>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
