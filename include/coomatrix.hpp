@@ -607,7 +607,8 @@ SparseMatrix<U> CooMatrix<T>::ToSparse() const
         if (search == index_map[row].end())
         {
             indptr[row + 1]++;
-            index_map[row][col] = index_map[row].size();
+            int size = index_map[row].size();
+            index_map[row][col] = size;
         }
     }
 

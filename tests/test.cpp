@@ -443,6 +443,9 @@ void test_coo()
 
         auto dense = coo.ToDense();
         auto sparse = coo.ToSparse();
+        auto diff = dense - sparse.ToDense();
+
+        assert(std::fabs(diff.Sum()) < 1e-8);
     }
 
     // Without setting specfic size
@@ -475,6 +478,12 @@ void test_coo()
         coo.AddSym(4, 2, 3.0);
 
         coo.ToDense().Print("Coo Symmetric Add");
+
+        auto dense = coo.ToDense();
+        auto sparse = coo.ToSparse();
+        auto diff = dense - sparse.ToDense();
+
+        assert(std::fabs(diff.Sum()) < 1e-8);
     }
     // Make sure ToSparse gets same result as ToDense
     {
