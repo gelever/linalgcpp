@@ -44,8 +44,8 @@ std::vector<T> ReadText(const std::string& file_name)
     @param vect vector to write
     @param file_name file to write to
 */
-template <typename T = double>
-void WriteText(const std::vector<T>& vect, const std::string& file_name)
+template <typename T>
+void WriteText(const T& vect, const std::string& file_name)
 {
     std::ofstream file(file_name.c_str());
 
@@ -56,7 +56,7 @@ void WriteText(const std::vector<T>& vect, const std::string& file_name)
 
     file.precision(16);
 
-    for (const T& val : vect)
+    for (const auto& val : vect)
     {
         file << val << "\n";
     }
@@ -554,9 +554,173 @@ void WriteCSR(const SparseMatrix<T>& mat, const std::string& file_name)
         file << i << "\n";
     }
 
+    file.precision(16);
+
     for (auto i : data)
     {
         file << i << "\n";
+    }
+
+    file.close();
+}
+
+/*! @brief Read matrix market coordinate format from disk.
+    @warning input file is 1 based
+    Data is expected to be formatted as:
+       rows cols nnz
+       i j val
+       i j val
+       i j val
+       ...
+    @param file_name file to read
+*/
+template <typename T = double>
+SparseMatrix<T> ReadMTX(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    bool symmetric = false;
+    std::string line;
+
+    while (getline(file, line) && line.size() && line[0] == '%')
+    {
+        symmetric |= (line.find("symmetric") != std::string::npos);
+    }
+
+    int rows;
+    int cols;
+    int nnz;
+
+    // First line after comments contains size info
+    std::istringstream(line) >> rows >> cols >> nnz;
+
+    CooMatrix<T> coo(rows, cols);
+    coo.Reserve(nnz);
+
+    int base = 1;
+    int i;
+    int j;
+    T val;
+
+    while (file >> i >> j >> val)
+    {
+        coo.Add(i - base, j - base, val);
+
+        if (symmetric && i != j)
+        {
+            coo.Add(j - base, i - base, val);
+        }
+    }
+
+    file.close();
+
+    return coo.ToSparse();
+}
+
+/*! @brief Read matrix market coordinate format from disk.
+    @warning input file is 1 based
+    Data is expected to be formatted as:
+       rows cols nnz
+       i j
+       i j
+       i j
+       ...
+    @param file_name file to read
+*/
+template <typename T = double>
+SparseMatrix<T> ReadMTXList(const std::string& file_name)
+{
+    std::ifstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    bool symmetric = false;
+    std::string line;
+
+    while (getline(file, line) && line.size() && line[0] == '%')
+    {
+        symmetric |= (line.find("symmetric") != std::string::npos);
+    }
+
+    int rows;
+    int cols;
+    int nnz;
+
+    // First line after comments contains size info
+    std::istringstream(line) >> rows >> cols >> nnz;
+
+    CooMatrix<T> coo(rows, cols);
+    coo.Reserve(nnz);
+
+    int base = 1;
+    int i;
+    int j;
+    T val = 1.0;
+
+    while (file >> i >> j)
+    {
+        coo.Add(i - base, j - base, val);
+
+        if (symmetric && i != j)
+        {
+            coo.Add(j - base, i - base, val);
+        }
+    }
+
+    file.close();
+
+    return coo.ToSparse();
+}
+
+/*! @brief Write matrix market coordinate format to disk.
+    @warning output file is 1 based
+    Data is expected to be formatted as:
+       rows cols nnz
+       i j val
+       i j val
+       i j val
+       ...
+    @param mat matrix to save
+    @param file_name file to write to
+*/
+template <typename T = double>
+void WriteMTX(const SparseMatrix<T>& mat, const std::string& file_name)
+{
+    std::ofstream file(file_name.c_str());
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file: " + file_name);
+    }
+
+    int base = 1;
+
+    int rows = mat.Rows();
+    int cols = mat.Cols();
+    int nnz = mat.nnz();
+
+    file.precision(16);
+    file << "%MatrixMarket matrix coordinate real general\n";
+    file << rows << " " << cols << " " << nnz <<  "\n";
+
+    const std::vector<int>& indptr = mat.GetIndptr();
+    const std::vector<int>& indices = mat.GetIndices();
+    const std::vector<T>& data = mat.GetData();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = indptr[i]; j < indptr[i + 1]; ++j)
+        {
+            file << i + base << " " << indices[j] + 1 << " " << data[j] << "\n";
+        }
     }
 
     file.close();

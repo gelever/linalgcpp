@@ -28,89 +28,84 @@
 ###############################################################
 
 cmake_minimum_required(VERSION 3.5)
-project(linalgcpp VERSION 1.0 LANGUAGES CXX)
-enable_testing()
 
-find_package(LAPACK REQUIRED)
-find_package(BLAS REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-add_library(linalgcpp
-    src/argparser.cpp
-    src/blockoperator.cpp
-    src/coomatrix.cpp
-    src/densematrix.cpp
-    src/eigensolver.cpp
-    src/operator.cpp
-    src/solvers.cpp
-    src/sparsematrix.cpp
-    src/timer.cpp
-    src/vector.cpp
-    src/vectorview.cpp
+find_package(Hypre REQUIRED)
+
+add_library(parlinalgcpp
+    src/hypre_ops.cpp
+    src/parcommpkg.cpp
+    src/parmatrix.cpp
+    src/paroperator.cpp
+    src/parsmoother.cpp
+    src/parsolvers.cpp
+    src/parutilities.cpp
+    src/parvector.cpp
 )
 
-set_target_properties(linalgcpp PROPERTIES
+add_dependencies(parlinalgcpp linalgcpp)
+
+set_target_properties(parlinalgcpp PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )
 
-target_include_directories(linalgcpp
+target_compile_options(parlinalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -O2>)
+target_compile_options(parlinalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall -O2>)
+
+target_link_libraries(parlinalgcpp
+    PUBLIC Hypre::Hypre linalgcpp
+)
+
+target_include_directories(parlinalgcpp
     PUBLIC
 		$<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-
-add_subdirectory(tests)
-add_subdirectory(modules)
-
-target_link_libraries(linalgcpp
-    PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
-)
-
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall>)
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/liblinalgcpp)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libparlinalgcpp)
 
-install(TARGETS linalgcpp
-    EXPORT linalgcpp-targets
+install(TARGETS parlinalgcpp
+    EXPORT parlinalgcpp-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(EXPORT linalgcpp-targets
-    FILE linalgcppTargets.cmake
+install(EXPORT parlinalgcpp-targets
+    FILE parlinalgcppTargets.cmake
     NAMESPACE linalgcpp::
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/parlinalgcppConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
-configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/linalgcppConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/parlinalgcppConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/parlinalgcppConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/parlinalgcppConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/parlinalgcppConfigVersion.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
-    )
+)
 
-export(EXPORT linalgcpp-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/linalgcppTargets.cmake
-       NAMESPACE linalgcpp::
-       )
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/modules/FindHypre.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FindHypre.cmake
+            COPYONLY)
 
-export(PACKAGE linalgcpp)
+export(EXPORT parlinalgcpp-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/parlinalgcppTargets.cmake NAMESPACE linalgcpp::)
+
+export(PACKAGE parlinalgcpp)
+
+add_subdirectory(tests)

@@ -443,6 +443,9 @@ void test_coo()
 
         auto dense = coo.ToDense();
         auto sparse = coo.ToSparse();
+        auto diff = dense - sparse.ToDense();
+
+        assert(std::fabs(diff.Sum()) < 1e-8);
     }
 
     // Without setting specfic size
@@ -475,6 +478,12 @@ void test_coo()
         coo.AddSym(4, 2, 3.0);
 
         coo.ToDense().Print("Coo Symmetric Add");
+
+        auto dense = coo.ToDense();
+        auto sparse = coo.ToSparse();
+        auto diff = dense - sparse.ToDense();
+
+        assert(std::fabs(diff.Sum()) < 1e-8);
     }
     // Make sure ToSparse gets same result as ToDense
     {
@@ -854,11 +863,11 @@ void test_parser()
 {
     // Write Vector
     std::vector<double> vect_out({1.0, 2.0, 3.0});
-    WriteText<double>(vect_out, "vect.vect");
+    WriteText(vect_out, "vect.vect");
 
     // Write Integer Vector
     std::vector<int> vect_out_int({1, 2, 3});
-    WriteText<int>(vect_out_int, "vect_int.vect");
+    WriteText(vect_out_int, "vect_int.vect");
 
     CooMatrix<double> coo_out(3, 3);
     coo_out.Add(0, 0, 1.0);
@@ -875,6 +884,9 @@ void test_parser()
     // Write Coordinate List
     WriteCooList(sp_out, "coo.coo");
 
+    // Write Matrix Market
+    WriteMTX(sp_out, "mtx.mtx");
+
     // Read Vector
     std::vector<double> vect = ReadText("vect.vect");
     Vector<double> v(vect);
@@ -888,9 +900,11 @@ void test_parser()
     // Read List formats
     SparseMatrix<double> adj = ReadAdjList("adj.adj");
     SparseMatrix<double> coo = ReadCooList("coo.coo");
+    SparseMatrix<double> mtx = ReadMTX("mtx.mtx");
 
     adj.PrintDense("Adj:");
     coo.PrintDense("Coo:");
+    mtx.PrintDense("MTX:");
 
     // Symmetric file type
     bool symmetric = true;

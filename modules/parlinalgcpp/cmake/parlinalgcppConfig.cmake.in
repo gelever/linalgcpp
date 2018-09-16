@@ -1,0 +1,14 @@
+get_filename_component(parlinalgcpp_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH "${parlinalgcpp_CMAKE_DIR}")
+
+find_package(Hypre REQUIRED)
+
+LIST(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET linalgcpp::parlinalgcpp)
+    include("${parlinalgcpp_CMAKE_DIR}/parlinalgcppTargets.cmake")
+endif()
+
+set(parlinalgcpp_LIBRARIES linalgcpp::parlinalgcpp)

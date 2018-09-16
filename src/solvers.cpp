@@ -157,10 +157,19 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
     p_ = z_;
 
     const double r0 = (*Dot_)(z_, r_);
+    //const double r0 = (*Dot_)(r_, r_);
 
     const double tol_tol = std::max(r0 * rel_tol_ * rel_tol_, abs_tol_ * abs_tol_);
 
-    for (num_iter_ = 1; num_iter_ <= max_iter_; ++num_iter_)
+    num_iter_ = 1;
+
+    if ((*Dot_)(z_, r_) < tol_tol)
+    //if ((*Dot_)(r_, r_) < tol_tol)
+    {
+        return;
+    }
+
+    do
     {
         A_->Mult(p_, Ap_);
 
@@ -198,6 +207,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
         p_ *= beta;
         p_ += z_;
     }
+    while (++num_iter_ < max_iter_);
 }
 
 Vector<double> PCG(const Operator& A, const Operator& M, const VectorView<double>& b,

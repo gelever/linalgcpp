@@ -64,6 +64,12 @@ class Operator
 
         /*! @brief Apply the action to a vector: Ax = y
             @param input the input vector x
+            @param output the output vector y, automatically resized
+        */
+        virtual void Mult(const VectorView<double>& input, Vector<double>& output) const;
+
+        /*! @brief Apply the action to a vector: Ax = y
+            @param input the input vector x
             @retval output the output vector y
         */
         virtual Vector<double> Mult(const VectorView<double>& input) const;
@@ -73,6 +79,12 @@ class Operator
             @param output the output vector y
         */
         virtual void MultAT(const VectorView<double>& input, VectorView<double> output) const;
+
+        /*! @brief Apply the transpose action to a vector: A^T x = y
+            @param input the input vector x
+            @param output the output vector y, automatically resized
+        */
+        virtual void MultAT(const VectorView<double>& input, Vector<double>& output) const;
 
         /*! @brief Apply the transpose action to a vector: A^T x = y
             @param input the input vector x

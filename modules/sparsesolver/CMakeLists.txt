@@ -28,33 +28,28 @@
 ###############################################################
 
 cmake_minimum_required(VERSION 3.5)
-project(linalgcpp VERSION 1.0 LANGUAGES CXX)
-enable_testing()
+#project(sparsesolve VERSION 1.0.0 LANGUAGES CXX)
 
-find_package(LAPACK REQUIRED)
-find_package(BLAS REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-add_library(linalgcpp
-    src/argparser.cpp
-    src/blockoperator.cpp
-    src/coomatrix.cpp
-    src/densematrix.cpp
-    src/eigensolver.cpp
-    src/operator.cpp
-    src/solvers.cpp
-    src/sparsematrix.cpp
-    src/timer.cpp
-    src/vector.cpp
-    src/vectorview.cpp
-)
+find_package(SuiteSparse REQUIRED)
+#find_package(linalgcpp REQUIRED)
 
-set_target_properties(linalgcpp PROPERTIES
+add_library(sparsesolve src/sparsesolve.cpp)
+add_dependencies(sparsesolve linalgcpp)
+
+set_target_properties(sparsesolve PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )
 
-target_include_directories(linalgcpp
+target_link_libraries(sparsesolve
+    #PUBLIC SuiteSparse::SuiteSparse linalgcpp::linalgcpp
+    PUBLIC SuiteSparse::SuiteSparse linalgcpp
+)
+
+target_include_directories(sparsesolve
     PUBLIC
 		$<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -62,55 +57,57 @@ target_include_directories(linalgcpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-add_subdirectory(tests)
-add_subdirectory(modules)
-
-target_link_libraries(linalgcpp
-    PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
-)
-
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall>)
+target_compile_options(sparsesolve PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/liblinalgcpp)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libsparsesolve)
 
-install(TARGETS linalgcpp
-    EXPORT linalgcpp-targets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS sparsesolve
+        EXPORT sparsesolve-targets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
-install(EXPORT linalgcpp-targets
-    FILE linalgcppTargets.cmake
-    NAMESPACE linalgcpp::
-    DESTINATION ${INSTALL_CONFIGDIR}
+install(EXPORT sparsesolve-targets
+        FILE sparsesolveTargets.cmake
+        NAMESPACE sparsesolve::
+        DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/sparsesolveConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/linalgcppConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/sparsesolveConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/sparsesolveConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/sparsesolveConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/sparsesolveConfigVersion.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
-    )
+)
 
-export(EXPORT linalgcpp-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/linalgcppTargets.cmake
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/modules/FindSuiteSparse.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FindSuiteSparse.cmake
+    COPYONLY
+)
+
+export(EXPORT sparsesolve-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/sparsesolveTargets.cmake
        NAMESPACE linalgcpp::
-       )
+)
 
-export(PACKAGE linalgcpp)
+export(PACKAGE sparsesolve)
+
+add_subdirectory(tests)

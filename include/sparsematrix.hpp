@@ -392,6 +392,14 @@ class SparseMatrix : public Operator
         */
         void EliminateRowCol(int index);
 
+        /*! @brief Eliminate all marked rows and columns from square matrix.
+            @param marker indexable type where marker[i] is elimnated if true
+
+            @note If diagonal entry exists, it is set to 1.0
+        */
+        template <typename U>
+        void EliminateRowCol(const U& marker);
+
         /*! @brief Eliminate a row by setting all row entries to zero
             @param index row to eliminate
         */
@@ -407,6 +415,12 @@ class SparseMatrix : public Operator
         */
         template <typename U>
         void EliminateCol(const U& marker);
+
+        /*! @brief Eliminate all marked columns, setting b[i] = -A_ij * x[j]
+            @param marker indexable type where marker[i] is elimnated if true
+        */
+        template <typename U>
+        void EliminateCol(const U& marker, const VectorView<double>& x, VectorView<double> b);
 
         /*! @brief Remove entries less than a tolerance
             @param tol tolerance to remove
@@ -630,9 +644,8 @@ template <typename T>
 void SparseMatrix<T>::Mult(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(input.Rows() == cols_);
-    assert(output.Rows() == rows_);
-    assert(output.Cols() == input.Cols());
 
+    output.SetSize(rows_, input.Cols());
     output = 0.0;
 
     for (int k = 0; k < input.Cols(); ++k)
@@ -655,9 +668,8 @@ template <typename T>
 void SparseMatrix<T>::MultAT(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(input.Rows() == rows_);
-    assert(output.Rows() == cols_);
-    assert(output.Cols() == input.Cols());
 
+    output.SetSize(cols_, input.Cols());
     output = 0.0;
 
     for (int k = 0; k < input.Cols(); ++k)
@@ -676,9 +688,8 @@ template <typename T>
 void SparseMatrix<T>::MultCT(const DenseMatrix& input, DenseMatrix& output) const
 {
     assert(input.Rows() == cols_);
-    assert(output.Rows() == input.Cols());
-    assert(output.Cols() == rows_);
 
+    output.SetSize(input.Cols(), rows_);
     output = 0.0;
 
     for (int k = 0; k < input.Cols(); ++k)
@@ -1371,6 +1382,27 @@ void SparseMatrix<T>::EliminateRowCol(int index)
 }
 
 template <typename T>
+template <typename U>
+void SparseMatrix<T>::EliminateRowCol(const U& marker)
+{
+    assert(rows_ == cols_);
+    assert(marker.size() >= cols_);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            int col = indices_[j];
+
+            if (marker[row] || marker[col])
+            {
+                data_[j] = (row == col) ? 1.0 : 0.0;
+            }
+        }
+    }
+}
+
+template <typename T>
 void SparseMatrix<T>::EliminateRow(int index)
 {
     assert(index >= 0);
@@ -1412,6 +1444,25 @@ void SparseMatrix<T>::EliminateCol(const U& marker)
         {
             if (marker[indices_[j]])
             {
+                data_[j] = 0.0;
+            }
+        }
+    }
+}
+
+template <typename T>
+template <typename U>
+void SparseMatrix<T>::EliminateCol(const U& marker, const VectorView<double>& x, VectorView<double> b)
+{
+    assert(marker.size() >= cols_);
+
+    for (int row = 0; row < rows_; ++row)
+    {
+        for (int j = indptr_[row]; j < indptr_[row + 1]; ++j)
+        {
+            if (marker[indices_[j]] && data_[j] != 0.0)
+            {
+                b[row] -= data_[j] * x[indices_[j]];
                 data_[j] = 0.0;
             }
         }
