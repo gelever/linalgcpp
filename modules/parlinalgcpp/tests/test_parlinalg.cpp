@@ -6,7 +6,6 @@
 #include "parlinalgcpp.hpp"
 
 using namespace linalgcpp;
-using namespace parlinalgcpp;
 
 void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& vects, const std::vector<double>& evals);
 

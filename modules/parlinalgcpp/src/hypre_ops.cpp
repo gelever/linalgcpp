@@ -21,7 +21,7 @@
 
 #include "hypre_ops.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 template <typename T = double>
@@ -1288,6 +1288,4 @@ HYPRE_Int hypre_ParCSRComputeL1Norms(ParMatrix& par_A,
     return hypre_error_flag;
 }
 
-
-
-} //namespace parlinalgcpp
+} //namespace linalgcpp

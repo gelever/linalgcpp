@@ -1,7 +1,8 @@
 /*! @file */
 
 #include "parsolvers.hpp"
-namespace parlinalgcpp
+
+namespace linalgcpp
 {
 
 ParSolver::ParSolver()
@@ -455,4 +456,4 @@ std::vector<double> LOBPCG(const ParOperator& pmat, int num_evects, const linalg
     return LOBPCG(pmat, x, precond, verbose);
 }
 
-}
+} // namespace linalgcpp

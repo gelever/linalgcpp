@@ -10,7 +10,7 @@
 #include "_hypre_parcsr_ls.h"
 #include "seq_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 
@@ -101,6 +101,6 @@ class ParOperator: public linalgcpp::Operator
         void HypreDestroy();
 };
 
-} //namespace parlinalgcpp
+} //namespace linalgcpp
 
 #endif // PAROPERATOR_HPP

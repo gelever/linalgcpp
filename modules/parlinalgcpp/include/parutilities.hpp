@@ -9,7 +9,7 @@
 #include "parmatrix.hpp"
 #include "parvector.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 class ParMatrix;
@@ -69,5 +69,5 @@ ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix&
 /** @note Row starts must match between A and B */
 ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix& B, std::vector<int>& marker);
 
-}
+} // namespace linalgcpp
 #endif // PARUTILITIES_HPP__

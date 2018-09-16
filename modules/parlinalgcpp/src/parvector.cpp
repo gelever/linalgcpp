@@ -2,7 +2,7 @@
 
 #include "parvector.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 ParVector::ParVector()
@@ -236,4 +236,4 @@ double ParMult(MPI_Comm comm, const linalgcpp::VectorView<double>& lhs, const li
     return global_sum;
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp

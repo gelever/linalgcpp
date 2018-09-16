@@ -13,7 +13,7 @@
 #include "_hypre_parcsr_mv.h"
 #include "seq_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 class ParVector;
@@ -309,6 +309,6 @@ ParMatrix ParMatrix::operator*(const ParMatrix& other) const
     return Mult(other);
 }
 
-} //namespace parlinalgcpp
+} //namespace linalgcpp
 
 #endif // PARMATRIX_HPP

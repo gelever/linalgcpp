@@ -14,7 +14,7 @@
 #include "_hypre_parcsr_ls.h"
 #include "seq_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 inline HYPRE_Int no_create(HYPRE_Solver*)
@@ -224,6 +224,6 @@ std::vector<double> LOBPCG(const ParOperator& pmat, std::vector<linalgcpp::Vecto
 std::vector<double> LOBPCG(const ParOperator& pmat, int num_evects = 1, const linalgcpp::Operator* precond = nullptr,
                            bool verbose = false);
 
-} //namespace parlinalgcpp
+} //namespace linalgcpp
 
 #endif // PARMATRIX_HPP

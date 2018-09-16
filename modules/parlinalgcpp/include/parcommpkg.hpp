@@ -9,7 +9,7 @@
 
 #include "_hypre_parcsr_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 /*! @brief Hypre's Communication Package copied
@@ -48,6 +48,6 @@ struct ParCommPkg
     std::vector<HYPRE_Int> recv_vec_starts_;  // num_recvs + 1
 };
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp
 
 #endif // PARCOMMPKG_HPP__

@@ -1,6 +1,6 @@
 #include "parcommpkg.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 ParCommPkg::ParCommPkg(const hypre_ParCSRMatrix* A)
@@ -32,4 +32,4 @@ ParCommPkg::ParCommPkg(const hypre_ParCSRMatrix* A)
     std::copy_n(comm_pkg->recv_vec_starts, num_recvs_ + 1, std::begin(recv_vec_starts_));
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp

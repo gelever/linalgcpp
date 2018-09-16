@@ -2,7 +2,7 @@
 
 #include "parmatrix.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 ParMatrix::ParMatrix()
@@ -397,4 +397,4 @@ void ParMatrix::EliminateRow(int index)
     offd_.EliminateRow(index);
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp

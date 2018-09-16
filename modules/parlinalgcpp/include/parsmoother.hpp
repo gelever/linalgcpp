@@ -11,7 +11,7 @@
 #include "_hypre_parcsr_ls.h"
 #include "seq_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 /*  Positive smooth types
@@ -107,6 +107,6 @@ class ParSmoother: public ParSolver
         mutable std::vector<HYPRE_Real> l1_norms_;
 };
 
-} //namespace parlinalgcpp
+} //namespace linalgcpp
 
 #endif // PARSMOOTHER_HPP

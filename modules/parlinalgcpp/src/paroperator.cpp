@@ -2,7 +2,7 @@
 
 #include "paroperator.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 ParOperator::ParOperator()
@@ -142,5 +142,5 @@ int ParOperator::GetMyId() const
     return myid_;
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp
 

@@ -17,7 +17,7 @@
 #include "_hypre_parcsr_ls.h"
 #include "parmatrix.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 /// Modified from hypre
@@ -68,6 +68,6 @@ HYPRE_Int HYPRE_ParCSRPCGCreate(HYPRE_Solver* solver)
     return HYPRE_ParCSRPCGCreate(solver, MPI_COMM_WORLD);
 }
 
-} //namespace parlinalgcpp
+} //namespace linalgcpp
 
 #endif // HYPRE_OPS_HPP__

@@ -2,7 +2,7 @@
 
 #include "parsmoother.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 ParSmoother::ParSmoother()
     : buffer_shell_(nullptr)
@@ -88,4 +88,4 @@ void ParSmoother::Mult(const linalgcpp::VectorView<double>& input,
                       x_, buffer_shell_, nullptr);
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp

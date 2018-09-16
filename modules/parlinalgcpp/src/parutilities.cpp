@@ -2,7 +2,7 @@
 
 #include "parutilities.hpp"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 ParMatrix ParSplit(MPI_Comm comm, const linalgcpp::SparseMatrix<double>& A_global,
@@ -319,4 +319,4 @@ ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix&
     return ParAdd(alpha, A, -beta, B, marker);
 }
 
-} //namsespace parlinaglcpp
+} //namsespace linalgcpp

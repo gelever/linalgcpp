@@ -9,7 +9,7 @@
 #include "HYPRE_parcsr_mv.h"
 #include "_hypre_parcsr_mv.h"
 
-namespace parlinalgcpp
+namespace linalgcpp
 {
 
 /*! @brief Distributed vector using Hypre's format
@@ -173,7 +173,7 @@ double ParMult(const linalgcpp::VectorView<double>& lhs,
     return ParMult(MPI_COMM_WORLD, lhs, rhs);
 }
 
-} // namespace parlinalgcpp
+} // namespace linalgcpp
 
 #endif
 
