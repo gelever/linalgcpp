@@ -28,89 +28,73 @@
 ###############################################################
 
 cmake_minimum_required(VERSION 3.5)
-project(linalgcpp VERSION 1.0 LANGUAGES CXX)
-enable_testing()
 
-find_package(LAPACK REQUIRED)
-find_package(BLAS REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-add_library(linalgcpp
-    src/argparser.cpp
-    src/blockoperator.cpp
-    src/coomatrix.cpp
-    src/densematrix.cpp
-    src/eigensolver.cpp
-    src/operator.cpp
-    src/solvers.cpp
-    src/sparsematrix.cpp
-    src/timer.cpp
-    src/vector.cpp
-    src/vectorview.cpp
-)
+find_package(METIS REQUIRED)
 
-set_target_properties(linalgcpp PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        CXX_EXTENSIONS NO
-)
+add_library(partition INTERFACE)
+add_dependencies(partition linalgcpp)
 
-target_include_directories(linalgcpp
-    PUBLIC
+target_include_directories(partition
+    INTERFACE
 		$<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-add_subdirectory(tests)
-add_subdirectory(modules)
-
-target_link_libraries(linalgcpp
-    PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
+target_link_libraries(partition
+    INTERFACE linalgcpp
+    Metis::Metis
 )
-
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>)
-target_compile_options(linalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall>)
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/liblinalgcpp)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libpartition)
 
-install(TARGETS linalgcpp
-    EXPORT linalgcpp-targets
+install(TARGETS partition
+    EXPORT partition-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
-install(EXPORT linalgcpp-targets
-    FILE linalgcppTargets.cmake
-    NAMESPACE linalgcpp::
-    DESTINATION ${INSTALL_CONFIGDIR}
+install(EXPORT partition-targets
+        FILE partitionTargets.cmake
+        NAMESPACE partition::
+        DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/partitionConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/linalgcppConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/partitionConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/partitionConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/linalgcppConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/partitionConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/partitionConfigVersion.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
-    )
+)
 
-export(EXPORT linalgcpp-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/linalgcppTargets.cmake
-       NAMESPACE linalgcpp::
-       )
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/modules/FindMETIS.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FindMETIS.cmake
+    COPYONLY
+)
 
-export(PACKAGE linalgcpp)
+export(EXPORT partition-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/partitionTargets.cmake
+       NAMESPACE linalgcpp::)
+
+export(PACKAGE partition)
+
+add_subdirectory(tests)

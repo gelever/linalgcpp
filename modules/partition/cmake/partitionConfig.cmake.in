@@ -1,0 +1,14 @@
+get_filename_component(partition_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH "${partition_CMAKE_DIR}")
+
+find_package(METIS REQUIRED)
+
+LIST(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET linalgcpp::partition)
+    include("${partition_CMAKE_DIR}/partitionTargets.cmake")
+endif()
+
+set(partition_LIBRARIES linalgcpp::partition)

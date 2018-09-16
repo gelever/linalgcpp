@@ -1,0 +1,15 @@
+get_filename_component(sparsesolve_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${sparsesolve_CMAKE_DIR})
+
+find_package(SuiteSparse REQUIRED)
+
+LIST(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET linalgcpp::sparsesolve)
+    include("${sparsesolve_CMAKE_DIR}/sparsesolveTargets.cmake")
+endif()
+
+#set(sparsesolve_LIBRARIES linalgcpp::sparsesolve)
+list(APPEND sparsesolve_LIBRARIES linalgcpp::sparsesolve)
