@@ -75,8 +75,6 @@ install:
         echo "Reusing cached hypre-2.10.0b";
      fi;
 
-    - sh config/build_scripts/build_linalg.sh;
-
 script:
    - cd $TRAVIS_BUILD_DIR;
 

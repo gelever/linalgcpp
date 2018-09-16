@@ -8,9 +8,7 @@ A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s
 
 # Build
 * Ensure requirements listed above are available on your system. 
-* Copy ```Makefile.in``` to ```Makefile```
-* Modify the make file if the required libraries are not in the standard locations.
-* ```make```
+* Standard CMake procedure: `mkdir build && cd build && cmake ..`
 
 # Features
 * Sparse Matrix in CSR and Coordinate formats
@@ -20,6 +18,12 @@ A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s
 * Abstract Operator
 * Basic iterative solvers
 * Parser for various formats
+
+# Modules
+Several optional modules are available to extend functionality:
+* [`parlinalgcpp`](modules/parlinalgcpp) - Distributed linear algebra and solvers using [Hypre](https://github.com/LLNL/hypre)
+* [`sparsesolve`](modules/sparsesolver) - Sparse matrix solver using [SuiteSparse/UMFPACK](http://faculty.cse.tamu.edu/davis/suitesparse.html)
+* [`partition`](modules/partition) - Graph partitioner using [METIS](http://glaros.dtc.umn.edu/gkhome/metis/metis/overview)
 
 # Project Goal
 The goal of this libary is to provide a safe and convenient linear algebra framework.
