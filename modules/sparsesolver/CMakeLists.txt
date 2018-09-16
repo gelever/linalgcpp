@@ -36,6 +36,7 @@ find_package(SuiteSparse REQUIRED)
 #find_package(linalgcpp REQUIRED)
 
 add_library(sparsesolve src/sparsesolve.cpp)
+add_dependencies(sparsesolve linalgcpp)
 
 set_target_properties(sparsesolve PROPERTIES
         CXX_STANDARD 11

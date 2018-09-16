@@ -34,6 +34,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 find_package(METIS REQUIRED)
 
 add_library(partition INTERFACE)
+add_dependencies(partition linalgcpp)
 
 target_include_directories(partition
     INTERFACE

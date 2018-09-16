@@ -46,4 +46,4 @@ script:
    - make -j3
 
    # Run tests
-   - ./tests/tests
+   - make test

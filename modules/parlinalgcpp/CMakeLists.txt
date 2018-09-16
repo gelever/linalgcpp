@@ -44,6 +44,8 @@ add_library(parlinalgcpp
     src/parvector.cpp
 )
 
+add_dependencies(parlinalgcpp linalgcpp)
+
 set_target_properties(parlinalgcpp PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES
