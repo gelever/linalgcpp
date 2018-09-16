@@ -11,6 +11,12 @@ matrix:
           packages:
             - liblapack-dev
             - libblas-dev
+      cache:
+        directories:
+          - $TRAVIS_BUILD_DIR/extern/metis
+          - $TRAVIS_BUILD_DIR/extern/SuiteSparse
+          - $TRAVIS_BUILD_DIR/extern/mpich
+          - $TRAVIS_BUILD_DIR/extern/hypre
     - os: linux
       compiler: clang
       addons:
@@ -18,32 +24,65 @@ matrix:
           packages:
             - liblapack-dev
             - libblas-dev
+      cache:
+        directories:
+          - $TRAVIS_BUILD_DIR/extern/metis
+          - $TRAVIS_BUILD_DIR/extern/SuiteSparse
+          - $TRAVIS_BUILD_DIR/extern/mpich
+          - $TRAVIS_BUILD_DIR/extern/hypre
     - os: osx
       compiler: gcc
-      addons:
-        apt:
-          packages:
-            - liblapack-dev
-            - libblas-dev
+      cache:
+        directories:
+          - $TRAVIS_BUILD_DIR/extern/mpich
+          - $TRAVIS_BUILD_DIR/extern/hypre
     - os: osx
       compiler: clang
-      addons:
-        apt:
-          packages:
-            - liblapack-dev
-            - libblas-dev
+      cache:
+        directories:
+          - $TRAVIS_BUILD_DIR/extern/mpich
+          - $TRAVIS_BUILD_DIR/extern/hypre
+
+before_install:
+    - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/extern/metis/lib:$LD_LIBRARY_PATH; 
+    - export LIBRARY_PATH=$TRAVIS_BUILD_DIR/extern/metis/lib:$LIBRARY_PATH; 
+    - export PATH=$TRAVIS_BUILD_DIR/extern/mpich/bin:$PATH;
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install metis; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install suite-sparse; fi
+
+install:
+    - if [ ! -d extern/metis/lib ] && [[ "$TRAVIS_OS_NAME" != "osx" ]]; then
+        sh config/build_scripts/build_metis.sh;
+     else
+        echo "Reusing cached metis";
+     fi;
+
+    - if [ ! -d extern/SuiteSparse/lib ] && [[ "$TRAVIS_OS_NAME" != "osx" ]]; then
+        sh config/build_scripts/build_suitesparse.sh;
+     else
+        echo "Reusing cached SuiteSparse-4.5.4";
+     fi;
+
+    - if [ ! -d extern/mpich/bin ]; then
+        sh config/build_scripts/build_mpich.sh;
+     else
+        echo "Reusing cached mpich";
+     fi;
+
+    - if [ ! -d extern/hypre/lib ]; then
+        sh config/build_scripts/build_hypre.sh;
+     else
+        echo "Reusing cached hypre-2.10.0b";
+     fi;
+
+    - sh config/build_scripts/build_linalg.sh;
 
 script:
-   # Set some variables
    - cd $TRAVIS_BUILD_DIR;
 
-   # Configure the library
-   - mkdir build;
-   - cd build;
-   - cmake ..;
-
    # Build the library
-   - make -j3
+   - sh config/extern_build.sh;
 
    # Run tests
-   - make test
+   - cd build;
+   - CTEST_OUTPUT_ON_FAILURE=1 make test;
