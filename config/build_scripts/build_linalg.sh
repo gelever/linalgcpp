@@ -25,7 +25,7 @@ if [ -z "$HYPRE_DIR" ]; then HYPRE_DIR=$INSTALL_DIR/hypre; fi
 #############
 
 cd $INSTALL_DIR
-git clone -b modules-dev https://github.com/gelever/linalgcpp.git linalgcpp
+git clone -b develop https://github.com/gelever/linalgcpp.git linalgcpp
 cd linalgcpp
 mkdir -p build && cd build
 CXX=mpic++ CC=mpicc cmake .. \
