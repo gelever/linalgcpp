@@ -1,7 +1,10 @@
-# Apply flags to all test targets
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
-set(CMAKE_CXX_EXTENSIONS NO)
+add_executable(test_linalg test_linalg.cpp)
+target_link_libraries(test_linalg linalgcpp)
 
-add_executable(tests test.cpp)
-target_link_libraries(tests linalgcpp)
+set_target_properties(test_linalg PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+)
+
+add_test(test_linalg test_linalg)

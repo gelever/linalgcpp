@@ -5,11 +5,35 @@ list(APPEND CMAKE_MODULE_PATH ${linalgcpp_CMAKE_DIR})
 
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
+#find_package(METIS)
+#find_package(Hypre)
+#find_package(SuiteSparse)
 
 LIST(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+set(ENABLE_MPI @LINALGCPP_ENABLE_MPI@)
+set(ENABLE_METIS @LINALGCPP_ENABLE_METIS@)
+set(ENABLE_SUITESPARSE @LINALGCPP_ENABLE_SUITESPARSE@)
 
 if(NOT TARGET linalgcpp::linalgcpp)
     include("${linalgcpp_CMAKE_DIR}/linalgcppTargets.cmake")
 endif()
 
-set(linalgcpp_LIBRARIES linalgcpp::linalgcpp)
+set(linalg_libraries linalgcpp::linalgcpp)
+
+if(ENABLE_MPI AND NOT TARGET linalgcpp::parlinalgcpp)
+    include("${linalgcpp_CMAKE_DIR}/modules/parlinalgcpp/parlinalgcppConfig.cmake")
+    list(APPEND linalg_libraries linalgcpp::parlinalgcpp)
+endif()
+
+if(ENABLE_SUITESPARSE AND NOT TARGET linalgcpp::sparsesolve)
+    include("${linalgcpp_CMAKE_DIR}/modules/sparsesolver/sparsesolveConfig.cmake")
+    list(APPEND linalg_libraries linalgcpp::sparsesolve)
+endif()
+
+if(ENABLE_METIS AND NOT TARGET linalgcpp::partition)
+    include("${linalgcpp_CMAKE_DIR}/modules/partition/partitionConfig.cmake")
+    list(APPEND linalg_libraries linalgcpp::partition)
+endif()
+
+set(linalgcpp_LIBRARIES ${linalg_libraries})
