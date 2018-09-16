@@ -192,6 +192,10 @@ class ParMatrix: public ParOperator
         */
         ParVector MultAT(const ParVector& input) const;
 
+        // Use helper functions from Operator
+        using linalgcpp::Operator::Mult;
+        using linalgcpp::Operator::MultAT;
+
         /*! @brief Access the diagonal block */
         const linalgcpp::SparseMatrix<double>& GetDiag() const;
 
