@@ -1,6 +1,7 @@
 /*! @file ParLinalgcpp headers */
 
 #include "parmatrix.hpp"
+#include "parblockmatrix.hpp"
 #include "parvector.hpp"
 #include "parsolvers.hpp"
 #include "parutilities.hpp"

@@ -214,7 +214,12 @@ BlockMatrix<T> BlockMatrix<T>::Transpose() const
     {
         for (int j = 0; j < col_blocks; ++j)
         {
-            transpose.SetBlock(j, i, GetBlock(i, j));
+            const SparseMatrix<T>& A_ij = GetBlock(i, j);
+
+            if (A_ij.Rows() > 0 && A_ij.Cols() > 0)
+            {
+                transpose.SetBlock(j, i, A_ij.Transpose());
+            }
         }
     }
 

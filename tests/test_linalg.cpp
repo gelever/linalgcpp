@@ -1120,6 +1120,7 @@ void test_blockmatrix()
 
     CooMatrix<double> coo(2, 2);
     coo.Add(0, 0, 1.0);
+    coo.Add(0, 1, 3.0);
     coo.Add(1, 1, 2.0);
 
     SparseMatrix<double> block = coo.ToSparse();
@@ -1134,8 +1135,19 @@ void test_blockmatrix()
     A2.SetBlock(1, 0, block);
     A2.SetBlock(1, 1, block);
 
+    A3.SetBlock(0, 0, block);
+    A3.SetBlock(0, 1, block);
+
+    BlockMatrix<double> A3_T = A3.Transpose();
+
     A2.Print("A");
     A2.PrintDense("A Dense");
+
+    A3.Print("A3");
+    A3.PrintDense("A3 Dense");
+
+    A3_T.Print("A3_T");
+    A3_T.PrintDense("A3_T Dense");
 
     A2.GetBlock(0, 0).PrintDense("A(0,0)");
 

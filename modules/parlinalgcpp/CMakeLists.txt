@@ -37,6 +37,7 @@ add_library(parlinalgcpp
     src/hypre_ops.cpp
     src/parcommpkg.cpp
     src/parmatrix.cpp
+    src/parblockmatrix.cpp
     src/paroperator.cpp
     src/parsmoother.cpp
     src/parsolvers.cpp
