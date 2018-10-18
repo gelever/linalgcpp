@@ -776,6 +776,50 @@ void VectorView<T>::Normalize()
 */
 void SubAvg(VectorView<double> vect);
 
+/*! @brief Compute z = (alpha * x) + (beta * y) + (gamma * z)
+    @param alpha x coefficient
+    @param x x vector
+    @param beta y coefficient
+    @param y y vector
+    @param gamma z coefficient
+    @param z z vector
+*/
+template <typename T>
+void Add(T alpha, const VectorView<T>& x, T beta, const VectorView<T>& y, T gamma, VectorView<T> z)
+{
+    int size = x.size();
+
+    assert(y.size() == size);
+    assert(z.size() == size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        z[i] = (alpha * x[i]) + (beta * y[i]) + (gamma * z[i]);
+    }
+}
+
+/*! @brief Compute z = x + y
+    @param x x vector
+    @param y y vector
+    @param z z vector
+*/
+template <typename T>
+void Add(const VectorView<T>& x, const VectorView<T>& y, VectorView<T> z)
+{
+    Add(1.0, x, 1.0, y, 0.0, z);
+}
+
+/*! @brief Compute z = x - y
+    @param x x vector
+    @param y y vector
+    @param z z vector
+*/
+template <typename T>
+void Sub(const VectorView<T>& x, const VectorView<T>& y, VectorView<T> z)
+{
+    Add(1.0, x, -1.0, y, 0.0, z);
+}
+
 } // namespace linalgcpp
 
 #endif // VECTORVIEW_HPP

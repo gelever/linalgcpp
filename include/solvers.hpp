@@ -58,6 +58,11 @@ class Solver : public Operator
         */
         virtual const Operator* GetOperator() const { return A_; };
 
+        /*! @brief Set Operator A being applied, of same size
+            @param Operator A
+        */
+        virtual void SetOperator(const Operator& A);
+
     protected:
         /*! @brief Constructor
             @param A operator to apply the action of A

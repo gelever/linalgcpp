@@ -61,6 +61,14 @@ void Solver::SetAbsTol(double abs_tol)
     abs_tol_ = abs_tol;
 }
 
+void Solver::SetOperator(const Operator& A)
+{
+    assert(A.Rows() == A_->Rows());
+    assert(A.Cols() == A_->Cols());
+
+    A_ = &A;
+}
+
 Vector<double> CG(const Operator& A, const VectorView<double>& b,
                   int max_iter, double rel_tol, double abs_tol, bool verbose)
 {
