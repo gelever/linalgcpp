@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <assert.h>

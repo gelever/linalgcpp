@@ -1,0 +1,2 @@
+add_executable(sparse_matvec sparse_matvec.cpp)
+target_link_libraries(sparse_matvec linalgcpp)
