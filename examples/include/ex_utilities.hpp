@@ -7,6 +7,7 @@
 #include "vector.hpp"
 #include "densematrix.hpp"
 #include "sparsematrix.hpp"
+#include "eigensolver.hpp"
 #include "timer.hpp"
 
 using Vector = linalgcpp::Vector<double>;

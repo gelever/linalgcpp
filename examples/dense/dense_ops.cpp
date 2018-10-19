@@ -430,17 +430,64 @@ void QR()
     Ax.Print("Ax:");
 }
 
+void QR_eig()
+{
+    //DenseMatrix A = parse_dense("data/mat4.txt");
+    int n = 10;
+    DenseMatrix A = random_mat(n, n);
+
+    for (int i = 0; i < A.Rows(); ++i)
+    {
+        for (int j = i; j < A.Cols(); ++j)
+        {
+            A(i, j) = A(j, i);
+        }
+    }
+
+    //Reference
+    linalgcpp::EigenSolver es;
+    auto eig_pair = es.Solve(A, 1.0, A.Rows());
+
+    DenseMatrix U(A.Rows());
+    DenseMatrix buffer(A.Rows());
+
+    for (int i = 0; i < U.Rows(); ++i)
+    {
+        U(i, i) = 1.0;
+    }
+
+    for (int i = 0; i < 100000; ++i)
+    {
+        auto qr = qr_decomp(A);
+        auto& Q = qr.first;
+        auto& R = qr.second;
+
+        R.Mult(Q, A);
+        U.Mult(Q, buffer);
+        swap(U, buffer);
+    }
+
+    A.Print("T:");
+    U.Print("U:");
+
+    using linalgcpp::operator<<;
+    std::cout << "Ref Eigs: " << eig_pair.first;
+    eig_pair.second.Print("Ref Evects");
+
+}
+
 void ops()
 {
-    access_ops();
-    matvec_ops();
-    matmat_ops();
+    //access_ops();
+    //matvec_ops();
+    //matmat_ops();
 
-    LU();
+    //LU();
     //time_LU();
 
-    QR();
-    time_QR();
+    //QR();
+    //time_QR();
+    QR_eig();
 
 }
 
