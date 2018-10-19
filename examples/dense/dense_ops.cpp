@@ -240,7 +240,7 @@ Vector back_solve(const DenseMatrix& U, const Vector& b)
     return x;
 }
 
-Vector solve(const DenseMatrix& L, const DenseMatrix& U, const Vector& b)
+Vector solve_lu(const DenseMatrix& L, const DenseMatrix& U, const Vector& b)
 {
     Vector L_inv_b = forward_elim(L, b);
     Vector x = back_solve(U, L_inv_b);
@@ -276,11 +276,11 @@ double test_LU(int n)
     auto& U = lu.second;
 
     Vector b(A.Cols(), 1.0);
-    Vector x = solve(L, U, b);
+    Vector x = solve_lu(L, U, b);
     Vector Ax = A.Mult(x);
     Vector res = b - Ax;
 
-    std::cout << "Relative Residual norm:" << res.L2Norm() / b.L2Norm() << "\n";
+    std::cout << "LU Relative Residual norm:" << res.L2Norm() / b.L2Norm() << "\n";
 
     return timer.TotalTime();
 }
@@ -299,7 +299,130 @@ void LU()
     L.Mult(U).Print("LU:");
 
     Vector b(A.Cols(), 1.0);
-    Vector x = solve(L, U, b);
+    Vector x = solve_lu(L, U, b);
+    Vector Ax = A.Mult(x);
+
+    b.Print("b:");
+    x.Print("x:");
+    Ax.Print("Ax:");
+}
+
+void time_LU()
+{
+    for (int i = 10; i < 2000; i *= 1.5)
+    {
+        std::cout << i << " LU \n";
+
+        double lu_time = test_LU(i);
+
+        std::cout << "Total Time: " << lu_time << "\n\n";
+    }
+}
+
+Vector solve_qr(const DenseMatrix& Q, const DenseMatrix& R, const Vector& b)
+{
+    Vector QT_b = Q.MultAT(b);
+    Vector x = back_solve(R, QT_b);
+
+    return x;
+}
+
+
+std::pair<DenseMatrix, DenseMatrix>
+qr_decomp(const DenseMatrix& A)
+{
+    int m = A.Rows();
+    int n = A.Cols();
+
+    DenseMatrix Q(A);
+    DenseMatrix R(n, n);
+
+    for (int i = 0; i < n; ++i)
+    {
+        const auto&& a_i = A.GetColView(i);
+        auto q_i = Q.GetColView(i);
+
+        for (int j = 0; j < i; ++j)
+        {
+            auto q_j = Q.GetColView(j);
+
+            double ae_i = a_i.Mult(q_j);
+
+            R(j, i) = ae_i;
+
+            linalgcpp::Add(1.0, q_i, -ae_i, q_j, 0.0, q_i);
+        }
+
+        q_i /= q_i.L2Norm();
+        R(i, i) = a_i.Mult(q_i);
+    }
+
+    return {Q, R};
+}
+
+double test_QR(int m, int n)
+{
+    DenseMatrix A = random_mat(m, n);
+
+    Timer timer(Timer::Start::True);
+    auto qr = qr_decomp(A);
+    timer.Click();
+
+    auto& Q = qr.first;
+    auto& R = qr.second;
+
+    Vector b(A.Rows(), 1.0);
+    Vector x = solve_qr(Q, R, b);
+    Vector Ax = A.Mult(x);
+    Vector res = b - Ax;
+
+    std::cout << "QR Relative Residual norm:" << res.L2Norm() / b.L2Norm() << "\n";
+
+    return timer.TotalTime();
+}
+
+void time_QR()
+{
+    for (int i = 10; i < 2000; i *= 1.5)
+    {
+        int m = i;
+        int n = i * 1.5;
+
+        std::cout << m << " * " << n << " QR \n";
+
+        double qr_time = test_QR(m, n);
+
+        std::cout << "Total Time: " << qr_time << "\n\n";
+    }
+}
+
+void QR()
+{
+    //DenseMatrix A = parse_dense("data/mat4.txt");
+    //int n = 10;
+    //DenseMatrix A = random_mat(n, n);
+    DenseMatrix A(3, 2);
+    A(0, 0) = 3;
+    A(0, 1) = -6;
+    A(1, 0) = 4;
+    A(1, 1) = -8;
+    A(2, 1) = 1;
+    auto qr = qr_decomp(A);
+    auto& Q = qr.first;
+    auto& R = qr.second;
+
+    A.Print("A:");
+    Q.Print("Q:");
+    R.Print("R:");
+
+    Q.Mult(R).Print("QR:");
+
+    auto Q_T = Q.Transpose();
+    Q_T.Mult(Q).Print("QT * Q:");
+
+    Vector b(A.Rows(), 1.0);
+    b[0] = -1.0; b[1] = 7; b[2] = 2;
+    Vector x = solve_qr(Q, R, b);
     Vector Ax = A.Mult(x);
 
     b.Print("b:");
@@ -314,15 +437,11 @@ void ops()
     matmat_ops();
 
     LU();
+    //time_LU();
 
-    for (int i = 10; i < 2000; i *= 1.5)
-    {
-        std::cout << i << " LU \n";
+    QR();
+    time_QR();
 
-        double lu_time = test_LU(i);
-
-        std::cout << "Total Time: " << lu_time << "\n\n";
-    }
 }
 
 int main(int argc, char** argv)
