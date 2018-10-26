@@ -486,14 +486,14 @@ void ops()
     //time_LU();
 
     //QR();
-    //time_QR();
-    QR_eig();
+    time_QR();
+    //QR_eig();
 
 }
 
 int main(int argc, char** argv)
 {
-    constructors();
+    //constructors();
     ops();
 
     return EXIT_SUCCESS;

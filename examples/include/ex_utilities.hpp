@@ -16,6 +16,7 @@ using DenseMatrix = linalgcpp::DenseMatrix;
 using SparseMatrix = linalgcpp::SparseMatrix<double>;
 using CooMatrix = linalgcpp::CooMatrix<double>;
 using Timer = linalgcpp::Timer;
+using Operator = linalgcpp::Operator;
 
 
 #endif // EX_UTILITIES_HPP
