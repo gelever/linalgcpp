@@ -5,6 +5,7 @@
 
 #include "operator.hpp"
 #include "vector.hpp"
+#include "utilities.hpp"
 
 namespace linalgcpp
 {

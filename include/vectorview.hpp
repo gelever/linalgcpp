@@ -154,6 +154,17 @@ class VectorView
         */
         VectorView<T>& Sub(const VectorView<T>& vect);
 
+        /*! @brief Set this vector to (alpha * vect)
+            @param alpha scale of rhs
+            @param vect vector to set
+        */
+        VectorView<T>& Set(double alpha, const VectorView<T>& vect);
+
+        /*! @brief Set this vector to vect
+            @param vect vector to set
+        */
+        VectorView<T>& Set(const VectorView<T>& vect);
+
         /*! @brief Compute the L2 norm of the vector
             @retval the L2 norm
         */
@@ -404,6 +415,27 @@ template <typename T>
 VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
 {
     (*this) -= rhs;
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::Set(double alpha, const VectorView<T>& rhs)
+{
+    assert(rhs.size_ == size_);
+
+    for (int i = 0; i < size_; ++i)
+    {
+        data_[i] = alpha * rhs[i];
+    }
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::Set(const VectorView<T>& rhs)
+{
+    (*this) = rhs;
 
     return *this;
 }
