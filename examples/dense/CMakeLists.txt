@@ -1,5 +1,11 @@
-add_executable(dense_ops dense_ops.cpp)
-target_link_libraries(dense_ops linalgcpp)
+add_executable(dense_basics dense_basics.cpp)
+target_link_libraries(dense_basics linalgcpp)
+
+add_executable(dense_lu dense_lu.cpp)
+target_link_libraries(dense_lu linalgcpp)
+
+add_executable(dense_qr dense_qr.cpp)
+target_link_libraries(dense_qr linalgcpp)
 
 function(copy_file filename)
     configure_file(
