@@ -107,7 +107,6 @@ class Vector : public VectorView<T>
 
     private:
         std::vector<T> data_;
-
 };
 
 template <typename T>

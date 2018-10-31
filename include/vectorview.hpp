@@ -154,6 +154,17 @@ class VectorView
         */
         VectorView<T>& Sub(const VectorView<T>& vect);
 
+        /*! @brief Set this vector to (alpha * vect)
+            @param alpha scale of rhs
+            @param vect vector to set
+        */
+        VectorView<T>& Set(double alpha, const VectorView<T>& vect);
+
+        /*! @brief Set this vector to vect
+            @param vect vector to set
+        */
+        VectorView<T>& Set(const VectorView<T>& vect);
+
         /*! @brief Compute the L2 norm of the vector
             @retval the L2 norm
         */
@@ -404,6 +415,27 @@ template <typename T>
 VectorView<T>& VectorView<T>::Sub(const VectorView<T>& rhs)
 {
     (*this) -= rhs;
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::Set(double alpha, const VectorView<T>& rhs)
+{
+    assert(rhs.size_ == size_);
+
+    for (int i = 0; i < size_; ++i)
+    {
+        data_[i] = alpha * rhs[i];
+    }
+
+    return *this;
+}
+
+template <typename T>
+VectorView<T>& VectorView<T>::Set(const VectorView<T>& rhs)
+{
+    (*this) = rhs;
 
     return *this;
 }
@@ -775,6 +807,50 @@ void VectorView<T>::Normalize()
     @param vect vector to subtract average from
 */
 void SubAvg(VectorView<double> vect);
+
+/*! @brief Compute z = (alpha * x) + (beta * y) + (gamma * z)
+    @param alpha x coefficient
+    @param x x vector
+    @param beta y coefficient
+    @param y y vector
+    @param gamma z coefficient
+    @param z z vector
+*/
+template <typename T>
+void Add(T alpha, const VectorView<T>& x, T beta, const VectorView<T>& y, T gamma, VectorView<T> z)
+{
+    int size = x.size();
+
+    assert(y.size() == size);
+    assert(z.size() == size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        z[i] = (alpha * x[i]) + (beta * y[i]) + (gamma * z[i]);
+    }
+}
+
+/*! @brief Compute z = x + y
+    @param x x vector
+    @param y y vector
+    @param z z vector
+*/
+template <typename T>
+void Add(const VectorView<T>& x, const VectorView<T>& y, VectorView<T> z)
+{
+    Add(1.0, x, 1.0, y, 0.0, z);
+}
+
+/*! @brief Compute z = x - y
+    @param x x vector
+    @param y y vector
+    @param z z vector
+*/
+template <typename T>
+void Sub(const VectorView<T>& x, const VectorView<T>& y, VectorView<T> z)
+{
+    Add(1.0, x, -1.0, y, 0.0, z);
+}
 
 } // namespace linalgcpp
 

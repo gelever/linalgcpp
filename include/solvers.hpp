@@ -5,6 +5,7 @@
 
 #include "operator.hpp"
 #include "vector.hpp"
+#include "utilities.hpp"
 
 namespace linalgcpp
 {
@@ -57,6 +58,11 @@ class Solver : public Operator
             @retval Operator A
         */
         virtual const Operator* GetOperator() const { return A_; };
+
+        /*! @brief Set Operator A being applied, of same size
+            @param Operator A
+        */
+        virtual void SetOperator(const Operator& A);
 
     protected:
         /*! @brief Constructor

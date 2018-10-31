@@ -1,4 +1,4 @@
-# Parallel Linear Algebra Library [![Build Status](https://travis-ci.org/gelever/parlinalgcpp.svg?branch=master)](https://travis-ci.org/gelever/parlinalgcpp)
+# Parallel Linear Algebra Library
 Provides a convenient interface to Hypre parallel solvers.
 Based heavily on MFEM's linear algebra interface.
 
