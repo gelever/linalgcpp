@@ -28,24 +28,15 @@
 ###############################################################
 
 cmake_minimum_required(VERSION 3.5)
-#project(sparsesolve VERSION 1.0.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 find_package(SuiteSparse REQUIRED)
-#find_package(linalgcpp REQUIRED)
 
 add_library(sparsesolve src/sparsesolve.cpp)
 add_dependencies(sparsesolve linalgcpp)
 
-set_target_properties(sparsesolve PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        CXX_EXTENSIONS NO
-)
-
 target_link_libraries(sparsesolve
-    #PUBLIC SuiteSparse::SuiteSparse linalgcpp::linalgcpp
     PUBLIC SuiteSparse::SuiteSparse linalgcpp
 )
 

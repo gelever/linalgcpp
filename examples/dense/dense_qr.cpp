@@ -86,7 +86,7 @@ double test_QR(int m, int n)
 
 void time_QR()
 {
-    for (int i = 10; i < 2000; i *= 1.5)
+    for (int i = 10; i < 800; i *= 1.5)
     {
         int m = i;
         int n = i * 1.5;
@@ -152,7 +152,7 @@ void QR_eig()
     }
 
     // Run QR
-    for (int i = 0; i < 10000; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         auto qr = qr_decomp(A);
         auto& Q = qr.first;

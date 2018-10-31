@@ -46,12 +46,6 @@ add_library(parlinalgcpp
 
 add_dependencies(parlinalgcpp linalgcpp)
 
-set_target_properties(parlinalgcpp PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        CXX_EXTENSIONS NO
-)
-
 target_compile_options(parlinalgcpp PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -O2>)
 target_compile_options(parlinalgcpp PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall -O2>)
 

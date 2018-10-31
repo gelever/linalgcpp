@@ -7,6 +7,10 @@ target_link_libraries(dense_lu linalgcpp)
 add_executable(dense_qr dense_qr.cpp)
 target_link_libraries(dense_qr linalgcpp)
 
+add_test(example_dense_basics dense_basics)
+add_test(example_dense_lu dense_lu)
+add_test(example_dense_qr dense_qr)
+
 function(copy_file filename)
     configure_file(
         "${PROJECT_SOURCE_DIR}/examples/dense/${filename}"
