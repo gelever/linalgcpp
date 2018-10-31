@@ -1,5 +1,5 @@
-add_executable(sparse_matvec sparse_matvec.cpp)
-target_link_libraries(sparse_matvec linalgcpp)
+add_executable(sparse_basics sparse_basics.cpp)
+target_link_libraries(sparse_basics linalgcpp)
 
 function(copy_file filename)
     configure_file(

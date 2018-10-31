@@ -90,5 +90,5 @@ int main()
 
     std::cout << "Max Eval: " << eval << "\n";
 
-    std::cout << "A:" << A.Rows() << "\n";
+    std::cout << "A size: " << A.Rows() << "\n";
 }
