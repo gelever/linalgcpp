@@ -115,21 +115,24 @@ void DenseMatrix::SetSize(int rows, int cols, double val)
 
 void DenseMatrix::Print(const std::string& label, std::ostream& out, int width, int precision) const
 {
-    out << label << "\n";
+    std::stringstream ss;
+    ss << label << "\n";
 
     for (int i = 0; i < rows_; ++i)
     {
         for (int j = 0; j < cols_; ++j)
         {
-            out << std::setw(width) << std::setprecision(precision)
+            ss << std::setw(width) << std::setprecision(precision)
                 << std::fixed << (*this)(i, j);
             //<< std::defaultfloat << (*this)(i, j);
         }
 
-        out << "\n";
+        ss << "\n";
     }
 
-    out << "\n";
+    ss << "\n";
+
+    out << ss.str();
 }
 
 DenseMatrix DenseMatrix::Transpose() const

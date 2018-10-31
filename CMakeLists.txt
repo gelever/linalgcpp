@@ -60,6 +60,7 @@ target_include_directories(linalgcpp
 
 add_subdirectory(tests)
 add_subdirectory(modules)
+add_subdirectory(examples)
 
 target_link_libraries(linalgcpp
     PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
