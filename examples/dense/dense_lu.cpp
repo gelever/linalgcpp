@@ -125,7 +125,7 @@ void LU()
 
 void time_LU()
 {
-    for (int i = 10; i < 2000; i *= 1.5)
+    for (int i = 10; i < 800; i *= 1.5)
     {
         std::cout << "LU " << i << "\t";
 
