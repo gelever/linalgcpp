@@ -1,14 +1,12 @@
 # linalgcpp [![Build Status](https://travis-ci.org/gelever/linalgcpp.svg?branch=master)](https://travis-ci.org/gelever/linalgcpp)
 A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s linear algebra.
 
-# Requirements
-* BLAS - for dense matrix operation
-* LAPACK - for solving systems of equations, SVD, eigenproblems, etc.
-* Tested with gcc-7.1.1, c++11
-
-# Build
-* Ensure requirements listed above are available on your system. 
-* Standard CMake procedure: `mkdir build && cd build && cmake ..`
+# Project Goal
+The goal of this libary is to provide a safe and convenient linear algebra framework.
+Type and memory safety are important to provide confidence with implementing new ideas.
+If an error can be caught at compile time, then the library should be able to catch it.
+If it compiles, then the library should behave as expected.  There should be no possible
+segfaults, memory leaks, invalid reads/writes, etc. from the library.
 
 # Features
 * Sparse Matrix in CSR and Coordinate formats
@@ -25,16 +23,23 @@ Several optional modules are available to extend functionality:
 * [`sparsesolve`](modules/sparsesolver) - Sparse matrix solver using [SuiteSparse/UMFPACK](http://faculty.cse.tamu.edu/davis/suitesparse.html)
 * [`partition`](modules/partition) - Graph partitioner using [METIS](http://glaros.dtc.umn.edu/gkhome/metis/metis/overview)
 
-# Project Goal
-The goal of this libary is to provide a safe and convenient linear algebra framework.
-Type and memory safety are important to provide confidence with implementing new ideas.
-If an error can be caught at compile time, then the library should be able to catch it.
-If it compiles, then the library should behave as expected.  There should be no possible
-segfaults, memory leaks, invalid reads/writes, etc. from the library.
+# Examples
+Simple examples of how to use the elementary linear algebra types are included in the
+[examples](examples) directory.
+
+# Requirements
+* BLAS - for dense matrix operation
+* LAPACK - for solving systems of equations, SVD, eigenproblems, etc.
+* Tested with gcc-7.1.1, c++11
+
+# Build
+* Ensure requirements listed above are available on your system. 
+* Standard CMake procedure: `mkdir build && cd build && cmake ..`
 
 # Formats
 There are many basic building blocks in this library. These provide the 
 basic framework to build much more complex applications.
+
 ## Matrix
 The following matrix will be used to show how data in laid out:
 ```
