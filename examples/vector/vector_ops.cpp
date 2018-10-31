@@ -23,7 +23,7 @@ int main()
     std::cout << "Modified 0th element: " << zeros[0] << " ";
     std::cout << "1st element: " << zeros[1] << "\n";
 
-    Vector vect_from_file(linalgcpp::ReadText("vect.text"));
+    Vector vect_from_file(linalgcpp::ReadText("data/vect4.txt"));
     vect_from_file.Print("From file");
 
     double ip = twos.Mult(ones);
