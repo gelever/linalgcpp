@@ -8,6 +8,7 @@
 using namespace linalgcpp;
 
 void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& vects, const std::vector<double>& evals);
+SparseMatrix<double> make_agg_vertex(const ParMatrix& A);
 
 int main(int argc, char** argv)
 {
@@ -88,10 +89,14 @@ int main(int argc, char** argv)
         ParCG pcg_direct(pmat, smoother_direct, cg_max_iter);
         ParCG pcg_direct_blas(pmat, smoother_direct_blas, cg_max_iter);
 
+        SparseMatrix<double> agg_vertex = make_agg_vertex(pmat);
+        ParMatrix par_agg_vertex(pmat.GetComm(), std::move(agg_vertex));
+        ParBlockDiagComp block_comp(pmat, par_agg_vertex);
+
         test_pcg_copy = cg;
 
         // rofl
-        std::vector<const ParSolver*> ops {
+        std::vector<const Operator*> ops {
             &cg,
             &pcg_boomer,
             &pcg_parasails,
@@ -126,6 +131,7 @@ int main(int argc, char** argv)
             &pcg_direct_blas,
             &test_smooth_copy,
             &test_pcg_copy,
+            &block_comp,
         };
 
         //ops = {&smoother_direct_blas};
@@ -136,7 +142,7 @@ int main(int argc, char** argv)
         for (const auto& op : ops)
         {
             if (myid == 0)
-                printf("Op: %d\n", count++);
+                printf("Op: %d\t", count++);
 
             for (auto& x_i : evects)
             {
@@ -167,9 +173,14 @@ void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& ev
     if (myid == 0)
     {
         std::cout.precision(10);
-        std::cout << "Evals: " << evals;
+        std::cout << "Evals: ";
+        for (auto&& ev : evals)
+        {
+           std::cout << ev << " ";
+        }
+        std::cout << "\n";
 
-        int subset_size = std::min(10, evects[0].size());
+        int subset_size = std::min(0, evects[0].size());
         for (int j = 0; j < subset_size; ++j)
         {
             for(size_t i = 0; i < evects.size(); ++i)
@@ -181,4 +192,23 @@ void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& ev
         }
     }
 
+}
+
+SparseMatrix<double> make_agg_vertex(const ParMatrix& A)
+{
+    int num_aggs = 1;
+    int num_rows = A.Rows();
+
+    std::vector<int> indptr(num_aggs + 1);
+    indptr[0] = 0;
+    indptr[1] = num_rows;
+    //indptr[1] = num_rows / 2;
+    //indptr[2] = num_rows;
+
+    std::vector<int> indices(num_rows);
+    std::iota(std::begin(indices), std::end(indices), 0);
+    std::vector<double> data(num_rows, 1.0);
+
+    return SparseMatrix<double>(std::move(indptr), std::move(indices), std::move(data),
+                        num_aggs, num_rows);
 }

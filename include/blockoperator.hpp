@@ -43,6 +43,9 @@ class BlockOperator : public Operator
         /*! @brief Move deconstructor */
         BlockOperator(BlockOperator&& other) noexcept;
 
+        /*! @brief Assignment operator */
+        BlockOperator& operator=(BlockOperator&& other) noexcept;
+
         /*! @brief Default deconstructor */
         ~BlockOperator() noexcept = default;
 

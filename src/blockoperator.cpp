@@ -42,6 +42,13 @@ BlockOperator::BlockOperator(BlockOperator&& other) noexcept
     swap(*this, other);
 }
 
+BlockOperator& BlockOperator::operator=(BlockOperator&& other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
 void swap(BlockOperator& lhs, BlockOperator& rhs) noexcept
 {
     swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
