@@ -17,3 +17,4 @@
 #include "eigensolver.hpp"
 #include "timer.hpp"
 #include "argparser.hpp"
+#include "utilities.hpp"

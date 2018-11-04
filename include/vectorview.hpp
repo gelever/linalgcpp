@@ -87,6 +87,26 @@ class VectorView
         */
         virtual const T* end() const;
 
+        /*! @brief STL like back. Points to the last element
+            @retval pointer to the last element
+        */
+        virtual T& back();
+
+        /*! @brief STL like back. Points to the last element
+            @retval pointer to the last element
+        */
+        virtual const T& back() const;
+
+        /*! @brief STL like front. Points to the first element
+            @retval pointer to the first element
+        */
+        virtual T& front();
+
+        /*! @brief STL like front. Points to the first element
+            @retval pointer to the first element
+        */
+        virtual const T& front() const;
+
         /*! @brief Index operator
             @param i index into vector
             @retval reference to value at index i
@@ -314,6 +334,34 @@ template <typename T>
 const T* VectorView<T>::end() const
 {
     return data_ + size_;
+}
+
+template <typename T>
+T& VectorView<T>::back()
+{
+    assert(size_ >= 1);
+    return data_[size_ - 1];
+}
+
+template <typename T>
+const T& VectorView<T>::back() const
+{
+    assert(size_ >= 1);
+    return data_[size_ - 1];
+}
+
+template <typename T>
+T& VectorView<T>::front()
+{
+    assert(size_ >= 1);
+    return data_[0];
+}
+
+template <typename T>
+const T& VectorView<T>::front() const
+{
+    assert(size_ >= 1);
+    return data_[0];
 }
 
 template <typename T>

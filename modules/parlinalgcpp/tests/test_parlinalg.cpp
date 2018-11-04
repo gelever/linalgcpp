@@ -196,14 +196,19 @@ void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& ev
 
 SparseMatrix<double> make_agg_vertex(const ParMatrix& A)
 {
-    int num_aggs = 1;
+    int num_aggs = 3;
     int num_rows = A.Rows();
 
     std::vector<int> indptr(num_aggs + 1);
     indptr[0] = 0;
-    indptr[1] = num_rows;
+    //indptr[1] = num_rows;
+
     //indptr[1] = num_rows / 2;
     //indptr[2] = num_rows;
+
+    indptr[1] = num_rows / 3;
+    indptr[2] = 2 * num_rows / 3;
+    indptr[3] = num_rows;
 
     std::vector<int> indices(num_rows);
     std::iota(std::begin(indices), std::end(indices), 0);

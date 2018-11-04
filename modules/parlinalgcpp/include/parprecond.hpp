@@ -28,7 +28,7 @@ class ParBlockDiagComp : public ParOperator
 
         ParMatrix redist_;
 
-        BlockOperator block_op_;
+        BlockDiagOperator block_op_;
         std::vector<std::unique_ptr<Operator>> solvers_;
 
         mutable Vector<double> sol_r_;

@@ -16,7 +16,7 @@ ParBlockDiagComp::ParBlockDiagComp(const ParMatrix& A, const ParMatrix& agg_vert
 
     linalgcpp_verify(agg_vertex_r.GetOffd().nnz() == 0);
 
-    block_op_ = BlockOperator(agg_vertex_r.GetDiag().GetIndptr());
+    block_op_ = BlockDiagOperator(agg_vertex_r.GetDiag().GetIndptr());
     solvers_.resize(agg_vertex_r.Rows());
 
     std::vector<int> marker(redist_.Rows(), -1);
@@ -35,6 +35,8 @@ ParBlockDiagComp::ParBlockDiagComp(const ParMatrix& A, const ParMatrix& agg_vert
         auto& col_map = A_r.GetColMap();
         auto& part = vertex_agg_r.GetDiag().GetIndices();
 
+        const auto& A_ii = A_r.GetDiag().GetDiag();
+
         for (int row = 0; row < num_vertices; ++row)
         {
             for (int j = diag_indptr[row]; j < diag_indptr[row + 1]; ++j)
@@ -48,8 +50,9 @@ ParBlockDiagComp::ParBlockDiagComp(const ParMatrix& A, const ParMatrix& agg_vert
 
                     if (agg_i != agg_j)
                     {
-                        A_diag[row] += std::fabs(diag_data[j]);
-                        A_diag[col] += std::fabs(diag_data[j]);
+                        double tau = std::sqrt(A_ii[row] / A_ii[col]);
+                        A_diag[row] += std::fabs(diag_data[j]) * tau;
+                        A_diag[col] += std::fabs(diag_data[j]) / tau;
 
                         diag_data[j] = 0.0; // Not necessary
                     }

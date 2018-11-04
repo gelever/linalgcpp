@@ -156,4 +156,138 @@ void BlockOperator::MultAT(const VectorView<double>& input, VectorView<double> o
     output = x_;
 }
 
+BlockDiagOperator::BlockDiagOperator()
+    : row_offsets_(1, 0), col_offsets_(1, 0)
+{
+
+}
+
+BlockDiagOperator::BlockDiagOperator(std::vector<int> offsets) :
+    Operator(offsets.back()),
+    row_offsets_(offsets), col_offsets_(offsets),
+    A_(row_offsets_.size() - 1, nullptr),
+    x_(col_offsets_), y_(row_offsets_)
+{
+
+}
+
+BlockDiagOperator::BlockDiagOperator(std::vector<int> row_offsets, std::vector<int> col_offsets)
+    : Operator(row_offsets.back(), col_offsets.back()),
+      row_offsets_(std::move(row_offsets)), col_offsets_(std::move(col_offsets)),
+      A_(row_offsets_.size() - 1, nullptr),
+      x_(col_offsets_), y_(row_offsets_)
+{
+
+}
+
+BlockDiagOperator::BlockDiagOperator(const BlockDiagOperator& other) noexcept
+    : Operator(other), 
+      row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
+      A_(other.A_), x_(other.x_), y_(other.y_)
+{
+
+}
+
+BlockDiagOperator::BlockDiagOperator(BlockDiagOperator&& other) noexcept
+{
+    swap(*this, other);
+}
+
+BlockDiagOperator& BlockDiagOperator::operator=(BlockDiagOperator&& other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
+void swap(BlockDiagOperator& lhs, BlockDiagOperator& rhs) noexcept
+{
+    swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
+
+    swap(lhs.row_offsets_, rhs.row_offsets_);
+    swap(lhs.col_offsets_, rhs.col_offsets_);
+    swap(lhs.A_, rhs.A_);
+    swap(lhs.x_, rhs.x_);
+    swap(lhs.y_, rhs.y_);
+}
+
+
+const std::vector<int>& BlockDiagOperator::GetRowOffsets() const
+{
+    return row_offsets_;
+}
+
+const std::vector<int>& BlockDiagOperator::GetColOffsets() const
+{
+    return col_offsets_;
+}
+
+const Operator* BlockDiagOperator::GetBlock(int i, int j) const
+{
+    assert(i < static_cast<int>(row_offsets_.size()) - 1);
+    assert(j < static_cast<int>(col_offsets_.size()) - 1);
+    assert(i == j);
+
+    return A_[i];
+}
+
+void BlockDiagOperator::SetBlock(int i, int j, const Operator& op)
+{
+    assert(i < static_cast<int>(row_offsets_.size()) - 1);
+    assert(j < static_cast<int>(col_offsets_.size()) - 1);
+
+    assert(op.Rows() == (row_offsets_[i + 1] - row_offsets_[i]));
+    assert(op.Cols() == (col_offsets_[j + 1] - col_offsets_[j]));
+
+    assert(i == j);
+
+    A_[i] = &op;
+}
+
+void BlockDiagOperator::Mult(const VectorView<double>& input, VectorView<double> output) const
+{
+    assert(input.size() == cols_);
+    assert(output.size() == rows_);
+
+    x_ = input;
+    y_ = 0.0;
+
+    const int num_blocks = row_offsets_.size() - 1;
+
+    for (int i = 0; i < num_blocks; ++i)
+    {
+        const Operator* op = A_[i];
+
+        if (op)
+        {
+            op->Mult(x_.GetBlock(i), y_.GetBlock(i));
+        }
+    }
+
+    output = y_;
+}
+
+void BlockDiagOperator::MultAT(const VectorView<double>& input, VectorView<double> output) const
+{
+    assert(input.size() == rows_);
+    assert(output.size() == cols_);
+
+    y_ = input;
+    x_ = 0.0;
+
+    const int num_blocks = row_offsets_.size() - 1;
+
+    for (int i = 0; i < num_blocks; ++i)
+    {
+        const Operator* op = A_[i];
+
+        if (op)
+        {
+            op->MultAT(y_.GetBlock(i), x_.GetBlock(i));
+        }
+    }
+
+    output = x_;
+}
+
 } // namespace linalgcpp

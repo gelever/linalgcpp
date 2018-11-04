@@ -12,6 +12,10 @@
 namespace linalgcpp
 {
 
+/// Call output only on processor 0
+#define ParPrint(myid, output) if (myid == 0) output
+
+
 class ParMatrix;
 
 /// Split a square matrix between processes
@@ -68,6 +72,31 @@ ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix&
 /// Compute C = (alpha * A) - (beta * B)
 /** @note Row starts must match between A and B */
 ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix& B, std::vector<int>& marker);
+
+/** @brief Handles mpi initialization and finalization */
+struct MpiSession
+{
+    /** @brief Constructor
+
+        @param argc argc from command line
+        @param argv argv from command line
+        @param comm MPI Communicator to use
+    */
+    MpiSession(int argc, char** argv, MPI_Comm comm_in = MPI_COMM_WORLD)
+        : comm(comm_in)
+    {
+        MPI_Init(&argc, &argv);
+        MPI_Comm_size(comm, &num_procs);
+        MPI_Comm_rank(comm, &myid);
+    }
+
+    /** @brief Destructor */
+    ~MpiSession() { MPI_Finalize(); }
+
+    MPI_Comm comm;
+    int num_procs;
+    int myid;
+};
 
 } // namespace linalgcpp
 #endif // PARUTILITIES_HPP__

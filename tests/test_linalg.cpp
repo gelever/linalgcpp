@@ -1243,8 +1243,10 @@ void test_blockvector()
 void test_blockoperator()
 {
     CooMatrix<double> coo(2, 2);
-    coo.Add(0, 0, 1.0);
-    coo.Add(1, 1, 1.0);
+    coo.Add(0, 0, 3.0);
+    coo.Add(0, 1, -1.0);
+    coo.Add(1, 0, -1.0);
+    coo.Add(1, 1, 4.0);
     auto sparse = coo.ToSparse();
     auto dense = coo.ToDense();
 
@@ -1287,6 +1289,19 @@ void test_blockoperator()
         BlockOperator b(offsets, offsets);
         b.SetBlock(0, 0, coo);
         b.SetBlock(0, 1, sparse);
+        b.SetBlock(1, 1, dense);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
+    // Diag Block
+    {
+        BlockDiagOperator b(offsets, offsets);
+        b.SetBlock(0, 0, coo);
         b.SetBlock(1, 1, dense);
 
         b.Mult(x, y);
