@@ -1521,6 +1521,55 @@ void test_argparser(int argc, char** argv)
     }
 }
 
+void test_assert()
+{
+    bool verify_works = true;
+    bool assert_works = true;
+
+    try
+    {
+        linalgcpp_verify(false, "Catch this!");
+        verify_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+    }
+
+    try
+    {
+        linalgcpp_verify(true, "Don't catch this!");
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+        verify_works = false;
+    }
+
+    try
+    {
+        linalgcpp_assert(false, "Catch this!");
+        assert_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+
+    try
+    {
+        linalgcpp_assert(true, "Don't catch this!");
+    }
+    catch (const std::runtime_error& e)
+    {
+        assert_works = false;
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+
+    std::cout << "Verfication Works: " << std::boolalpha << verify_works << "\n";
+    std::cout << "Assertation Works: " << std::boolalpha << assert_works << "\n";
+}
+
 int main(int argc, char** argv)
 {
     test_coo();
@@ -1537,6 +1586,7 @@ int main(int argc, char** argv)
     test_timer();
     test_eigensolve();
     test_argparser(argc, argv);
+    test_assert();
 
     return EXIT_SUCCESS;
 }

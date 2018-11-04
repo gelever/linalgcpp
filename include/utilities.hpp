@@ -10,7 +10,7 @@ namespace linalgcpp
 inline
 void linalgcpp_assert(bool expression, const std::string& message = "linalgcpp assertion failed")
 {
-#ifdef NDEBUG
+#ifndef NDEBUG
     if (!expression)
     {
         throw std::runtime_error(message);
