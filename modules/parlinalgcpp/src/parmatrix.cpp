@@ -397,4 +397,17 @@ void ParMatrix::EliminateRow(int index)
     offd_.EliminateRow(index);
 }
 
+int ParMatrix::RowSize(int row)
+{
+    return diag_.RowSize(row) + offd_.RowSize(row);
+}
+
+void ParMatrix::EliminateZeros(double tol)
+{
+    diag_.EliminateZeros(tol);
+    offd_.EliminateZeros(tol);
+
+    HypreCreate();
+}
+
 } // namespace linalgcpp

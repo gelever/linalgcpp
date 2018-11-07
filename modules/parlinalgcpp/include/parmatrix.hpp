@@ -205,6 +205,15 @@ class ParMatrix: public ParOperator
         /*! @brief Access the column map */
         const std::vector<HYPRE_Int>& GetColMap() const;
 
+        /*! @brief Access the diagonal block */
+        linalgcpp::SparseMatrix<double>& GetDiag();
+
+        /*! @brief Access the off-diagonal block */
+        linalgcpp::SparseMatrix<double>& GetOffd();
+
+        /*! @brief Access the column map */
+        std::vector<HYPRE_Int>& GetColMap();
+
         /*! @brief Print entries in both blocks and the column map
             @param label Label to show prior to printing
             @param out Output stream to print to
@@ -276,6 +285,17 @@ class ParMatrix: public ParOperator
         */
         void EliminateRow(int index);
 
+        /*! @brief Return the row number of nonzero elements combining both the
+             diagonal and off diagonal blocks.
+            @param row row to to get size of
+        */
+        int RowSize(int row);
+
+        /*! @brief Remove entries less than tolerance
+            @param tol tolerance
+        */
+        void EliminateZeros(double tol = 0.0);
+
     private:
         void Init();
         void HypreCreate();
@@ -303,6 +323,25 @@ const linalgcpp::SparseMatrix<double>& ParMatrix::GetDiag() const
 
 inline
 const linalgcpp::SparseMatrix<double>& ParMatrix::GetOffd() const
+{
+    return offd_;
+}
+
+
+inline
+std::vector<HYPRE_Int>& ParMatrix::GetColMap()
+{
+    return col_map_;
+}
+
+inline
+linalgcpp::SparseMatrix<double>& ParMatrix::GetDiag()
+{
+    return diag_;
+}
+
+inline
+linalgcpp::SparseMatrix<double>& ParMatrix::GetOffd()
 {
     return offd_;
 }
