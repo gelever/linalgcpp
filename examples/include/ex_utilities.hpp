@@ -3,12 +3,7 @@
 
 #include <iostream>
 
-#include "parser.hpp"
-#include "vector.hpp"
-#include "densematrix.hpp"
-#include "sparsematrix.hpp"
-#include "eigensolver.hpp"
-#include "timer.hpp"
+#include "linalgcpp.hpp"
 
 using Vector = linalgcpp::Vector<double>;
 using VectorView = linalgcpp::VectorView<double>;
@@ -17,6 +12,8 @@ using SparseMatrix = linalgcpp::SparseMatrix<double>;
 using CooMatrix = linalgcpp::CooMatrix<double>;
 using Timer = linalgcpp::Timer;
 using Operator = linalgcpp::Operator;
+using linalgcpp::linalgcpp_assert;
+using linalgcpp::linalgcpp_verify;
 
 
 inline

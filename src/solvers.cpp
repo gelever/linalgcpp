@@ -205,7 +205,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
         double r_z = (*Dot_)(r_ , z_);
         double alpha = r_z / pAp;
 
-        linalgcpp_verify(pAp > -1e-15, "PCG is not positive definite!");
+        linalgcpp_verify(pAp > -1e-12, "PCG is not positive definite!");
 
         x.Add(alpha, p_);
 

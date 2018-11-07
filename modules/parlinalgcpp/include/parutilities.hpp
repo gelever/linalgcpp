@@ -13,8 +13,7 @@ namespace linalgcpp
 {
 
 /// Call output only on processor 0
-#define ParPrint(myid, output) if (myid == 0) output
-
+#define ParPrint(myid, output) if (myid == 0) { output; }
 
 class ParMatrix;
 

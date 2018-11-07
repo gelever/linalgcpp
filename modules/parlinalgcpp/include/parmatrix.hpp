@@ -285,6 +285,17 @@ class ParMatrix: public ParOperator
         */
         void EliminateRow(int index);
 
+        /*! @brief Return the row number of nonzero elements combining both the
+             diagonal and off diagonal blocks.
+            @param row row to to get size of
+        */
+        int RowSize(int row);
+
+        /*! @brief Remove entries less than tolerance
+            @param tol tolerance
+        */
+        void EliminateZeros(double tol = 0.0);
+
     private:
         void Init();
         void HypreCreate();
