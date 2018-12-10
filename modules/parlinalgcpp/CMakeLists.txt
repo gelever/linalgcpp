@@ -38,7 +38,6 @@ add_library(parlinalgcpp
     src/parcommpkg.cpp
     src/parmatrix.cpp
     src/paroperator.cpp
-    src/parprecond.cpp
     src/parsmoother.cpp
     src/parsolvers.cpp
     src/parutilities.cpp

@@ -41,6 +41,28 @@ void linalgcpp_verify(bool expression, const std::string& message = "linalgcpp v
     }
 }
 
+/*! @brief Throw if false in debug mode only */
+template <typename F>
+void linalgcpp_assert(F&& lambda, const std::string& message = "linalgcpp assertion failed")
+{
+#ifndef NDEBUG
+    if (!lambda())
+    {
+        throw std::runtime_error(message);
+    }
+#endif
+}
+
+/*! @brief Throw if false unconditionally */
+template <typename F>
+void linalgcpp_verify(F&& lambda, const std::string& message = "linalgcpp verification failed")
+{
+    if (!lambda())
+    {
+        throw std::runtime_error(message);
+    }
+}
+
 /** @brief Sparse identity of given size
     @param size square size of identity
     @return identity matrix

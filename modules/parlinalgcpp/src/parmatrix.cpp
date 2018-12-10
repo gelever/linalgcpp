@@ -346,7 +346,7 @@ void ParMatrix::AddDiag(const std::vector<double>& diag_vals)
 
 ParCommPkg ParMatrix::MakeCommPkg() const
 {
-    assert(A_);
+    linalgcpp_assert(A_ != NULL, "ParMatrix::A_ not valid!");
 
     return ParCommPkg(A_);
 }
@@ -402,9 +402,9 @@ int ParMatrix::RowSize(int row)
     return diag_.RowSize(row) + offd_.RowSize(row);
 }
 
-void ParMatrix::EliminateZeros(double tol)
+void ParMatrix::EliminateZeros(double tol, bool keep_diag)
 {
-    diag_.EliminateZeros(tol);
+    diag_.EliminateZeros(tol, keep_diag);
     offd_.EliminateZeros(tol);
 
     HypreCreate();

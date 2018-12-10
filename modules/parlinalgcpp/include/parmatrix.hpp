@@ -293,8 +293,9 @@ class ParMatrix: public ParOperator
 
         /*! @brief Remove entries less than tolerance
             @param tol tolerance
+            @param keep_diag keep diagonal element, regardless of value
         */
-        void EliminateZeros(double tol = 0.0);
+        void EliminateZeros(double tol = 0.0, bool keep_diag = false);
 
     private:
         void Init();

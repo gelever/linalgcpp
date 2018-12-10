@@ -8,7 +8,6 @@
 using namespace linalgcpp;
 
 void PrintVector(MPI_Comm comm, const std::vector<linalgcpp::Vector<double>>& vects, const std::vector<double>& evals);
-SparseMatrix<double> make_agg_vertex(const ParMatrix& A);
 
 int main(int argc, char** argv)
 {
@@ -89,10 +88,6 @@ int main(int argc, char** argv)
         ParCG pcg_direct(pmat, smoother_direct, cg_max_iter);
         ParCG pcg_direct_blas(pmat, smoother_direct_blas, cg_max_iter);
 
-        SparseMatrix<double> agg_vertex = make_agg_vertex(pmat);
-        ParMatrix par_agg_vertex(pmat.GetComm(), std::move(agg_vertex));
-        ParBlockDiagComp block_comp(pmat, par_agg_vertex);
-
         test_pcg_copy = cg;
 
         // rofl
@@ -131,7 +126,6 @@ int main(int argc, char** argv)
             &pcg_direct_blas,
             &test_smooth_copy,
             &test_pcg_copy,
-            &block_comp,
         };
 
         //ops = {&smoother_direct_blas};

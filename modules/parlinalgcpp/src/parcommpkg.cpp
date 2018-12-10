@@ -6,11 +6,11 @@ namespace linalgcpp
 ParCommPkg::ParCommPkg(const hypre_ParCSRMatrix* A)
     : comm_(A->comm)
 {
-    assert(A);
+    linalgcpp_assert(A != NULL);
 
     const hypre_ParCSRCommPkg* comm_pkg = A->comm_pkg;
 
-    assert(comm_pkg);
+    linalgcpp_assert(comm_pkg != NULL);
 
     num_sends_ = comm_pkg->num_sends;
 

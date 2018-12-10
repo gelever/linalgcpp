@@ -6,6 +6,9 @@
 #include "umfpack.h"
 #include "linalgcpp.hpp"
 
+namespace linalgcpp
+{
+
 class SparseSolver : public linalgcpp::Operator
 {
     public:
@@ -38,5 +41,7 @@ class SparseSolver : public linalgcpp::Operator
         std::vector<double> control_;
         mutable std::vector<double> info_;
 };
+
+} // namespace linalgcpp
 
 #endif // SPARSESOLVE_HPP__

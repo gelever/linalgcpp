@@ -1553,6 +1553,17 @@ void test_assert()
 
     try
     {
+        bool val = false;
+        linalgcpp_verify([&val]() { return val; } , "Catch this lambda!");
+        verify_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+    }
+
+    try
+    {
         linalgcpp_verify(true, "Don't catch this!");
     }
     catch (const std::runtime_error& e)
@@ -1570,6 +1581,21 @@ void test_assert()
     {
         std::cout << "Assertion caught: " << e.what() << "\n";
     }
+
+    bool eval = false;
+    try
+    {
+        bool val = false;
+        // In Debug mode, lambda is evaluated
+        // In Release mode, lambda is NOT evaluated
+        linalgcpp_assert([&]() { eval = true; return val; } , "Catch this lambda!");
+        assert_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+    std::cout << "Lambda Evaluated: " << std::boolalpha << eval << "\n";
 
     try
     {

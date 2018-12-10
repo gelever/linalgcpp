@@ -5,8 +5,15 @@
 namespace linalgcpp
 {
 
+ParMatrix ParSplit(MPI_Comm comm, const linalgcpp::SparseMatrix<double>& A_global, const std::vector<int>& proc_part)
+{
+    std::vector<int> local_part;
+    return ParSplit(comm, A_global, proc_part, local_part);
+}
+
+
 ParMatrix ParSplit(MPI_Comm comm, const linalgcpp::SparseMatrix<double>& A_global,
-                   const std::vector<int>& proc_part)
+                   const std::vector<int>& proc_part, std::vector<int>& local_part)
 {
     assert(A_global.Rows() == A_global.Cols());
 
@@ -19,7 +26,7 @@ ParMatrix ParSplit(MPI_Comm comm, const linalgcpp::SparseMatrix<double>& A_globa
     linalgcpp::CooMatrix<double> local_offd;
     std::vector<HYPRE_Int> col_map;
 
-    std::vector<int> local_part;
+    local_part.clear();
 
     const int proc_size = proc_part.size();
 
@@ -317,6 +324,27 @@ ParMatrix ParSub(double alpha, const ParMatrix& A, double beta, const ParMatrix&
                  std::vector<int>& marker)
 {
     return ParAdd(alpha, A, -beta, B, marker);
+}
+
+void ParSubAvg(MPI_Comm comm, VectorView<double> x)
+{
+    int local_size = x.size();
+    int global_size;
+
+    MPI_Allreduce(&local_size, &global_size, 1, MPI_INT, MPI_SUM, comm);
+
+    ParSubAvg(comm, x, global_size);
+}
+
+void ParSubAvg(MPI_Comm comm, VectorView<double> x, int global_size)
+{
+    double local_sum = Sum(x);
+    double global_sum;
+
+    MPI_Allreduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
+    global_sum /= global_size;
+
+    x -= global_sum;
 }
 
 } //namsespace linalgcpp

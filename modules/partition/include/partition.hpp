@@ -107,9 +107,9 @@ template <typename T>
 std::vector<int> Partition(const linalgcpp::SparseMatrix<T>& mat, int num_parts = 2,
                            double unbalance_factor = 1.0, bool contig = true, bool weighted = false)
 {
-    assert(num_parts > 0);
-    assert(num_parts <= mat.Rows());
-    assert(mat.Cols() == mat.Rows());
+    linalgcpp_assert(num_parts > 0, "Non-Positive Partition Parts");
+    linalgcpp_assert(num_parts <= mat.Rows(), "Too Many Partition Parts");
+    linalgcpp_assert(mat.Cols() == mat.Rows(), "Non-Square Partition Relationship");
 
     const int size = mat.Rows();
 
@@ -141,8 +141,9 @@ std::vector<int> Partition(const linalgcpp::SparseMatrix<T>& mat, int num_parts 
 
     idx_t objval;
 
-    METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, vwgt, vsize, adjwgt,
+    int metis_status = METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, vwgt, vsize, adjwgt,
                              &nparts, tpwgts, &ubvec, options, &objval, part.data());
+    linalgcpp_verify(metis_status == METIS_OK, "METIS Failed to Partition!");
 
     RemoveEmpty(part);
 

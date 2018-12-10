@@ -181,7 +181,7 @@ BlockDiagOperator::BlockDiagOperator(std::vector<int> row_offsets, std::vector<i
 }
 
 BlockDiagOperator::BlockDiagOperator(const BlockDiagOperator& other) noexcept
-    : Operator(other), 
+    : Operator(other),
       row_offsets_(other.row_offsets_), col_offsets_(other.col_offsets_),
       A_(other.A_), x_(other.x_), y_(other.y_)
 {
@@ -242,6 +242,11 @@ void BlockDiagOperator::SetBlock(int i, int j, const Operator& op)
     assert(i == j);
 
     A_[i] = &op;
+}
+
+void BlockDiagOperator::SetBlock(int i, const Operator& op)
+{
+    SetBlock(i, i, op);
 }
 
 void BlockDiagOperator::Mult(const VectorView<double>& input, VectorView<double> output) const
