@@ -1,0 +1,8 @@
+get_filename_component(graphtools_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+if(NOT TARGET linalgcpp::graphtools)
+    include("${graphtools_CMAKE_DIR}/graphtoolsTargets.cmake")
+endif()
+
+set(graphtools_LIBRARIES linalgcpp::graphtools)

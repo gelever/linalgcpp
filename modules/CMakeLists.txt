@@ -10,4 +10,6 @@ if (LINALGCPP_ENABLE_METIS)
     add_subdirectory(partition)
 endif(LINALGCPP_ENABLE_METIS)
 
-
+if (LINALGCPP_ENABLE_GRAPHTOOLS)
+    add_subdirectory(graphtools)
+endif(LINALGCPP_ENABLE_GRAPHTOOLS)

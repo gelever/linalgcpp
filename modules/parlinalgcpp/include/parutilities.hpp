@@ -144,6 +144,11 @@ struct MpiSession
         MPI_Comm_rank(comm, &myid);
     }
 
+    /// Do not allow initializing mpi multiple times
+    MpiSession(const MpiSession& other) = delete;
+    MpiSession(MpiSession&& other) = delete;
+    MpiSession& operator=(const MpiSession& other) = delete;
+
     /** @brief Destructor */
     ~MpiSession() { MPI_Finalize(); }
 
