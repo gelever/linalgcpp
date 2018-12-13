@@ -135,7 +135,7 @@ void linalgcpp_verify(F&& lambda, const std::string& message = "linalgcpp verifi
     }
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> SparseIdentity(int size)
 {
     assert(size >= 0);
@@ -143,7 +143,7 @@ SparseMatrix<T> SparseIdentity(int size)
     return SparseMatrix<T>(std::vector<T>(size, (T)1.0));
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> SparseIdentity(int rows, int cols, int row_offset, int col_offset)
 {
     assert(rows >= 0);
@@ -169,14 +169,14 @@ SparseMatrix<T> SparseIdentity(int rows, int cols, int row_offset, int col_offse
     return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data), rows, cols);
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> Add(const SparseMatrix<T>& A,
                     const SparseMatrix<T>& B)
 {
     return Add(1.0, A, 1.0, B);
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> Add(double alpha, const SparseMatrix<T>& A,
                     double beta, const SparseMatrix<T>& B)
 {
