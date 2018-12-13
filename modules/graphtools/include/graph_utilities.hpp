@@ -104,13 +104,13 @@ SparseMatrix<U> Duplicate(const SparseMatrix<T>& input);
 // Templated Implementations  //
 ////////////////////////////////
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> Mult(const SparseMatrix<T>& R, const SparseMatrix<T>& A, const SparseMatrix<T>& P)
 {
     return R.Mult(A).Mult(P);
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> MakeEntitySet(std::vector<int> partition)
 {
     if (partition.size() == 0)
@@ -130,13 +130,13 @@ SparseMatrix<T> MakeEntitySet(std::vector<int> partition)
                         num_vert, num_parts);
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> MakeSetEntity(std::vector<int> partition)
 {
     return MakeEntitySet<T>(std::move(partition)).Transpose();
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol)
 {
     int rows = mat.Rows();
@@ -172,7 +172,7 @@ SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol)
                            rows, cols);
 }
 
-template <typename T = double>
+template <typename T>
 std::vector<int> PartitionAAT(const SparseMatrix<T>& A, double coarsening_factor,
                               double ubal, bool contig)
 {
@@ -184,7 +184,7 @@ std::vector<int> PartitionAAT(const SparseMatrix<T>& A, double coarsening_factor
     return Partition(AA_T, num_parts, ubal, contig);
 }
 
-template <typename T=double>
+template <typename T>
 Vector<T> ReadVector(const std::string& filename,
                      const std::vector<int>& local_to_global)
 {
@@ -202,7 +202,7 @@ Vector<T> ReadVector(const std::string& filename,
     return local_vect;
 }
 
-template <typename T = double>
+template <typename T>
 double Density(const SparseMatrix<T>& A)
 {
 
@@ -210,7 +210,7 @@ double Density(const SparseMatrix<T>& A)
     return A.nnz() / denom;
 }
 
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> MakeProcAgg(MPI_Comm comm, const SparseMatrix<T>& agg_vertex,
                          const SparseMatrix<T>& vertex_edge)
 {
@@ -377,7 +377,7 @@ ParMatrix MakeEdgeTrueEdge(MPI_Comm comm, const SparseMatrix<T>& proc_edge,
                      std::move(col_map));
 }
 
-template <typename T = int>
+template <typename T>
 void ShiftPartition(std::vector<T>& partition)
 {
     int min_part = *std::min_element(std::begin(partition), std::end(partition));
