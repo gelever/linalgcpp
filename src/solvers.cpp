@@ -226,8 +226,8 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
         if (verbose_)
         {
-            printf("PCG %d: reduction: %.2e numer: %.2e, tol2: %.2e\n",
-                    num_iter_, numer / r0, numer, tol_tol);
+            printf("PCG %d: reduction: %.2e r_z_next: %.2e, tol2: %.2e\n",
+                    num_iter_, r_z_next / r0, r_z_next, tol_tol);
         }
 
         if (r_z_next < tol_tol)
