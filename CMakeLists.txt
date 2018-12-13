@@ -59,10 +59,6 @@ target_include_directories(linalgcpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-add_subdirectory(tests)
-add_subdirectory(modules)
-add_subdirectory(examples)
-
 target_link_libraries(linalgcpp
     PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
 )
@@ -110,5 +106,8 @@ export(EXPORT linalgcpp-targets
        FILE ${CMAKE_CURRENT_BINARY_DIR}/linalgcppTargets.cmake
        NAMESPACE linalgcpp::
        )
-
 export(PACKAGE linalgcpp)
+
+add_subdirectory(tests)
+add_subdirectory(modules)
+add_subdirectory(examples)
