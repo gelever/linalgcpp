@@ -37,17 +37,15 @@ add_library(graphtools
     src/graph_utilities.cpp
 )
 
-find_package(linalgcpp REQUIRED)
-add_dependencies(graphtools linalgcpp)
+add_dependencies(graphtools parlinalgcpp)
+add_dependencies(graphtools partition)
+add_dependencies(graphtools sparsesolve)
 
 target_compile_options(graphtools PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -O2>)
 target_compile_options(graphtools PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wall -O2>)
 
 target_link_libraries(graphtools
-    PUBLIC
-        linalgcpp::partition
-        linalgcpp::sparsesolve
-        linalgcpp::parlinalgcpp
+    PUBLIC parlinalgcpp partition sparsesolve
 )
 
 target_include_directories(graphtools
