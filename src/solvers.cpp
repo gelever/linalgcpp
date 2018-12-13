@@ -209,7 +209,7 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
 
         x.Add(alpha, p_);
 
-        double denom = (*Dot_)(z_, r_);
+        double denom = r_z;
 
         r_.Sub(alpha, Ap_);
 
@@ -222,20 +222,20 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
             z_ = r_;
         }
 
-        double numer = (*Dot_)(z_, r_);
+        double r_z_next = (*Dot_)(z_, r_);
 
         if (verbose_)
         {
-            printf("PCG %d: reduction: %.2e numer: %.2e, tol2: %.2e\n",
-                    num_iter_, numer / r0, numer, tol_tol);
+            printf("PCG %d: reduction: %.2e r_z_next: %.2e, tol2: %.2e\n",
+                    num_iter_, r_z_next / r0, r_z_next, tol_tol);
         }
 
-        if (numer < tol_tol)
+        if (r_z_next < tol_tol)
         {
             break;
         }
 
-        double beta = numer / denom;
+        double beta = r_z_next / denom;
 
         p_ *= beta;
         p_ += z_;
