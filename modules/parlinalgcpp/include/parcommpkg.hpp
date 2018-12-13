@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <algorithm>
 
+#include "utilities.hpp"
 #include "_hypre_parcsr_mv.h"
 
 namespace linalgcpp

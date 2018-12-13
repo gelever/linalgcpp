@@ -5,5 +5,6 @@
 #include "parsolvers.hpp"
 #include "parutilities.hpp"
 #include "paroperator.hpp"
+#include "parprecond.hpp"
 #include "parsmoother.hpp"
 #include "parcommpkg.hpp"

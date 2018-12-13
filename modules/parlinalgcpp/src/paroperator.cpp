@@ -98,6 +98,15 @@ void swap(ParOperator& lhs, ParOperator& rhs) noexcept
     std::swap(lhs.b_, rhs.b_);
 }
 
+Vector<double> ParOperator::Mult(const linalgcpp::VectorView<double>& input) const
+{
+    Vector<double> output(Cols(), 0.0);
+
+    Mult(input, output);
+
+    return output;
+}
+
 int ParOperator::GlobalRows() const
 {
     int size = 0.0;

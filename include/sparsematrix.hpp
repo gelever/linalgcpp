@@ -424,8 +424,9 @@ class SparseMatrix : public Operator
 
         /*! @brief Remove entries less than a tolerance
             @param tol tolerance to remove
+            @param keep_diag keep diagonal element, regardless of value
         */
-        void EliminateZeros(T tolerance = 0);
+        void EliminateZeros(T tolerance = 0, bool keep_diag = false);
 
         /// Operator Requirement, calls the templated Mult
         void Mult(const VectorView<double>& input, VectorView<double> output) const override;
@@ -1470,7 +1471,7 @@ void SparseMatrix<T>::EliminateCol(const U& marker, const VectorView<double>& x,
 }
 
 template <typename T>
-void SparseMatrix<T>::EliminateZeros(T tolerance)
+void SparseMatrix<T>::EliminateZeros(T tolerance, bool keep_diag)
 {
     std::vector<int> elim_indptr(1, 0);
     std::vector<int> elim_indices;
@@ -1484,7 +1485,10 @@ void SparseMatrix<T>::EliminateZeros(T tolerance)
     {
         for (int j = indptr_[i]; j < indptr_[i + 1]; ++j)
         {
-            if (std::fabs(data_[j]) > tolerance)
+            int col = indices_[j];
+
+            if (std::fabs(data_[j]) > tolerance ||
+                (keep_diag && col == i))
             {
                 elim_indices.push_back(indices_[j]);
                 elim_data.push_back(data_[j]);

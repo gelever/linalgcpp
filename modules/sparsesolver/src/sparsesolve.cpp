@@ -2,6 +2,9 @@
 
 #include "sparsesolve.hpp"
 
+namespace linalgcpp
+{
+
 SparseSolver::SparseSolver(linalgcpp::SparseMatrix<double> A)
     : Operator(A), A_(std::move(A)), numeric_(nullptr),
       control_(UMFPACK_CONTROL, 0), info_(UMFPACK_INFO, 0)
@@ -138,3 +141,4 @@ void SparseSolver::MultAT(const linalgcpp::VectorView<double>& input,
     assert(status == 0);
 }
 
+} // namespace linalgcpp

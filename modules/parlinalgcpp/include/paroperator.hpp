@@ -66,6 +66,12 @@ class ParOperator: public linalgcpp::Operator
         virtual void Mult(const linalgcpp::VectorView<double>& input,
                           linalgcpp::VectorView<double> output) const = 0;
 
+        /*! @brief Apply the action of this operator Ax = y
+            @param input vector x
+            @param output vector y
+        */
+        virtual Vector<double> Mult(const linalgcpp::VectorView<double>& input) const;
+
         /* @brief Global number of rows */
         virtual int GlobalRows() const;
 
