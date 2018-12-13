@@ -67,7 +67,7 @@ void linalgcpp_verify(F&& lambda, const std::string& message = "linalgcpp verifi
     @param size square size of identity
     @return identity matrix
 */
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> SparseIdentity(int size);
 
 /** @brief Construct an rectangular identity matrix (as a SparseMatrix)
@@ -76,7 +76,7 @@ SparseMatrix<T> SparseIdentity(int size);
     @param row_offset offset row where diagonal identity starts
     @param col_offset offset column where diagonal identity starts
 */
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> SparseIdentity(int rows, int cols, int row_offset = 0, int col_offset = 0);
 
 template <typename T = double>
