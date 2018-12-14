@@ -60,7 +60,7 @@ ParMatrix MakeMISDof(const ParMatrix& agg_dof)
     ParMatrix mis_dof_r = mis_dof_par.Mult(dof_r);
     ParMatrix true_mis_true_dof = SelectMIS(mis_dof_r);
 
-    return true_mis_true_dof;
+    return RemoveLargeEntries(true_mis_true_dof, 0.0);
 }
 
 

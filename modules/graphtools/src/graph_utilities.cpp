@@ -57,7 +57,7 @@ ParMatrix RemoveLargeEntries(const ParMatrix& mat, double tol)
     assert(count == offd_num_cols);
 
     std::vector<int> indices(offd_nnz);
-    std::vector<double> data(offd_nnz, 1.0);
+    std::vector<double> data(offd_nnz);
 
     count = 0;
 
@@ -65,16 +65,18 @@ ParMatrix RemoveLargeEntries(const ParMatrix& mat, double tol)
     {
         for (int j = offd_indptr[i]; j < offd_indptr[i + 1]; ++j)
         {
-            if (offd_data[j] > 1)
+            if (std::fabs(offd_data[j]) > tol)
             {
-                indices[count++] = offd_marker[offd_indices[j]];
+                indices[count] = offd_marker[offd_indices[j]];
+                data[count] = offd_data[j];
+                count++;
             }
         }
     }
 
     assert(count == offd_nnz);
 
-    SparseMatrix<double> diag = RemoveLargeEntries(diag_ext);
+    SparseMatrix<double> diag = RemoveLargeEntries(diag_ext, tol);
     SparseMatrix<double> offd(std::move(indptr), std::move(indices), std::move(data),
                       num_rows, offd_num_cols);
 

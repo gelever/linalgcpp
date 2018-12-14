@@ -60,6 +60,8 @@ void CreateGraph(const MpiSession& mpi, const std::vector<int>& part)
             std::cout << "Processor: " << i << "\n";
             std::cout << "Type: " << typeid(T).name() << "\n";
             graph.vertex_edge_local_.ToDense().Print("VE:", std::cout, 4, 0);
+            mis_dof.GetDiag().ToDense().Print("MIS_dof diag:", std::cout, 4, 0);
+            mis_dof.GetOffd().ToDense().Print("MIS_dof offd:", std::cout, 4, 0);
             std::cout.flush();
         }
 
@@ -70,6 +72,9 @@ void CreateGraph(const MpiSession& mpi, const std::vector<int>& part)
 int main(int argc, char** argv)
 {
     MpiSession mpi(argc, argv);
+
+    linalgcpp_parverify(mpi.comm, mpi.num_procs <= 2,
+                        "Small test designed for at most two processors!");
 
     std::vector<int> part{0, 0, 0, 0, 0,
                           1, 1, 1, 1};

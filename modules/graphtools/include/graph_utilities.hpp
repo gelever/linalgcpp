@@ -30,7 +30,7 @@ SparseMatrix<T> MakeSetEntity(std::vector<int> partition);
     @returns matrix without entries below tolerance
 */
 template <typename T = double>
-SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol = 1.0);
+SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol = 0.0);
 
 /** @brief Remove entries below the tolerance completely
 
@@ -38,7 +38,7 @@ SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol = 1.0)
     @param tol remove entries below this tolerance
     @returns matrix without entries below tolerance
 */
-ParMatrix RemoveLargeEntries(const ParMatrix& mat, double tol = 1.0);
+ParMatrix RemoveLargeEntries(const ParMatrix& mat, double tol = 0.0);
 
 /** @brief Partitions matrix = A * A^T
 
@@ -150,8 +150,10 @@ SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol)
 
     std::vector<int> indptr(rows + 1);
     std::vector<int> indices;
+    std::vector<T> data;
 
     indices.reserve(mat.nnz());
+    data.reserve(mat.nnz());
 
     for (int i = 0; i < rows; ++i)
     {
@@ -162,13 +164,12 @@ SparseMatrix<T> RemoveLargeEntries(const SparseMatrix<T>& mat, double tol)
             if (std::fabs(mat_data[j]) > tol)
             {
                 indices.push_back(mat_indices[j]);
+                data.push_back(mat_data[j]);
             }
         }
     }
 
     indptr[rows] = indices.size();
-
-    std::vector<T> data(indices.size(), 1);
 
     return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data),
                            rows, cols);
