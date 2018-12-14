@@ -8,7 +8,7 @@
 #define MIS_HPP
 
 #include "graph.hpp"
-#include "graph_topology.hpp"
+//#include "graph_topology.hpp"
 #include "graph_utilities.hpp"
 
 
@@ -21,13 +21,13 @@ std::vector<int> GenerateMIS(const SparseMatrix<T>& set_dof,
 
 ParMatrix SelectMIS(const ParMatrix& mis_dof);
 
-template <typename T, typename U, typename V>
-ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo);
+//template <typename T, typename U, typename V>
+//ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo);
 
 ParMatrix MakeMISDof(const ParMatrix& agg_dof);
 
-//SparseMatrix MakeFaceMIS(const SparseMatrix& mis_agg);
-
+template <typename T = double>
+SparseMatrix<T> MakeFaceMIS(const SparseMatrix<T>& mis_agg);
 
 ///////////////////////
 /// Implementations ///
@@ -104,17 +104,41 @@ std::vector<int> GenerateMIS(const SparseMatrix<T>& set_dof,
     return mises;
 }
 
-template <typename T, typename U, typename V>
-ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo)
+//template <typename T, typename U, typename V>
+//ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo)
+//{
+//    MPI_Comm comm = graph.edge_true_edge_.GetComm();
+//
+//    auto agg_edge_local = topo.agg_vertex_local_.template Mult<T, double>(graph.vertex_edge_local_);
+//    ParMatrix agg_edge_par(comm, std::move(agg_edge_local));
+//
+//    ParMatrix agg_edge = agg_edge_par.Mult(topo.edge_true_edge_);
+//
+//    return MakeMISDof(agg_edge);
+//}
+
+template <typename T = double>
+SparseMatrix<T> MakeFaceMIS(const SparseMatrix<T>& mis_agg)
 {
-    MPI_Comm comm = graph.edge_true_edge_.GetComm();
+    std::vector<int> indptr(1, 0);
+    std::vector<int> indices;
 
-    auto agg_edge_local = topo.agg_vertex_local_.template Mult<T, double>(graph.vertex_edge_local_);
-    ParMatrix agg_edge_par(comm, std::move(agg_edge_local));
+    int num_mis = mis_agg.Rows();
 
-    ParMatrix agg_edge = agg_edge_par.Mult(topo.edge_true_edge_);
+    for (int i = 0; i < num_mis; ++i)
+    {
+        if (mis_agg.RowSize(i) > 1)
+        {
+            indptr.push_back(indptr.size());
+            indices.push_back(i);
+        }
+    }
 
-    return MakeMISDof(agg_edge);
+    int num_faces = indices.size();
+    std::vector<double> data(num_faces, 1.0);
+
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data),
+                        num_faces, num_mis);
 }
 
 } //namespace linalgcpp

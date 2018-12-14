@@ -21,8 +21,9 @@
 #ifndef GRAPHTOPOLOGY_HPP
 #define GRAPHTOPOLOGY_HPP
 
-#include "graph_utilities.hpp"
 #include "graph.hpp"
+#include "graph_mis.hpp"
+#include "graph_utilities.hpp"
 
 namespace linalgcpp
 {
@@ -97,12 +98,10 @@ public:
     // Local topology
     SparseMatrix<T> agg_vertex_local_; // Aggregate to vertex, not exteneded
     SparseMatrix<T> agg_edge_local_;   // Aggregate to edge, not extended
-    //SparseMatrix<T> face_edge_local_;  // Face to edge
     SparseMatrix<T> face_agg_local_;   // Face to aggregate
     SparseMatrix<T> agg_face_local_;   // Aggregate to face
 
     // Global topology
-    ParMatrix face_face_;      // Face to face if they share a true face
     ParMatrix face_true_face_; // Face to true face
     ParMatrix face_edge_;      // Face to false edge
     ParMatrix agg_ext_vertex_; // Aggregate to extended vertex
@@ -112,7 +111,6 @@ public:
 private:
     void Init(const SparseMatrix<T>& vertex_edge,
               const std::vector<int>& partition,
-              const ParMatrix& edge_edge,
               ParMatrix edge_true_edge);
 
     SparseMatrix<double> MakeFaceIntAgg(const ParMatrix& agg_agg);
@@ -133,7 +131,7 @@ GraphTopology<T>::GraphTopology(const Graph<T>& graph)
     const auto& vertex_edge = graph.vertex_edge_local_;
     const auto& part = graph.part_local_;
 
-    Init(vertex_edge, part, graph.edge_edge_, graph.edge_true_edge_);
+    Init(vertex_edge, part,  graph.edge_true_edge_);
 }
 
 template <typename T>
@@ -143,7 +141,7 @@ GraphTopology<T>::GraphTopology(const GraphTopology<T>& fine_topology,
     const auto& vertex_edge = fine_topology.agg_face_local_;
     const auto& part = PartitionAAT(vertex_edge, coarsening_factor, 1.2);
 
-    Init(vertex_edge, part, fine_topology.face_face_, fine_topology.face_true_face_);
+    Init(vertex_edge, part, fine_topology.face_true_face_);
 }
 
 template <typename T>
@@ -154,15 +152,15 @@ GraphTopology<T>::GraphTopology(const SparseMatrix<T>& vertex_edge,
     const auto true_edge_edge = edge_true_edge.Transpose();
     const auto edge_edge = edge_true_edge.Mult(true_edge_edge);
 
-    Init(vertex_edge, partition, edge_edge, std::move(edge_true_edge));
+    Init(vertex_edge, partition, std::move(edge_true_edge));
 }
 
 template <typename T>
 void GraphTopology<T>::Init(const SparseMatrix<T>& vertex_edge,
                             const std::vector<int>& partition,
-                            const ParMatrix& edge_edge,
                             ParMatrix edge_true_edge)
 {
+    auto edge_edge = edge_true_edge.Mult(edge_true_edge.Transpose());
     edge_true_edge_ = std::move(edge_true_edge);
 
     MPI_Comm comm = edge_true_edge_.GetComm();
@@ -192,29 +190,51 @@ void GraphTopology<T>::Init(const SparseMatrix<T>& vertex_edge,
     ParMatrix edge_agg_ext = edge_edge.Mult(edge_agg_d);
     ParMatrix agg_agg = agg_edge_d.Mult(edge_agg_ext);
 
-    agg_edge_ext = 1.0;
-    SparseMatrix<double> face_int_agg = MakeFaceIntAgg(agg_agg);
-    SparseMatrix<double> face_int_agg_edge = face_int_agg.Mult(agg_edge_ext);
-
-    auto face_edge_local = MakeFaceEdge(agg_agg, edge_agg_ext,
-                                    agg_edge_ext, face_int_agg_edge);
-
-    face_agg_local_ = ExtendFaceAgg(agg_agg, face_int_agg);
-    agg_face_local_ = face_agg_local_.Transpose();
-
-    auto face_starts = linalgcpp::GenerateOffsets(comm, face_agg_local_.Rows());
-
-    face_edge_ = ParMatrix(comm, face_starts, edge_starts, std::move(face_edge_local));
-    face_face_ = Mult(face_edge_, edge_edge, face_edge_.Transpose());
-
-    face_true_face_ = MakeEntityTrueEntity(face_face_);
-
     ParMatrix vertex_edge_d(comm, vertex_starts, edge_starts, Duplicate<T, double>(vertex_edge));
     ParMatrix vertex_true_edge = vertex_edge_d.Mult(edge_true_edge_);
-    ParMatrix edge_vertex = vertex_true_edge.Transpose();
-    ParMatrix agg_edge = agg_edge_d.Mult(edge_true_edge_);
+    ParMatrix true_edge_vertex = vertex_true_edge.Transpose();
+    ParMatrix true_edge_edge = edge_true_edge_.Transpose();
 
-    agg_ext_vertex_ = agg_edge.Mult(edge_vertex);
+    const auto& edge_v_edge = true_edge_vertex.Mult(vertex_true_edge);
+    const auto& agg_r = MakeExtPermutation(agg_agg);
+    const auto& edge_r = MakeExtPermutation(edge_v_edge);
+    const auto& edge_r_T = edge_r.Transpose();
+    const auto& agg_edge = agg_edge_d.Mult(edge_true_edge_);
+
+    auto agg_edge_r = agg_r.Mult(agg_edge).Mult(edge_r_T);
+    agg_edge_r.EliminateZeros(); // HYPRE kindly adds explicit zeros on diagonal
+
+    auto local_agg_edge = agg_edge_r.GetDiag();
+    auto local_edge_agg = agg_edge_r.GetDiag().Transpose();
+
+    auto mis = GenerateMIS<double>(local_agg_edge, local_edge_agg);
+    auto mis_dof = MakeSetEntity<double>(mis);
+
+    ParMatrix mis_dof_d(comm, mis_dof);
+
+    auto mis_agg_f = mis_dof.Mult(local_edge_agg);
+    auto agg_mis_f = mis_agg_f.Transpose();
+
+    auto face_mis = MakeFaceMIS(mis_agg_f);
+
+    auto face_agg = face_mis.Mult(mis_agg_f);
+    auto face_dof = face_mis.Mult(mis_dof);
+
+    ParMatrix face_dof_par(comm, std::move(face_dof));
+    ParMatrix face_agg_par(comm, std::move(face_agg));
+
+    ParMatrix face_dof_ur = face_dof_par.Mult(edge_r);
+    ParMatrix face_agg_ur = face_agg_par.Mult(agg_r);
+
+    auto face_face = face_dof_ur.Mult(face_dof_ur.Transpose());
+
+    face_true_face_ = MakeEntityTrueEntity(face_face);
+    face_edge_ = face_dof_ur.Mult(true_edge_edge);
+
+    face_agg_local_ = Duplicate<double, T>(face_agg_ur.GetDiag());
+    agg_face_local_ = face_agg_local_.Transpose();
+
+    agg_ext_vertex_ = agg_edge.Mult(true_edge_vertex);
     agg_ext_vertex_ = 1.0;
     vertex_true_edge = 1.0;
 
@@ -226,10 +246,8 @@ template <typename T>
 GraphTopology<T>::GraphTopology(const GraphTopology<T>& other) noexcept
     : agg_vertex_local_(other.agg_vertex_local_),
       agg_edge_local_(other.agg_edge_local_),
-      //face_edge_local_(other.face_edge_local_),
       face_agg_local_(other.face_agg_local_),
       agg_face_local_(other.agg_face_local_),
-      face_face_(other.face_face_),
       face_true_face_(other.face_true_face_),
       face_edge_(other.face_edge_),
       agg_ext_vertex_(other.agg_ext_vertex_),
@@ -258,11 +276,9 @@ void swap(GraphTopology<T>& lhs, GraphTopology<T>& rhs) noexcept
 {
     swap(lhs.agg_vertex_local_, rhs.agg_vertex_local_);
     swap(lhs.agg_edge_local_, rhs.agg_edge_local_);
-    //swap(lhs.face_edge_local_, rhs.face_edge_local_);
     swap(lhs.face_agg_local_, rhs.face_agg_local_);
     swap(lhs.agg_face_local_, rhs.agg_face_local_);
 
-    swap(lhs.face_face_, rhs.face_face_);
     swap(lhs.face_true_face_, rhs.face_true_face_);
     swap(lhs.face_edge_, rhs.face_edge_);
     swap(lhs.agg_ext_vertex_, rhs.agg_ext_vertex_);
@@ -327,6 +343,18 @@ SparseMatrix<double> GraphTopology<T>::MakeFaceEdge(const ParMatrix& agg_agg,
     int num_edges = face_int_agg_edge.Cols();
     int num_faces_int = face_int_agg_edge.Rows();
     int num_faces = num_faces_int + agg_agg_offd.nnz();
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (agg_agg.GetMyId() == i)
+        {
+            printf("PRocs: %d\n", i);
+            agg_agg.GetDiag().ToDense().Print("agg agg diag", std::cout, 4, 0);
+            agg_agg.GetOffd().ToDense().Print("agg agg offd", std::cout, 4, 0);
+        }
+        MPI_Barrier(agg_agg.GetComm());
+    }
+    printf("%d Num Faces: %d\n", agg_agg.GetMyId(), num_faces);
 
     std::vector<int> indptr;
     std::vector<int> indices;

@@ -30,7 +30,7 @@ ParMatrix SelectMIS(const ParMatrix& mis_dof)
 
     ParMatrix selector_par(mis_dof.GetComm(), std::move(selector));
 
-    return selector_par.Mult(mis_dof);
+    return RemoveLargeEntries(selector_par.Mult(mis_dof), 0.0);
 }
 
 ParMatrix MakeMISDof(const ParMatrix& agg_dof)
