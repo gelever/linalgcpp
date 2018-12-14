@@ -154,6 +154,29 @@ ParMatrix Mult(const ParMatrix& R, const ParMatrix& A, const ParMatrix& P)
     return R.Mult(A).Mult(P);
 }
 
+ParMatrix MakeExtPermutation(const ParMatrix& parmat)
+{
+    MPI_Comm comm = parmat.GetComm();
+
+    const auto& diag = parmat.GetDiag();
+    const auto& offd = parmat.GetOffd();
+    const auto& colmap = parmat.GetColMap();
+
+    int num_diag = diag.Cols();
+    int num_offd = offd.Cols();
+    int num_ext = num_diag + num_offd;
+
+    const auto& mat_starts = parmat.GetColStarts();
+    auto ext_starts = linalgcpp::GenerateOffsets(comm, num_ext);
+
+    SparseMatrix<double> perm_diag = SparseIdentity(num_ext, num_diag);
+    SparseMatrix<double> perm_offd = SparseIdentity(num_ext, num_offd, num_diag);
+
+    return ParMatrix(comm, ext_starts, mat_starts,
+                     std::move(perm_diag), std::move(perm_offd),
+                     colmap);
+}
+
 
 
 } // namespace linalgcpp

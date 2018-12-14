@@ -100,6 +100,8 @@ void ShiftPartition(std::vector<T>& partition);
 template <typename T, typename U>
 SparseMatrix<U> Duplicate(const SparseMatrix<T>& input);
 
+ParMatrix MakeExtPermutation(const ParMatrix& parmat);
+
 ////////////////////////////////
 // Templated Implementations  //
 ////////////////////////////////

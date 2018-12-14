@@ -51,12 +51,14 @@ void CreateGraph(const MpiSession& mpi, const std::vector<int>& part)
 {
     Graph<T> graph(mpi.comm, MakeVertexEdge<T>(), part);
     GraphTopology<T> gt(graph);
+    ParMatrix mis_dof = MakeMISDof(graph, gt);
 
     for (int i = 0; i < mpi.num_procs; ++i)
     {
         if (mpi.myid == i)
         {
             std::cout << "Processor: " << i << "\n";
+            std::cout << "Type: " << typeid(T).name() << "\n";
             graph.vertex_edge_local_.ToDense().Print("VE:", std::cout, 4, 0);
             std::cout.flush();
         }
