@@ -179,6 +179,60 @@ ParMatrix MakeExtPermutation(const ParMatrix& parmat)
                      colmap);
 }
 
+bool CheckSymmetric(const linalgcpp::Operator& A, bool verbose)
+{
+    const double tol = 1e-8;
+
+    Vector<double> v(A.Rows());
+    Vector<double> u(A.Rows());
+
+    Randomize(u, -1.0, 1.0);
+    Randomize(v, -1.0, 1.0);
+
+    SubAvg(u);
+    SubAvg(v);
+
+    auto vAu = v.Mult(A.Mult(u));
+    auto uAv = u.Mult(A.Mult(v));
+    auto diff = std::fabs((vAu - uAv) / vAu);
+
+    if (verbose && diff >= tol)
+    {
+        std::cout << "vAu: " << vAu << "\n";
+        std::cout << "uAv: " << uAv << "\n";
+        std::cout << "|vAu - uAv| / |vAu|: " << diff << "\n";
+    }
+
+    return diff < tol;
+}
+
+bool CheckSymmetric(const linalgcpp::ParOperator& A, bool verbose)
+{
+    const double tol = 1e-8;
+
+    Vector<double> v(A.Rows());
+    Vector<double> u(A.Rows());
+
+    auto comm = A.GetComm();
+    auto myid = A.GetMyId();
+
+    Randomize(u, -1.0, 1.0, myid + 1);
+    Randomize(v, -1.0, 1.0, myid + 1);
+
+    auto vAu = ParMult(comm, v, A.Mult(u));
+    auto uAv = ParMult(comm, u, A.Mult(v));
+    auto diff = std::fabs((vAu - uAv) / vAu);
+
+    if (verbose && diff >= tol)
+    {
+        ParPrint(myid, std::cout << "vAu: " << vAu << "\n");
+        ParPrint(myid, std::cout << "uAv: " << uAv << "\n");
+        ParPrint(myid, std::cout << "|vAu - uAv| / |vAu|: " << diff << "\n");
+    }
+
+    return diff < tol;
+}
+
 
 
 } // namespace linalgcpp

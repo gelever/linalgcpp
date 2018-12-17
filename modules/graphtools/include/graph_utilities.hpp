@@ -97,10 +97,41 @@ ParMatrix MakeEdgeTrueEdge(MPI_Comm comm, const SparseMatrix<T>& proc_edge,
 template <typename T = int>
 void ShiftPartition(std::vector<T>& partition);
 
+/// Duplicate SparseMatrix to change its template type
 template <typename T, typename U>
 SparseMatrix<U> Duplicate(const SparseMatrix<T>& input);
 
-ParMatrix MakeExtPermutation(const ParMatrix& parmat);
+/** @brief Create an extension permutation P such that
+ *         the diagonal block of PT*A*P will contain
+ *         entities from surrounding processors
+ *
+ *  @param entity_entity entity to entity relationship
+ *  @returns ParMatrix P containing the extension permutation
+ */
+ParMatrix MakeExtPermutation(const ParMatrix& entity_entity);
+
+/** @brief Check if an operator is symmetric by checking its transformation of random vectors
+ *  @param A Operator to check
+ *  @param verbose output transformation values 
+ *  @returns bool true if symmetric, false otherwise
+ */
+bool CheckSymmetric(const linalgcpp::Operator& A, bool verbose = false);
+
+/** @brief Check if a distributed operator is symmetric by checking its transformation of random vectors
+ *  @param A Operator to check
+ *  @param verbose output transformation values 
+ *  @returns bool true if symmetric, false otherwise
+ */
+bool CheckSymmetric(const linalgcpp::ParOperator& A, bool verbose = false);
+
+/** @brief Broadcast local vertex data to other connected processors
+ *  @param comm_pkg HYPRE Communication package containing send/recv info
+ *  @param verbose output transformation values 
+ *  @returns vector containing data from other processors
+ */
+template <typename T>
+std::vector<T> Broadcast(const linalgcpp::ParCommPkg& comm_pkg,
+                         const std::vector<T>& send_vect);
 
 ////////////////////////////////
 // Templated Implementations  //
@@ -391,6 +422,54 @@ void ShiftPartition(std::vector<T>& partition)
     }
 
     linalgcpp::RemoveEmpty(partition);
+}
+
+template <typename T>
+std::vector<T> Broadcast(const linalgcpp::ParCommPkg& comm_pkg,
+                         const std::vector<T>& send_vect)
+{
+    int num_send = comm_pkg.num_sends_;
+    int num_recv = comm_pkg.num_recvs_;
+
+    std::vector<T> send_buffer(comm_pkg.send_map_starts_.back(), 0);
+    std::vector<T> recv_buffer(comm_pkg.recv_vec_starts_.back(), -1.0);
+
+    std::vector<MPI_Request> requests (num_send + num_recv);
+    MPI_Datatype datatype = std::is_same<T, double>::value ? MPI_DOUBLE : MPI_INT;
+
+    int j = 0;
+
+    for (int i = 0; i < comm_pkg.num_recvs_; i++)
+    {
+        int ip = comm_pkg.recv_procs_[i];
+        auto vec_start = comm_pkg.recv_vec_starts_[i];
+        auto vec_len = comm_pkg.recv_vec_starts_[i + 1] - vec_start;
+        MPI_Irecv(&recv_buffer[vec_start], vec_len, datatype, ip, 0, comm_pkg.comm_, &requests[j++]);
+    }
+
+    for (int i = 0; i < comm_pkg.num_sends_; i++)
+    {
+        auto vec_start = comm_pkg.send_map_starts_[i];
+        auto vec_len = comm_pkg.send_map_starts_[i + 1] - vec_start;
+
+        for (int k = vec_start; k < vec_start + vec_len; ++k)
+        {
+            send_buffer[k] = send_vect[comm_pkg.send_map_elmts_[k]];
+        }
+    }
+
+    for (int i = 0; i < comm_pkg.num_sends_; i++)
+    {
+        auto vec_start = comm_pkg.send_map_starts_[i];
+        auto vec_len = comm_pkg.send_map_starts_[i + 1] - vec_start;
+        auto ip = comm_pkg.send_procs_[i];
+        MPI_Isend(&send_buffer[vec_start], vec_len, datatype, ip, 0, comm_pkg.comm_, &requests[j++]); 
+    }
+
+    std::vector<MPI_Status> header_status(num_send + num_recv);
+    MPI_Waitall(num_send + num_recv, requests.data(), header_status.data());
+
+    return recv_buffer;
 }
 
 

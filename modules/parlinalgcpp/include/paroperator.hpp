@@ -90,9 +90,13 @@ class ParOperator: public linalgcpp::Operator
         /* @brief Access the MPI processor id */
         virtual int GetMyId() const;
 
+        /* @brief Access the number of MPI processors */
+        virtual int GetNumProcs() const;
+
     protected:
         MPI_Comm comm_;
         int myid_;
+        int num_procs_;
 
         std::vector<HYPRE_Int> row_starts_;
         std::vector<HYPRE_Int> col_starts_;

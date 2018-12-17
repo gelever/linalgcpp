@@ -34,6 +34,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 add_library(graphtools
     src/graph.cpp
     src/graph_mis.cpp
+    src/graph_partition.cpp
     src/graph_topology.cpp
     src/graph_utilities.cpp
 )
