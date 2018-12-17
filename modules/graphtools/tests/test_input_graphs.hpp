@@ -9,6 +9,17 @@ struct InputGraph
     int max_procs;
 };
 
+template <typename T>
+void AddEdge(linalgcpp::CooMatrix<T>& coo, const std::vector<int>& vertices)
+{
+    int edge_num = std::get<0>(coo.FindSize());
+
+    for (auto&& vertex : vertices)
+    {
+        coo.Add(edge_num, vertex, (T)1.0);
+    }
+}
+
 // 
 // *--*\ /*--*
 // |  | * |  |
@@ -18,43 +29,20 @@ struct InputGraph
 template <typename T>
 InputGraph<T> TestGraph0()
 {
-    linalgcpp::CooMatrix<T> edge_vertex(12, 9);
+    linalgcpp::CooMatrix<T> edge_vertex;
 
-    edge_vertex.Add(0, 0, 1.0);
-    edge_vertex.Add(0, 1, 1.0);
-
-    edge_vertex.Add(1, 0, 1.0);
-    edge_vertex.Add(1, 2, 1.0);
-
-    edge_vertex.Add(2, 1, 1.0);
-    edge_vertex.Add(2, 3, 1.0);
-
-    edge_vertex.Add(3, 1, 1.0);
-    edge_vertex.Add(3, 4, 1.0);
-
-    edge_vertex.Add(4, 2, 1.0);
-    edge_vertex.Add(4, 3, 1.0);
-
-    edge_vertex.Add(5, 3, 1.0);
-    edge_vertex.Add(5, 4, 1.0);
-
-    edge_vertex.Add(6, 4, 1.0);
-    edge_vertex.Add(6, 5, 1.0);
-
-    edge_vertex.Add(7, 4, 1.0);
-    edge_vertex.Add(7, 7, 1.0);
-
-    edge_vertex.Add(8, 5, 1.0);
-    edge_vertex.Add(8, 6, 1.0);
-
-    edge_vertex.Add(9, 5, 1.0);
-    edge_vertex.Add(9, 7, 1.0);
-
-    edge_vertex.Add(10, 6, 1.0);
-    edge_vertex.Add(10, 8, 1.0);
-
-    edge_vertex.Add(11, 7, 1.0);
-    edge_vertex.Add(11, 8, 1.0);
+    AddEdge(edge_vertex, {0, 1});
+    AddEdge(edge_vertex, {0, 2});
+    AddEdge(edge_vertex, {1, 3});
+    AddEdge(edge_vertex, {1, 4});
+    AddEdge(edge_vertex, {2, 3});
+    AddEdge(edge_vertex, {3, 4});
+    AddEdge(edge_vertex, {4, 5});
+    AddEdge(edge_vertex, {4, 7});
+    AddEdge(edge_vertex, {5, 6});
+    AddEdge(edge_vertex, {5, 7});
+    AddEdge(edge_vertex, {6, 8});
+    AddEdge(edge_vertex, {7, 8});
 
     std::vector<int> part{0, 0, 0, 0, 0,
                           1, 1, 1, 1};
@@ -77,38 +65,18 @@ InputGraph<T> TestGraph0()
 template <typename T>
 InputGraph<T> TestGraph1()
 {
-    linalgcpp::CooMatrix<T> edge_vertex(10, 9);
+    linalgcpp::CooMatrix<T> edge_vertex;
 
-    edge_vertex.Add(0, 0, 1.0);
-    edge_vertex.Add(0, 1, 1.0);
-
-    edge_vertex.Add(1, 0, 1.0);
-    edge_vertex.Add(1, 2, 1.0);
-
-    edge_vertex.Add(2, 1, 1.0);
-    edge_vertex.Add(2, 2, 1.0);
-
-    edge_vertex.Add(3, 3, 1.0);
-    edge_vertex.Add(3, 4, 1.0);
-
-    edge_vertex.Add(4, 3, 1.0);
-    edge_vertex.Add(4, 5, 1.0);
-
-    edge_vertex.Add(5, 4, 1.0);
-    edge_vertex.Add(5, 5, 1.0);
-
-    edge_vertex.Add(6, 6, 1.0);
-    edge_vertex.Add(6, 7, 1.0);
-
-    edge_vertex.Add(7, 6, 1.0);
-    edge_vertex.Add(7, 8, 1.0);
-
-    edge_vertex.Add(8, 7, 1.0);
-    edge_vertex.Add(8, 8, 1.0);
-
-    edge_vertex.Add(9, 2, 1.0);
-    edge_vertex.Add(9, 3, 1.0);
-    edge_vertex.Add(9, 6, 1.0);
+    AddEdge(edge_vertex, {0, 1});
+    AddEdge(edge_vertex, {0, 2});
+    AddEdge(edge_vertex, {1, 2});
+    AddEdge(edge_vertex, {3, 4});
+    AddEdge(edge_vertex, {3, 5});
+    AddEdge(edge_vertex, {4, 5});
+    AddEdge(edge_vertex, {6, 7});
+    AddEdge(edge_vertex, {6, 8});
+    AddEdge(edge_vertex, {7, 8});
+    AddEdge(edge_vertex, {2, 3, 6});
 
     std::vector<int> part{0, 0, 0,
                           1, 1, 1,
@@ -119,8 +87,7 @@ InputGraph<T> TestGraph1()
 }
 
 template <typename T>
-std::vector<InputGraph<T>>
-GetAllGraphs()
+std::vector<InputGraph<T>> GetAllGraphs()
 {
     return
     {

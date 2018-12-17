@@ -246,8 +246,11 @@ class CooMatrix : public Operator
         */
         void EliminateZeros(double tolerance = 0);
 
-    private:
+        /*! @brief Obtain the current size from maximum elements
+            @returns (rows, cols) current size
+        */
         std::tuple<int, int> FindSize() const;
+    private:
 
         bool size_set_;
 
@@ -707,8 +710,8 @@ std::tuple<int, int> CooMatrix<T>::FindSize() const
         return std::tuple<int, int> {rows_, cols_};
     }
 
-    int rows = 0;
-    int cols = 0;
+    int rows = -1;
+    int cols = -1;
 
     for (const auto& entry : entries_)
     {
