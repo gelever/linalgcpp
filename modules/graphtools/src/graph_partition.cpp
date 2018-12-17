@@ -41,7 +41,6 @@ ParMatrix ParPartition(const ParMatrix& A_fine, int num_parts)
         }
     }
 
-
     ParMatrix A_i(A_fine);
     ParMatrix PT(comm, A_fine.GetRowStarts(), SparseIdentity(num_vertices));
 
@@ -298,12 +297,16 @@ ParMatrix ParPartition(const ParMatrix& A_fine, int num_parts)
         std::vector<double> P_diag_data(P_diag_indices.size(), 1.0);
         std::vector<double> P_offd_data(P_offd_indices.size(), 1.0);
 
+        linalgcpp_parverify(comm, P_diag_indptr.size() == P_offd_indptr.size());
+        int diag_rows = P_diag_indptr.size() - 1;
+
         linalgcpp::SparseMatrix<double> P_diag(std::move(P_diag_indptr), std::move(P_diag_indices),
                                                std::move(P_diag_data),
-                                               P_diag_indptr.size() - 1, num_vertices);
+                                               diag_rows, num_vertices);
+
         linalgcpp::SparseMatrix<double> P_offd(std::move(P_offd_indptr), std::move(P_offd_indices),
                                                std::move(P_offd_data),
-                                               P_offd_indptr.size() - 1, P_col_map.size());
+                                               diag_rows, P_col_map.size());
 
         auto starts = linalgcpp::GenerateOffsets(comm, P_diag.Rows());
 

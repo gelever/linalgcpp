@@ -16,7 +16,8 @@ int main(int argc, char** argv)
     vv.ToDense().Print("vv:", std::cout, 4, 0);
 
     ParMatrix A(mpi.comm, vv);
-    ParMatrix PT = ParPartition(A, 2);
+    A.GetDiag().ToDense().Print("A:", std::cout, 4, 0);
 
+    ParMatrix PT = ParPartition(A, 2);
     PT.GetDiag().ToDense().Print("P:", std::cout, 4, 0);
 }
