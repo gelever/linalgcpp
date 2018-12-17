@@ -8,24 +8,45 @@
 #define MIS_HPP
 
 #include "graph.hpp"
-//#include "graph_topology.hpp"
 #include "graph_utilities.hpp"
 
 
 namespace linalgcpp
 {
 
+
+/** @brief Generate a partition of dof using minimum intersection algorithm.
+ *         Serial implementation.
+ *
+ *  @param set_dof set to dof relationship
+ *  @param dof_set dof to set relationship
+ *  @returns partition vector indicating which MIS each dof belongs to
+ */
 template <typename T = double>
 std::vector<int> GenerateMIS(const SparseMatrix<T>& set_dof,
                              const SparseMatrix<T>& dof_set);
 
+/** @brief Select MISs that contain at least one dof on the current processor.
+ *
+ *  @param mis_dof distributed mis to dof relationship
+ *  @returns mis_dof with off-processor MIS removed
+ */
 ParMatrix SelectMIS(const ParMatrix& mis_dof);
 
-//template <typename T, typename U, typename V>
-//ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo);
-
+/** @brief Generate a MIS to dof relationship
+ *
+ *  @param agg_dof agglomerate to dof relationship
+ *  @returns mis_dof mis to dof relationship
+ */
 ParMatrix MakeMISDof(const ParMatrix& agg_dof);
 
+/** @brief Generate local face to mis relationship,
+ *         where a face is any mis which belongs to more than
+ *         one aggregate
+ *
+ *  @param mis_agg mis to aggregate relationship
+ *  @returns face_mis face to mis relationship
+ */
 template <typename T = double>
 SparseMatrix<T> MakeFaceMIS(const SparseMatrix<T>& mis_agg);
 
@@ -104,20 +125,7 @@ std::vector<int> GenerateMIS(const SparseMatrix<T>& set_dof,
     return mises;
 }
 
-//template <typename T, typename U, typename V>
-//ParMatrix MakeMISDof(const Graph<T, U, V>& graph, const GraphTopology<T>& topo)
-//{
-//    MPI_Comm comm = graph.edge_true_edge_.GetComm();
-//
-//    auto agg_edge_local = topo.agg_vertex_local_.template Mult<T, double>(graph.vertex_edge_local_);
-//    ParMatrix agg_edge_par(comm, std::move(agg_edge_local));
-//
-//    ParMatrix agg_edge = agg_edge_par.Mult(topo.edge_true_edge_);
-//
-//    return MakeMISDof(agg_edge);
-//}
-
-template <typename T = double>
+template <typename T>
 SparseMatrix<T> MakeFaceMIS(const SparseMatrix<T>& mis_agg)
 {
     std::vector<int> indptr(1, 0);
