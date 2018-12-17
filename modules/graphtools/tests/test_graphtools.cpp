@@ -6,9 +6,9 @@ using namespace linalgcpp;
 template <typename T>
 void CreateGraph(const MpiSession& mpi, const InputGraph<T>& graph_info)
 {
-    const auto& vertex_edge = std::get<0>(graph_info);
-    const auto& part = std::get<1>(graph_info);
-    const auto& max_procs = std::get<2>(graph_info);
+    const auto& vertex_edge = graph_info.vertex_edge;
+    const auto& part = graph_info.partition;
+    const auto& max_procs = graph_info.max_procs;
 
     if (mpi.num_procs > max_procs)
     {
@@ -17,7 +17,6 @@ void CreateGraph(const MpiSession& mpi, const InputGraph<T>& graph_info)
 
     Graph<T> graph(mpi.comm, vertex_edge, part);
     GraphTopology<T> gt(graph);
-    //ParMatrix mis_dof = SelectMIS(MakeMISDof(graph, gt));
 
     for (int i = 0; i < mpi.num_procs; ++i)
     {
@@ -26,8 +25,6 @@ void CreateGraph(const MpiSession& mpi, const InputGraph<T>& graph_info)
             std::cout << "Processor: " << i << "\n";
             std::cout << "Type: " << typeid(T).name() << "\n";
             graph.vertex_edge_local_.ToDense().Print("VE:", std::cout, 4, 0);
-            //mis_dof.GetDiag().ToDense().Print("MIS_dof diag:", std::cout, 4, 0);
-            //mis_dof.GetOffd().ToDense().Print("MIS_dof offd:", std::cout, 4, 0);
             gt.face_agg_local_.ToDense().Print("face_agg :", std::cout, 4, 0);
             gt.face_edge_.GetDiag().ToDense().Print("face_edge diag:", std::cout, 4, 0);
             gt.face_edge_.GetOffd().ToDense().Print("face_edge offd:", std::cout, 4, 0);

@@ -1,9 +1,13 @@
 #pragma once
 
 
-/// {Vertex_Edge, Partition, Max_Procs}
 template <typename T>
-using InputGraph = std::tuple<linalgcpp::SparseMatrix<T>, std::vector<int>, int>;
+struct InputGraph
+{
+    linalgcpp::SparseMatrix<T> vertex_edge;
+    std::vector<int> partition;
+    int max_procs;
+};
 
 // 
 // *--*\ /*--*
