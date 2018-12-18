@@ -321,6 +321,7 @@ ParMatrix ParPartition(const ParMatrix& A_fine, int num_parts)
         PT = PT_i.Mult(PT);
         A_i = PT_i.Mult(A_i).Mult(P_i);
 
+
         bool check_Q = false;
         double Q;
 
@@ -363,7 +364,8 @@ ParMatrix ParPartition(const ParMatrix& A_fine, int num_parts)
         }
     } // while
 
-    return PT;
+    //return PT;
+    return RemoveLargeEntries(PT, 0.5);  // Somehow explicit zeros are introduced -.-
 }
 
 double CalcQ(const linalgcpp::SparseMatrix<double>& A, const linalgcpp::SparseMatrix<double>& P)

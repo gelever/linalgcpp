@@ -160,5 +160,17 @@ int ParOperator::GetNumProcs() const
     return num_procs_;
 }
 
+double ParOperator::ParNorm(const VectorView<double>& x) const
+{
+    MPI_Comm comm = GetComm();
+
+    Vector<double> Ax(x.size());
+    this->Mult(x, Ax);
+
+    double xAx = linalgcpp::ParMult(comm, x, Ax);
+
+    return std::sqrt(xAx);
+}
+
 } // namespace linalgcpp
 

@@ -13,6 +13,7 @@
 namespace linalgcpp
 {
 
+double ParMult(MPI_Comm, const VectorView<double>& x, const VectorView<double>& y);
 
 /*! @brief Base class for distributed operators.
 
@@ -92,6 +93,9 @@ class ParOperator: public linalgcpp::Operator
 
         /* @brief Access the number of MPI processors */
         virtual int GetNumProcs() const;
+
+        /* @brief Compute the operator norm of the vector, x^T A x */
+        virtual double ParNorm(const VectorView<double>& x) const;
 
     protected:
         MPI_Comm comm_;

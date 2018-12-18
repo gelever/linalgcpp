@@ -87,6 +87,14 @@ SparseMatrix<T> Add(const SparseMatrix<T>& A,
 template <typename T, typename U>
 SparseMatrix<U> Duplicate(const SparseMatrix<T>& input);
 
+/** @brief Check if each entry is finite
+
+    @param x collection to check
+    @throws if any element is not finite
+*/
+template <typename T>
+void VerifyFinite(const T& x);
+
 ///
 /// Inline implementations:
 ///
@@ -220,6 +228,15 @@ SparseMatrix<U> Duplicate(const SparseMatrix<T>& input)
 
     return SparseMatrix<U>(std::move(indptr), std::move(indices), std::move(data),
                            input.Rows(), input.Cols());
+}
+
+template <typename T>
+void VerifyFinite(const T& x)
+{
+    for (auto&& x_i : x)
+    {
+        linalgcpp_verify(std::isfinite(x_i), "X is not finite!");
+    }
 }
 
 } //namespace linalgcpp
