@@ -384,6 +384,19 @@ void test_sparse()
             A_elim.PrintDense("A elim row/col 0");
         }
     }
+
+    // Test Adding SparseMatrix
+    {
+        SparseMatrix<> B = A.Transpose();
+        A.PrintDense("A");
+        B.PrintDense("B");
+
+        SparseMatrix<> C = Add(A, B);
+        C.PrintDense("C = A + B");
+
+        SparseMatrix<> D = Add(1.5, A, 0.5, B);
+        D.PrintDense("D = 1.5A + 0.5B");
+    }
 }
 
 void test_coo()

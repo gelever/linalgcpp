@@ -498,6 +498,19 @@ class DenseMatrix : public Operator
             @param dense dense matrix that holds the submatrix
         */
         void AddSubMatrix(const std::vector<int>& rows, std::vector<int>& cols, const DenseMatrix& dense);
+        /*! @brief Get a non-contigious submatrix, given the rows and cols
+            @param rows rows to get
+            @param cols cols to get
+            @param dense dense matrix that holds the submatrix
+        */
+        void GetSubMatrix(const std::vector<int>& rows, std::vector<int>& cols, DenseMatrix& dense) const;
+
+        /*! @brief Get a non-contigious submatrix, given the rows and cols
+            @param rows rows to get
+            @param cols cols to get
+            @returns dense dense matrix that holds the submatrix
+        */
+        DenseMatrix GetSubMatrix(const std::vector<int>& rows, std::vector<int>& cols) const;
 
         /*! @brief Compute singular values and vectors A = U * S * VT
                    Where S is returned and A is replaced with VT

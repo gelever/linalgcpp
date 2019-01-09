@@ -73,7 +73,7 @@ void SparseSolver::Init()
     int num_status = umfpack_di_numeric(indptr, indices, data,
             symbolic, &numeric_, control_.data(), info_.data());
 
-    assert(num_status == 0);
+    linalgcpp_assert(num_status == 0, "SparseSovle Numeric Error!");
 
     umfpack_di_free_symbolic(&symbolic);
 }
@@ -111,7 +111,7 @@ void SparseSolver::Mult(const linalgcpp::VectorView<double>& input,
 
     umfpack_di_report_info(control_.data(), info_.data());
 
-    assert(status == 0);
+    linalgcpp_assert(status == 0, "SparseSolve Solve Error!");
 }
 
 void SparseSolver::MultAT(const linalgcpp::VectorView<double>& input,

@@ -325,13 +325,23 @@ ParMatrix ParMatrix::operator-() const
 
 void ParMatrix::Print(const std::string& label, std::ostream& out) const
 {
-    out << label << "\n";
+    int num_procs = GetNumProcs();
 
-    diag_.Print("Diag:", out);
-    offd_.Print("Offd:", out);
+    for (int i = 0; i < num_procs; ++i)
+    {
+        if (GetMyId() == i)
+        {
+            out << label << "\n";
 
-    using linalgcpp::operator<<;
-    out << "ColMap:" << col_map_;
+            diag_.Print("Diag:", out);
+            offd_.Print("Offd:", out);
+
+            using linalgcpp::operator<<;
+            out << "ColMap:" << col_map_;
+            out.flush();
+        }
+        MPI_Barrier(GetComm());
+    }
 }
 
 void ParMatrix::AddDiag(double diag_val)
@@ -397,7 +407,7 @@ void ParMatrix::EliminateRow(int index)
     offd_.EliminateRow(index);
 }
 
-int ParMatrix::RowSize(int row)
+int ParMatrix::RowSize(int row) const
 {
     return diag_.RowSize(row) + offd_.RowSize(row);
 }

@@ -6,7 +6,7 @@ namespace linalgcpp
 {
 
 ParOperator::ParOperator()
-    : comm_(0), myid_(-1), x_(nullptr), b_(nullptr)
+    : comm_(0), myid_(-1), num_procs_(0), x_(nullptr), b_(nullptr)
 {
 
 }
@@ -14,6 +14,7 @@ ParOperator::ParOperator()
 ParOperator::ParOperator(MPI_Comm comm)
     : comm_(comm), x_(nullptr), b_(nullptr)
 {
+    MPI_Comm_size(comm_, &num_procs_);
     MPI_Comm_rank(comm_, &myid_);
 }
 
@@ -36,8 +37,9 @@ ParOperator::ParOperator(MPI_Comm comm, std::vector<HYPRE_Int> row_starts,
 
 ParOperator::ParOperator(const ParOperator& other)
     : linalgcpp::Operator(other), comm_(other.comm_),
-      myid_(other.myid_), row_starts_(other.row_starts_),
-      col_starts_(other.col_starts_), x_(nullptr), b_(nullptr)
+      myid_(other.myid_), num_procs_(other.num_procs_),
+      row_starts_(other.row_starts_), col_starts_(other.col_starts_),
+      x_(nullptr), b_(nullptr)
 {
     if (other.comm_ > 0 && myid_ >= 0)
     {
@@ -47,6 +49,7 @@ ParOperator::ParOperator(const ParOperator& other)
 
 void ParOperator::HypreCreate()
 {
+    MPI_Comm_size(comm_, &num_procs_);
     MPI_Comm_rank(comm_, &myid_);
 
     InitVector(x_, row_starts_);
@@ -92,6 +95,7 @@ void swap(ParOperator& lhs, ParOperator& rhs) noexcept
          static_cast<linalgcpp::Operator&>(rhs));
     std::swap(lhs.comm_, rhs.comm_);
     std::swap(lhs.myid_, rhs.myid_);
+    std::swap(lhs.num_procs_, rhs.num_procs_);
     std::swap(lhs.row_starts_, rhs.row_starts_);
     std::swap(lhs.col_starts_, rhs.col_starts_);
     std::swap(lhs.x_, rhs.x_);
@@ -149,6 +153,23 @@ MPI_Comm ParOperator::GetComm() const
 int ParOperator::GetMyId() const
 {
     return myid_;
+}
+
+int ParOperator::GetNumProcs() const
+{
+    return num_procs_;
+}
+
+double ParOperator::ParNorm(const VectorView<double>& x) const
+{
+    MPI_Comm comm = GetComm();
+
+    Vector<double> Ax(x.size());
+    this->Mult(x, Ax);
+
+    double xAx = linalgcpp::ParMult(comm, x, Ax);
+
+    return std::sqrt(xAx);
 }
 
 } // namespace linalgcpp
