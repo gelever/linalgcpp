@@ -149,6 +149,30 @@ SparseMatrix<T> MakeFaceMIS(const SparseMatrix<T>& mis_agg)
                         num_faces, num_mis);
 }
 
+template <typename T>
+SparseMatrix<T> MakeFaceMIS(const ParMatrix& mis_agg)
+{
+    std::vector<int> indptr(1, 0);
+    std::vector<int> indices;
+
+    int num_mis = mis_agg.Rows();
+
+    for (int i = 0; i < num_mis; ++i)
+    {
+        if (mis_agg.RowSize(i) > 1)
+        {
+            indptr.push_back(indptr.size());
+            indices.push_back(i);
+        }
+    }
+
+    int num_faces = indices.size();
+    std::vector<double> data(num_faces, 1.0);
+
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data),
+                        num_faces, num_mis);
+}
+
 } //namespace linalgcpp
 
 #endif // MIS_HPP

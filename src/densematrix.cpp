@@ -566,6 +566,31 @@ void DenseMatrix::AddSubMatrix(const std::vector<int>& rows, std::vector<int>& c
     }
 }
 
+void DenseMatrix::GetSubMatrix(const std::vector<int>& rows, std::vector<int>& cols, DenseMatrix& dense) const
+{
+    int num_rows = rows.size();
+    int num_cols = cols.size();
+
+    dense.SetSize(num_rows, num_cols);
+    dense = 0.0;
+
+    for (int j = 0; j < num_cols; ++j)
+    {
+        for (int i = 0; i < num_rows; ++i)
+        {
+            dense(i, j) = (*this)(rows[i], cols[j]);
+        }
+    }
+}
+
+DenseMatrix DenseMatrix::GetSubMatrix(const std::vector<int>& rows, std::vector<int>& cols) const
+{
+    DenseMatrix dense;
+    GetSubMatrix(rows, cols, dense);
+
+    return dense;
+}
+
 std::vector<double> DenseMatrix::SVD(DenseMatrix& U) const
 {
     U = *this;

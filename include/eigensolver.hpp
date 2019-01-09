@@ -77,6 +77,13 @@ class EigenSolver
         */
         void Solve(const DenseMatrix& mat, double rel_tol, int max_evect,
                    EigenPair& eigen_pair);
+
+        /*! @brief Compute full spectrum of eigen pairs
+
+            @param mat Dense matrix to solve for
+            @param EigenPair pair of eigenvalues and eigenvectors
+        */
+        void Solve(const DenseMatrix& mat, EigenPair& eigen_pair);
                   
 
     private:

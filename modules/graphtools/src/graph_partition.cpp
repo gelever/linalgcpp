@@ -364,8 +364,8 @@ ParMatrix ParPartition(const ParMatrix& A_fine, int num_parts)
         }
     } // while
 
-    //return PT;
-    return RemoveLargeEntries(PT, 0.5);  // Somehow explicit zeros are introduced -.-
+    return PT;
+    //return RemoveLargeEntries(PT, 0.5);  // Somehow explicit zeros are introduced -.-
 }
 
 double CalcQ(const linalgcpp::SparseMatrix<double>& A, const linalgcpp::SparseMatrix<double>& P)

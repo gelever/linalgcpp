@@ -66,6 +66,28 @@ template <typename T=double>
 Vector<T> ReadVector(const std::string& filename,
                      const std::vector<int>& local_to_global);
 
+/** @brief Write a serial vector to file, combining local vectors from all processors
+
+    @param vect vector to write
+    @param filename name of vector file
+    @param global_size global size of vector
+    @param local_to_global map of local indices to global indices
+*/
+template <typename T = VectorView<double>>
+void WriteVector(MPI_Comm comm, const T& vect, const std::string& filename, int global_size,
+                 const std::vector<int>& local_to_global);
+
+/**
+   @brief Extract a subvector from a vector
+
+   @param global_vect global vector from which to extract
+   @param map indices to extract
+   @returns subvector
+*/
+template <typename T = VectorView<double>>
+T GetSubVector(const T& global_vect, const std::vector<int>& map);
+
+
 /// SparseMatrix triple product
 template <typename T = double>
 SparseMatrix<T> Mult(const SparseMatrix<T>& R, const SparseMatrix<T>& A, const SparseMatrix<T>& P);
@@ -100,6 +122,13 @@ void ShiftPartition(std::vector<T>& partition);
 /// Duplicate SparseMatrix to change its template type
 template <typename T, typename U>
 SparseMatrix<U> Duplicate(const SparseMatrix<T>& input);
+
+/// Remove entries which are of less degree than the dof
+template <typename T, typename U=T>
+SparseMatrix<U> RemoveLowDegree(const SparseMatrix<T>& agg_dof,
+                                const SparseMatrix<T>& dof_degree);
+
+ParMatrix RemoveLowDegree(const ParMatrix& agg_dof, const ParMatrix& dof_degree);
 
 /** @brief Create an extension permutation P such that
  *         the diagonal block of PT*A*P will contain
@@ -231,6 +260,52 @@ Vector<T> ReadVector(const std::string& filename,
     for (int i = 0; i < local_size; ++i)
     {
         local_vect[i] = global_vect[local_to_global[i]];
+    }
+
+    return local_vect;
+}
+
+template <typename T>
+void WriteVector(MPI_Comm comm, const T& vect, const std::string& filename, int global_size,
+                 const std::vector<int>& local_to_global)
+{
+    assert(global_size > 0);
+    assert(vect.size() <= global_size);
+
+    int myid;
+    int num_procs;
+    MPI_Comm_size(comm, &num_procs);
+    MPI_Comm_rank(comm, &myid);
+
+    std::vector<double> global_global(global_size, 0.0);
+    std::vector<double> global_local(global_size, 0.0);
+
+    int local_size = local_to_global.size();
+
+    for (int i = 0; i < local_size; ++i)
+    {
+        global_local[local_to_global[i]] = vect[i];
+    }
+
+    MPI_Scan(global_local.data(), global_global.data(), global_size,
+             MPI_DOUBLE, MPI_SUM, comm);
+
+    if (myid == num_procs - 1)
+    {
+        linalgcpp::WriteText(global_global, filename);
+    }
+}
+
+template <typename T>
+T GetSubVector(const T& global_vect, const std::vector<int>& map)
+{
+    int size = map.size();
+
+    T local_vect(size);
+
+    for (int i = 0; i < size; ++i)
+    {
+        local_vect[i] = global_vect[map[i]];
     }
 
     return local_vect;
@@ -472,6 +547,47 @@ std::vector<T> Broadcast(const linalgcpp::ParCommPkg& comm_pkg,
     return recv_buffer;
 }
 
+template <typename T, typename U>
+SparseMatrix<U> RemoveLowDegree(const SparseMatrix<T>& agg_dof,
+                                const SparseMatrix<T>& dof_degree)
+{
+    int rows = agg_dof.Rows();
+    int cols = agg_dof.Cols();
+
+    const auto& mat_indptr = agg_dof.GetIndptr();
+    const auto& mat_indices = agg_dof.GetIndices();
+    const auto& mat_data = agg_dof.GetData();
+
+    std::vector<int> indptr(rows + 1);
+    std::vector<int> indices;
+    std::vector<T> data;
+
+    indices.reserve(agg_dof.nnz());
+    data.reserve(agg_dof.nnz());
+
+    double tol = 1e-4;
+
+    for (int i = 0; i < rows; ++i)
+    {
+        indptr[i] = indices.size();
+
+        for (int j = mat_indptr[i]; j < mat_indptr[i + 1]; ++j)
+        {
+            double degree = dof_degree.RowSize(mat_indices[j]);
+
+            if (std::fabs(degree - mat_data[j]) <= tol)
+            {
+                indices.push_back(mat_indices[j]);
+                data.push_back(mat_data[j]);
+            }
+        }
+    }
+
+    indptr[rows] = indices.size();
+
+    return SparseMatrix<T>(std::move(indptr), std::move(indices), std::move(data),
+                           rows, cols);
+}
 
 } // namespace linalgcpp
 

@@ -289,7 +289,7 @@ class ParMatrix: public ParOperator
              diagonal and off diagonal blocks.
             @param row row to to get size of
         */
-        int RowSize(int row);
+        int RowSize(int row) const;
 
         /*! @brief Remove entries less than tolerance
             @param tol tolerance

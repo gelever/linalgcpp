@@ -407,7 +407,7 @@ void ParMatrix::EliminateRow(int index)
     offd_.EliminateRow(index);
 }
 
-int ParMatrix::RowSize(int row)
+int ParMatrix::RowSize(int row) const
 {
     return diag_.RowSize(row) + offd_.RowSize(row);
 }

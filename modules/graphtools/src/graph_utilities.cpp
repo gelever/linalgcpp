@@ -233,6 +233,71 @@ bool CheckSymmetric(const linalgcpp::ParOperator& A, bool verbose)
     return diff < tol;
 }
 
+ParMatrix RemoveLowDegree(const ParMatrix& agg_dof, const ParMatrix& dof_degree)
+{
+    int num_dofs = dof_degree.Rows();
+    int num_aggs = agg_dof.Rows();
+
+    std::vector<int> row_sizes(num_dofs);
+
+    for (int i = 0; i < num_dofs; ++i)
+    {
+        row_sizes[i] = dof_degree.RowSize(i);
+    }
+
+    auto comm_pkg = agg_dof.MakeCommPkg();
+    auto offproc_rowsizes = Broadcast(comm_pkg, row_sizes);
+
+    CooMatrix<double> coo_diag;
+    CooMatrix<double> coo_offd;
+
+    const auto& diag_indptr = agg_dof.GetDiag().GetIndptr();
+    const auto& diag_indices = agg_dof.GetDiag().GetIndices();
+    const auto& diag_data = agg_dof.GetDiag().GetData();
+    const auto& offd_indptr = agg_dof.GetOffd().GetIndptr();
+    const auto& offd_indices = agg_dof.GetOffd().GetIndices();
+    const auto& offd_data = agg_dof.GetOffd().GetData();
+    const auto& colmap = agg_dof.GetColMap();
+
+    double tol = 1e-8;
+
+    for (int i = 0; i < num_aggs; ++i)
+    {
+        for (int j = diag_indptr[i]; j < diag_indptr[i + 1]; ++j)
+        {
+            int dof = diag_indices[j];
+            double val = diag_data[j];
+
+            // Warning(@gelever): Disregards edges of degree one no matter what!
+            if (std::fabs(val) >= 1.5 && std::fabs(val - row_sizes[dof]) <= tol)
+            {
+                coo_diag.Add(i, dof, val);
+            }
+        }
+
+        for (int j = offd_indptr[i]; j < offd_indptr[i + 1]; ++j)
+        {
+            int dof = offd_indices[j];
+            double val = offd_data[j];
+
+            // Warning(@gelever): Disregards edges of degree one no matter what!
+            if (std::fabs(val) >= 1.5 && std::fabs(val - offproc_rowsizes[dof]) <= tol)
+            {
+                coo_offd.Add(i, dof, val);
+            }
+        }
+    }
+
+    coo_diag.SetSize(agg_dof.GetDiag().Rows(), agg_dof.GetDiag().Cols());
+    coo_offd.SetSize(agg_dof.GetOffd().Rows(), agg_dof.GetOffd().Cols());
+
+    auto diag = coo_diag.ToSparse();
+    auto offd = coo_offd.ToSparse();
+
+    return ParMatrix(agg_dof.GetComm(), agg_dof.GetRowStarts(), agg_dof.GetColStarts(),
+                     std::move(diag), std::move(offd), colmap);
+}
+
 
 
 } // namespace linalgcpp
