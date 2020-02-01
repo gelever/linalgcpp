@@ -1,6 +1,8 @@
 # linalgcpp [![Build Status](https://travis-ci.org/gelever/linalgcpp.svg?branch=master)](https://travis-ci.org/gelever/linalgcpp)
 A linear algebra library based heavily on [MFEM](https://github.com/mfem/mfem)'s linear algebra.
 
+For an example project that links `linalgcpp`, see https://github.com/gelever/linalgcpp_example
+
 # Project Goal
 The goal of this libary is to provide a safe and convenient linear algebra framework.
 Type and memory safety are important to provide confidence with implementing new ideas.
