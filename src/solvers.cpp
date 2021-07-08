@@ -23,6 +23,26 @@ Solver::Solver(const Operator& A, int max_iter, double rel_tol,
     assert(A_->Rows() == A_->Cols());
 }
 
+Solver::Solver(const Solver& other) noexcept
+    : Operator(other), A_(other.A_), max_iter_(other.max_iter_),
+      verbose_(other.verbose_), rel_tol_(other.rel_tol_),
+      abs_tol_(other.abs_tol_), Dot_(other.Dot_),
+      num_iter_(other.num_iter_)
+{
+}
+
+Solver::Solver(Solver&& other) noexcept
+{
+    swap(*this, other);
+}
+
+Solver& Solver::operator=(Solver&& other) noexcept
+{
+    swap(*this, other);
+
+    return *this;
+}
+
 void swap(Solver& lhs, Solver& rhs) noexcept
 {
     swap(static_cast<Operator&>(lhs), static_cast<Operator&>(rhs));
@@ -185,11 +205,11 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
         double r_z = (*Dot_)(r_ , z_);
         double alpha = r_z / pAp;
 
-        linalgcpp_verify(pAp > -1e12, "PCG is not positive definite!");
+        linalgcpp_verify(pAp > -1e-12, "PCG is not positive definite!");
 
         x.Add(alpha, p_);
 
-        double denom = (*Dot_)(z_, r_);
+        double denom = r_z;
 
         r_.Sub(alpha, Ap_);
 
@@ -202,19 +222,20 @@ void PCGSolver::Mult(const VectorView<double>& b, VectorView<double> x) const
             z_ = r_;
         }
 
-        double numer = (*Dot_)(z_, r_);
+        double r_z_next = (*Dot_)(z_, r_);
 
         if (verbose_)
         {
-            printf("PCG %d: %.2e\n", num_iter_, numer / r0);
+            printf("PCG %d: reduction: %.2e r_z_next: %.2e, tol2: %.2e\n",
+                    num_iter_, r_z_next / r0, r_z_next, tol_tol);
         }
 
-        if (numer < tol_tol)
+        if (r_z_next < tol_tol)
         {
             break;
         }
 
-        double beta = numer / denom;
+        double beta = r_z_next / denom;
 
         p_ *= beta;
         p_ += z_;

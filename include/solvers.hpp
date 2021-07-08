@@ -18,10 +18,13 @@ class Solver : public Operator
         Solver();
 
         /*! @brief Copy Constructor */
-        Solver(const Solver& other) noexcept = default;
+        Solver(const Solver& other) noexcept;
 
         /*! @brief Move Constructor */
-        Solver(Solver&& other) noexcept = default;
+        Solver(Solver&& other) noexcept;
+
+        /*! @brief Assignement Operator */
+        Solver& operator=(Solver&& other) noexcept;
 
         /*! @brief Destructor */
         virtual ~Solver() noexcept = default;

@@ -1,6 +1,8 @@
 add_executable(vector_ops vector_ops.cpp)
 target_link_libraries(vector_ops linalgcpp)
 
+add_test(example_vector_basics vector_ops)
+
 function(copy_file filename)
     configure_file(
         "${PROJECT_SOURCE_DIR}/examples/vector/${filename}"

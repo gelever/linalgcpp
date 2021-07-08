@@ -1243,8 +1243,10 @@ void test_blockvector()
 void test_blockoperator()
 {
     CooMatrix<double> coo(2, 2);
-    coo.Add(0, 0, 1.0);
-    coo.Add(1, 1, 1.0);
+    coo.Add(0, 0, 3.0);
+    coo.Add(0, 1, -1.0);
+    coo.Add(1, 0, -1.0);
+    coo.Add(1, 1, 4.0);
     auto sparse = coo.ToSparse();
     auto dense = coo.ToDense();
 
@@ -1287,6 +1289,19 @@ void test_blockoperator()
         BlockOperator b(offsets, offsets);
         b.SetBlock(0, 0, coo);
         b.SetBlock(0, 1, sparse);
+        b.SetBlock(1, 1, dense);
+
+        b.Mult(x, y);
+        y.Print("y:");
+
+        b.MultAT(x, y);
+        y.Print("y T:");
+    }
+
+    // Diag Block
+    {
+        BlockDiagOperator b(offsets, offsets);
+        b.SetBlock(0, 0, coo);
         b.SetBlock(1, 1, dense);
 
         b.Mult(x, y);
@@ -1521,6 +1536,81 @@ void test_argparser(int argc, char** argv)
     }
 }
 
+void test_assert()
+{
+    bool verify_works = true;
+    bool assert_works = true;
+
+    try
+    {
+        linalgcpp_verify(false, "Catch this!");
+        verify_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+    }
+
+    try
+    {
+        bool val = false;
+        linalgcpp_verify([&val]() { return val; } , "Catch this lambda!");
+        verify_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+    }
+
+    try
+    {
+        linalgcpp_verify(true, "Don't catch this!");
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Verification caught: " << e.what() << "\n";
+        verify_works = false;
+    }
+
+    try
+    {
+        linalgcpp_assert(false, "Catch this!");
+        assert_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+
+    bool eval = false;
+    try
+    {
+        bool val = false;
+        // In Debug mode, lambda is evaluated
+        // In Release mode, lambda is NOT evaluated
+        linalgcpp_assert([&]() { eval = true; return val; } , "Catch this lambda!");
+        assert_works = false;
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+    std::cout << "Lambda Evaluated: " << std::boolalpha << eval << "\n";
+
+    try
+    {
+        linalgcpp_assert(true, "Don't catch this!");
+    }
+    catch (const std::runtime_error& e)
+    {
+        assert_works = false;
+        std::cout << "Assertion caught: " << e.what() << "\n";
+    }
+
+    std::cout << "Verfication Works: " << std::boolalpha << verify_works << "\n";
+    std::cout << "Assertation Works: " << std::boolalpha << assert_works << "\n";
+}
+
 int main(int argc, char** argv)
 {
     test_coo();
@@ -1537,6 +1627,7 @@ int main(int argc, char** argv)
     test_timer();
     test_eigensolve();
     test_argparser(argc, argv);
+    test_assert();
 
     return EXIT_SUCCESS;
 }
